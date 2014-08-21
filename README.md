@@ -14,3 +14,14 @@ This is a python module in development. While the development is ongoing the rec
 
 ## Dependencies ##
 * Python 2.7
+
+Documentation is built using Sphinx. If your site uses a http/https proxy server
+then you may need to set your http_proxy and https_proxy environment variables
+before building the docs.
+
+Documentation build instructions:
+
+    cd docs/
+    make html
+
+The built documentation will be located in `docs/build/html/index.html`
