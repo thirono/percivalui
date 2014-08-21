@@ -28,7 +28,10 @@ class IABCMeta(object):
                         # of the interface function
                         # Rules for implementation of interface functions:
                         # 1) Must have at least the main (non-defaulted) named args
-                        # 2) Can extend the 
+                        # 2) Can extend the list of arguments
+                        # Default value arguments are discouraged in interfaces as the
+                        # interface does not implement any functionality. Implementations
+                        # can assign default values to the arguments if desired.
                         interface_func_args = getargspec( getattr(cls, req) ).args
                         impl_func_args = getargspec(getattr(C,req)).args
                         print req, getargspec( getattr(cls, req) ),  getargspec(getattr(C,req))
