@@ -26,8 +26,14 @@ detector Package
     :class:`IData` interface
     ------------------------------------
     .. autoclass:: detector.interface.IData
-        :members:
-        :show-inheritance:
+         :members:
+         :show-inheritance:
+
+    :class:`IParameter` interface
+    ------------------------------------
+    .. autoclass:: detector.interface.IParameter
+         :members:
+         :show-inheritance:
 
     :class:`IABCMeta` mix-in
     ---------------------------------
@@ -39,3 +45,17 @@ detector Package
     -------------------------
     .. literalinclude:: interface_examples.py
     
+:mod:`parameter` module
+-----------------------
+
+.. automodule:: detector.parameter
+
+    :class:`Observable`
+    -------------------
+    .. autoclass:: detector.parameter.Observable
+        :members: 
+        :private-members:
+        :show-inheritance:
+        
+    
+      

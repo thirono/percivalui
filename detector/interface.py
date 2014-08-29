@@ -13,6 +13,7 @@ Classes
 
 import abc
 from inspect import ismethod, getargspec
+import parameter
 
 class IABCMeta(object):
     '''
@@ -88,15 +89,13 @@ class IDetector(IABCMeta):
         raise NotImplementedError
     
 class IParameter(object):
-    '''Pure abstract interface to describe a detector parameter'''
-    __metaclass__ = abc.ABCMeta
+    '''Base class interface to describe a detector parameter
     
-    @property
-    def value(self):
-        return self._value
-    @value.setter
-    def value(self, value):
-        self._value = value
+    The :obj:`value` object is a :class:`detector.parameter.Observable` instance 
+    to which callbacks can be registerred to provide notification updates
+    '''
+    __metaclass__ = abc.ABCMeta
+    value = parameter.Observable('value')
     
 
 class IControl(object):

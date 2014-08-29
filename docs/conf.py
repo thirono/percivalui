@@ -89,6 +89,8 @@ pygments_style = 'sphinx'
 intersphinx_mapping = {'python': ('https://docs.python.org/2.7',
                                   None)}
 
+autodoc_docstring_signature = True
+
 # -- Options for HTML output ---------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
