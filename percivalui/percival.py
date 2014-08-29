@@ -3,7 +3,13 @@ Created on 25 Jul 2014
 
 @author: up45
 '''
-from detector.interface import IDetector, IControl, IData
+from detector.interface import IDetector, IControl, IData, IParameter
+
+class DAC(IParameter):
+    def __init__(self, v):
+        self.fpga_register = None
+    def convert_to_dac(self):
+        return self.value
 
 class CarrierBoard(object):
     pass
@@ -35,11 +41,13 @@ class PercivalUI(object):
 IControl.register(CarrierBoard)
 IDetector.register(PercivalUI)
 IData.register(MezzanineBoard)
+IParameter.register(DAC)
 
 # Sanity check: ensure the classes fully implement the interfaces
 assert issubclass(CarrierBoard, IControl)
 assert issubclass(MezzanineBoard, IData)
 assert issubclass(PercivalUI, IDetector)
+assert issubclass(DAC, IParameter)
 
 
 p = PercivalUI()

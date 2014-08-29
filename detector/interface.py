@@ -87,7 +87,17 @@ class IDetector(IABCMeta):
         '''
         raise NotImplementedError
     
-
+class IParameter(object):
+    '''Pure abstract interface to describe a detector parameter'''
+    __metaclass__ = abc.ABCMeta
+    
+    @property
+    def value(self):
+        return self._value
+    @value.setter
+    def value(self, value):
+        self._value = value
+    
 
 class IControl(object):
     __metaclass__ = abc.ABCMeta
