@@ -5,6 +5,8 @@ for notifications (callbacks) on change of data values.
 
 The implementation is thread safe by using python threading locks. 
 '''
+import logging
+logger = logging.getLogger(__name__)
 
 import exceptions
 from functools import wraps

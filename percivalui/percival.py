@@ -1,8 +1,11 @@
 '''
-Created on 25 Jul 2014
+The main PercivalUI module
 
-@author: up45
 '''
+
+import logging
+logger = logging.getLogger(__name__)
+
 from detector.interface import IDetector, IControl, IData, IParameter
 
 class DAC(IParameter):
@@ -30,6 +33,7 @@ class PercivalUI(object):
         '''
         Constructor
         '''
+        self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         
     def acquire(self, exposure, nframes=1, whatnot = 2):
         '''

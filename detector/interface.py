@@ -10,6 +10,8 @@ interface.
 The interface classes rely on the python :mod:`abc` module to support Abstract Base
 Classes
 '''
+import logging
+logger = logging.getLogger(__name__)
 
 import abc
 from inspect import ismethod, getargspec
