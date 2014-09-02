@@ -100,11 +100,11 @@ class IParameter(object):
     value = parameter.Observable('value')
     
 
-class IControl(object):
+class IControl(IABCMeta):
     __metaclass__ = abc.ABCMeta
     
 
-class IData(object):
+class IData(IABCMeta):
     __metaclass__ = abc.ABCMeta
     
     def get_filename(self):
@@ -113,4 +113,30 @@ class IData(object):
         self.filename = fname
     filename = abc.abstractproperty(get_filename, set_filename)
     
+    def get_datasetname(self):
+        return self.datasetname
+    def set_datasetname(self):
+        return self.datasetname
+    datasetname = abc.abstractproperty(get_datasetname, set_datasetname)
+    
+    @abc.abstractmethod
+    def start_capture(self, filename, nframes):
+        '''
+        Start capturing data frames into a filename.
+        
+        :param filename: Name of file to capture and store frames in.
+        :param nframes: Numbef of frames, expected to be acquired and stored.
+        '''
+        raise NotImplementedError
+    
+    @abc.abstractmethod
+    def wait_complete(self, timeout):
+        '''
+        Wait and return once the current capture session has completed.
+        This function will return when the required number of frames has been captured
+        into the file - or throw Timeout exception after a timeout.
+        
+        :param timeout: Number of seconds to block before timing out.
+        '''
+        raise NotImplementedError
     
