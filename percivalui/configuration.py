@@ -29,10 +29,19 @@ def find_file(filename, env=None):
                 searched for the :param:`filename` if it cannot be found.
     :returns: An absolute path to the file of the same name.
     '''
-    full_name = None
+    # Check if the filename exist as a relative or absolute path
     if os.path.isfile(filename):
         return os.path.abspath(filename)
-    ###### TODO: This function is not yet complete, but I have to go home and have a nice weekend!
+    
+    # Check  if the file exist in one of the search paths, indicated by
+    # the user in an environemnt variable
+    for path in os.getenv(env_config_dir, "").split(":"):
+        fn = os.path.abspath( os.path.join([path, filename]) )
+        if os.path.isfile(fn):
+            return fn
+    
+    # All other searches failed. We cant find this file. Raise exception.
+    raise IOError
 
 class PeripheryBoardConfiguration:
     '''Load and maintain the Periphery Board configuration data'''
@@ -46,15 +55,22 @@ class PeripheryBoardConfiguration:
                             :obj:`env_config_dir` are searched for the file. 
         '''
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+        self.cfg_filename = None
+        
+        # The data sections from the ini files are ordered in categories:
+        self.board_header = dict()
+        self.entry_count = dict()
+        self.components = list()
+        self.devices = list()
+        self.control_channels = list()
+        self.monitoring_channels = list()
+        
         
     def load_ini(self, config_file):
-        if os.path.isfile(config_file):
-            self.config_filename = os.path.abspath(config_file)
-        else:
-            search_dir = os.getenv(env_config_dir, "")
-            
+        self.cfg_filename = find_file( config_file )
         
         self.conf = ConfigParser.SafeConfigParser(dict_type=OrderedDict)
-        if self.config_filename:
-            self.conf.read( self.config_filename )
-        ###### TODO: This function is not yet complete, but I have to go home and have a nice weekend!
+        if self.cfg_filename:
+            self.conf.read( self.cfg_filename )
+
+        self.board_header = 

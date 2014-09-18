@@ -2,6 +2,8 @@
 
 The Percival detector python user interface.
 
+Please see the central user and developer documentation on the [percival-detector github pages](http://percival-detector.github.io)
+
 ## Introduction ##
 
 The percivalui project allow users and detector engineers to control the Percival detector system from a python based user interface. The userinterface is simply a python class where properties and methods can be manipulated to control the detector.
