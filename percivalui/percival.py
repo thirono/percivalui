@@ -3,6 +3,7 @@ The main PercivalUI module
 
 '''
 
+import time
 import logging
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,25 @@ class CarrierBoard(object):
     def __init__(self):
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self.dacs = DACs
+
+    #### IControl interface implementation ####        
+    def start_acquisition(self, exposure, nframes):
+        #raise NotImplementedError
+        pass
+    
+    def stop_acquisition(self):
+        #raise NotImplementedError
+        pass
+    
+    def get_nframes(self):
+        #raise NotImplementedError
+        return 42
+
+    def powerup_sequence(self):
+        raise NotImplementedError
+    #### End IControl interface implementation ####        
+
+
 
 class MezzanineBoard(IData):
     def __init__(self):
@@ -41,13 +61,16 @@ class MezzanineBoard(IData):
         '''
         Implements interface: :func:`detector.interface.IData.start_capture()`
         '''
-        raise NotImplementedError
+        pass
     
     def wait_complete(self, timeout):
         '''
         Implements interface: :func:`detector.interface.IData.wait_complete()`
         '''
-        raise NotImplementedError
+        # TODO: implement proper wait for file saving complete. For the moment we just sleep
+        sleepfor = 1.0 if timeout is None else timeout
+        time.sleep(sleepfor)
+        
 ### End of implemetation of the IData interface ###
 
 
@@ -65,11 +88,18 @@ class PercivalUI(object):
         '''
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         
-    def acquire(self, exposure, nframes=1, whatnot = 2):
+    def acquire(self, exposure, nframes=1, wait=True):
         '''
         Start the detector acquiring data
         '''
-        raise NotImplementedError
+        self.control.start_acquisition(exposure, nframes)
+        if wait:
+            # Cait until acquisition is complete.
+            # Calculate a suitable timeout based on exposure time and number of frames
+            # TODO: for the moment we just fake it with a bit of a sleep here
+            time.sleep(exposure * nframes)
+        nframes_acq = self.control.get_nframes()
+        return nframes_acq
 
 # Register the classes as implementing the relevant interfaces
 IControl.register(CarrierBoard)
