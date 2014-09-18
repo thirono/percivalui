@@ -103,6 +103,17 @@ class IParameter(object):
 class IControl(IABCMeta):
     __metaclass__ = abc.ABCMeta
     
+    @abc.abstractmethod
+    def start_acquisition(self, exposure, nframes):
+        raise NotImplementedError
+    
+    @abc.abstractmethod
+    def stop_acquisition(self):
+        raise NotImplementedError
+    
+    @abc.abstractmethod
+    def get_nframes(self):
+        raise NotImplementedError
 
 class IData(IABCMeta):
     __metaclass__ = abc.ABCMeta
