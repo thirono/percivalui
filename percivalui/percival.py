@@ -2,12 +2,6 @@
 The main PercivalUI module
 
 '''
-try:
-    import pkg_resources
-    pkg_resources.require('numpy')
-    pkg_resources.require('h5py')
-except:
-    pass
 
 import numpy as np
 import h5py
