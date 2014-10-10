@@ -109,7 +109,7 @@ class MezzanineBoard(IData):
         sim.create_data([100,100])
 
         self.filename = filename
-        self.datasetname = '/data'
+        self.datasetname = 'data'
         sim.store_data(self.filename, self.datasetname)
     
     def wait_complete(self, timeout):

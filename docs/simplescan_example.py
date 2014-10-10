@@ -49,7 +49,7 @@ pcvl.data.wait_complete(timeout = None)
 print "Opening file: %s, dataset: %s" % (pcvl.data.filename,  pcvl.data.datasetname)
 # Access the real data through h5py
 import h5py
-h5file = h5py.File(pcvl.data.filename, 'w')
+h5file = h5py.File(pcvl.data.filename, 'r')
 dset = h5file[pcvl.data.datasetname]
 
 print "Acquire dataset dimensions: ", dset.shape 
