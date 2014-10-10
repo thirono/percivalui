@@ -5,9 +5,12 @@ This demonstrates how to do a synchronous scan of a DAC
 parameter while acquiring samples off the detector.
 '''
 
-from pkg_resources import require
-require('h5py')
-require('numpy')
+try:
+    from pkg_resources import require
+    require('h5py')
+    require('numpy')
+except:
+    pass # not everyone use setuptools and that is OK...
 
 import logging
 logging.basicConfig()
