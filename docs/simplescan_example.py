@@ -5,9 +5,17 @@ This demonstrates how to do a synchronous scan of a DAC
 parameter while acquiring samples off the detector.
 '''
 
-from pkg_resources import require
-require('h5py')
-require('numpy')
+try:
+    from pkg_resources import require
+    require('h5py')
+    require('numpy')
+except:
+    pass # not everyone use setuptools and that is OK...
+
+import logging
+logging.basicConfig()
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
 
 from percivalui import PercivalUI
 import datetime
@@ -40,13 +48,10 @@ for DAC_value in DAC_scan_values:
 # blocks until data capture is complete or stopped.
 pcvl.data.wait_complete(timeout = None)
 
-# Collect the information about where the data is stored
-data_filename = pcvl.data.get_filename()
-dataset_name = pcvl.data.get_datasetname()
-
+print "Opening file: %s, dataset: %s" % (pcvl.data.filename,  pcvl.data.datasetname)
 # Access the real data through h5py
 import h5py
-h5file = h5py.File(data_filename, 'w')
-dset = h5file[dataset_name]
+h5file = h5py.File(pcvl.data.filename, 'r')
+dset = h5file[pcvl.data.datasetname]
 
 print "Acquire dataset dimensions: ", dset.shape 

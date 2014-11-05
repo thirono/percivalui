@@ -3,6 +3,9 @@ The main PercivalUI module
 
 '''
 
+import numpy as np
+import h5py
+
 import time
 import logging
 logger = logging.getLogger(__name__)
@@ -10,7 +13,41 @@ logger = logging.getLogger(__name__)
 import detector.parameter
 from detector.interface import IDetector, IControl, IData
 
- 
+class PercivalSimulator:
+    # This is a singleton
+    __instance = None
+    def __new__(cls, *args, **kwargs):
+        if not cls.__instance:
+            cls.__instance = super(PercivalSimulator, cls).__new__(cls, *args, **kwargs)
+        return cls.__instance
+
+    def __init__(self):
+        self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+        self.data = None
+        self.file = None
+        
+    def create_data(self, dims, dtype=np.uint16):
+        self.log.debug("creating some data with dtype: %s" % dtype)
+        rand = np.random.random(dims)
+        if np.issubdtype(dtype, np.float):
+            factor = 1.0
+        elif np.issubdtype(dtype, np.integer):
+            factor = np.iinfo(dtype).max
+        else:
+            raise TypeError
+        self.data = np.array(factor * rand, dtype=dtype)
+        self.log.debug("Created data: %s" % self.data)
+        
+    def store_data(self, file_name, dataset_name):
+        self.log.debug("file_name = %s, dataset_name = %s" % (file_name, dataset_name))
+        self.log.debug("Data: %s"%str(self.data))
+        f = h5py.File(file_name, 'w')
+        try:
+            f.create_dataset(dataset_name, data = self.data)
+        finally:
+            f.close()
+        
+        
 class DACs:
     some_gain = detector.parameter.Observable('some_gain')
 
@@ -36,7 +73,8 @@ class CarrierBoard(object):
         raise NotImplementedError
     #### End IControl interface implementation ####        
 
-
+    def initialise_fpga(self):
+        raise NotImplementedError
 
 class MezzanineBoard(IData):
     def __init__(self):
@@ -53,15 +91,20 @@ class MezzanineBoard(IData):
     _datasetname = ""
     def get_datasetname(self):
         return self._datasetname
-    def set_datasetname(self):
-        return self._datasetname
+    def set_datasetname(self, value):
+        self._datasetname = str(value)
     datasetname = property(get_datasetname, set_datasetname)
 
     def start_capture(self, filename, nframes):
         '''
         Implements interface: :func:`detector.interface.IData.start_capture()`
         '''
-        pass
+        sim = PercivalSimulator()
+        sim.create_data([100,100])
+
+        self.filename = filename
+        self.datasetname = 'data'
+        sim.store_data(self.filename, self.datasetname)
     
     def wait_complete(self, timeout):
         '''
