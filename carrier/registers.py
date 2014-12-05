@@ -4,6 +4,9 @@ Created on 5 Dec 2014
 @author: Ulrik Pedersen
 '''
 
+UART_ADDR_WIDTH = 16
+UART_WORD_WIDTH = 32
+
 class UARTRegister(object):
     '''
     classdocs
@@ -22,10 +25,10 @@ class UARTRegister(object):
         # Setup a container of data words
         self._data_words = [0x0000] * self._entries * self._words_per_entry
         
-    def read_msg(self):
+    def get_read_cmdmsg(self):
         pass
     
-    def write_msg(self):
+    def get_write_cmdmsg(self):
         pass
     
     def set_data_word(self, entry, word_index, word):

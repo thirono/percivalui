@@ -13,12 +13,12 @@ class TestUARTRegister(unittest.TestCase):
         self.reg = registers.UARTRegister("TEST_REG", 0xAABB, 4, 2, 0xCCDD)
 
     def test_read_msg(self):
-        '''Check the correctness of the generated readback command/msg from read_msg()'''
-        msg = self.reg.read_msg()
+        '''Check the correctness of the generated readback command/msg from get_read_cmdmsg()'''
+        msg = self.reg.get_read_cmdmsg()
         self.assertEqual(msg, '\xCC\xDD\x00\x00\x00\x00', "Readback msg not correct: %s"%str([msg]))
         
     def test_write_msg(self):
-        msg = self.reg.write_msg()
+        msg = self.reg.get_write_cmdmsg()
         expected_msg = '\xAA\xBB\x00\x00\x00\x00' \
                        '\xAA\xBC\x00\x00\x00\x00' \
                        '\xAA\xBD\x00\x00\x00\x00' \
@@ -36,6 +36,9 @@ class TestUARTRegister(unittest.TestCase):
         expected_words = [0x00000000] * 4 * 2
         expected_words[3] = 0x01020304
         self.assertEqual(self.reg._data_words, expected_words, "Word not stored as expected")
+
+    def test_set_data_word_outofrange(self):
+        self.reg.set_data_word(4, 1, 0x01020304)
 
     def test_set_data_entry(self):
         self.reg.set_data_entry(1, [0x01020304, 0x05060708, 0x09101112, 0x13141516])
