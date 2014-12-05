@@ -4,7 +4,7 @@ Created on 5 Dec 2014
 @author: Ulrik Pedersen
 '''
 import unittest
-import registers
+from carrier import registers
 
 class TestUARTRegister(unittest.TestCase):
 

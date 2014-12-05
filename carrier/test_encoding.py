@@ -5,7 +5,7 @@ Created on 4 Dec 2014
 '''
 import unittest
 
-import encoding
+from carrier import encoding
 import struct
 
 class TestEncodeMessage(unittest.TestCase):
