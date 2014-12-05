@@ -26,7 +26,7 @@ def encode_multi_message(start_addr, words):
 def decode_message(msg):
     extra_bytes = len(msg)%6
     if (extra_bytes > 0):
-        msg = msg[:-extra_bytes] # WARNING: we are chopping away some superflous bytes here...
+        msg = msg[:-extra_bytes] # WARNING: we are chopping away some bytes here...
     num_words =  len(msg)/6
     fmt = "!"
     fmt += "HI" * num_words
