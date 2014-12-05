@@ -73,4 +73,4 @@ class PeripheryBoardConfiguration:
         if self.cfg_filename:
             self.conf.read( self.cfg_filename )
 
-        self.board_header = 
+        #self.board_header = 
