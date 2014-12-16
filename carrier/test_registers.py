@@ -29,26 +29,33 @@ class TestUARTRegister(unittest.TestCase):
                        '\xAA\xC2\x00\x00\x00\x00' 
         self.assertEqual(msg, expected_msg, msg)
         
-        
-        
     def test_set_data_word(self):
-        self.reg.set_data_word(2, 1, 0x01020304)
-        expected_words = [0x00000000] * 4 * 2
-        expected_words[3] = 0x01020304
+        self.reg.set_data_word(1, 1, 0x01020304)
+        expected_words = [[0x00000000] * 4 for i in xrange(2)]
+        expected_words[1][1] = 0x01020304
         self.assertEqual(self.reg._data_words, expected_words, "Word not stored as expected")
 
     def test_set_data_word_outofrange(self):
-        self.reg.set_data_word(4, 1, 0x01020304)
+        with self.assertRaises(ValueError):
+            self.reg.set_data_word(3, 1, 0x0102030405)
+            
+    def test_set_data_word_outofindex(self):
+        with self.assertRaises(IndexError):
+            self.reg.set_data_word(4, 0, 0x01020304)
+        with self.assertRaises(IndexError):
+            self.reg.set_data_word(1, 77, 0x01020304)
 
     def test_set_data_entry(self):
         self.reg.set_data_entry(1, [0x01020304, 0x05060708, 0x09101112, 0x13141516])
-        expected_words = [0x00000000] * 4 * 2
-        expected_words[5] = 0x01020304
-        expected_words[6] = 0x05060708
-        expected_words[7] = 0x09101112
-        expected_words[8] = 0x13141510
+        expected_words = [[0x00000000] * 4 for i in xrange(2)]
+        expected_words[1][0] = 0x01020304
+        expected_words[1][1] = 0x05060708
+        expected_words[1][2] = 0x09101112
+        expected_words[1][3] = 0x13141516
+        print expected_words
         self.assertEqual(self.reg._data_words, expected_words, "Entry of 4 words not stored as expected")
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()
+
