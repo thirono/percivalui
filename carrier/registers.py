@@ -23,7 +23,8 @@ class UARTRegister(object):
         self._readback_addr = readback_addr
         
         # Setup a container of data words
-        self._data_words = [0x0000] * self._entries * self._words_per_entry
+        # Ensure it's a deep copy by [:]
+        self._data_words = [[0x0000]*self._words_per_entry for i in xrange(self._entries)]
         
     def get_read_cmdmsg(self):
         pass
@@ -32,12 +33,15 @@ class UARTRegister(object):
         pass
     
     def set_data_word(self, entry, word_index, word):
-        pass
+        if word.bit_length() > 32:
+            raise ValueError("Word 0x%H is larger than 32 bits"%word)
+        self._data_words[entry][word_index] = word
     
     def set_data_entry(self, entry, words):
-        pass
+        for word in words:
+            if word.bit_length() > 32:
+                raise ValueError("Word 0x%H is larger than 32 bits"%word)
+        self._data_words[entry] = words
     
-    def _data_index(self, entry, word_index):
-        return entry * self._words_per_entry + word_index
     
     
