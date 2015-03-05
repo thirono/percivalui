@@ -6,7 +6,8 @@ Created on 4 Dec 2014
 
 import struct
 
-SINGLE_MSG_FMT='!HI'
+SINGLE_MSG_FMT = '!HI'
+NUM_BYTES_PER_MSG = 6
 
 msg_packer = struct.Struct(SINGLE_MSG_FMT)
 
@@ -24,10 +25,10 @@ def encode_multi_message(start_addr, words):
     return encoded_msg
 
 def decode_message(msg):
-    extra_bytes = len(msg)%6
+    extra_bytes = len(msg)%NUM_BYTES_PER_MSG
     if (extra_bytes > 0):
         msg = msg[:-extra_bytes] # WARNING: we are chopping away some bytes here...
-    num_words =  len(msg)/6
+    num_words =  len(msg)/NUM_BYTES_PER_MSG
     fmt = "!"
     fmt += "HI" * num_words
     
