@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/percival-detector/percivalui.svg)](https://travis-ci.org/percival-detector/percivalui)
+
 # Percival UI #
 
 The Percival detector python user interface.
