@@ -1,2 +1,2 @@
 
-from percival import PercivalUI
+from percivalui.percival import PercivalUI

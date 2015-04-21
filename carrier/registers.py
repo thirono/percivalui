@@ -3,8 +3,8 @@ Created on 5 Dec 2014
 
 @author: Ulrik Pedersen
 '''
-
-from encoding import encode_multi_message, encode_message
+from __future__ import unicode_literals
+from carrier.encoding import encode_multi_message, encode_message
 
 class UARTRegister(object):
     '''

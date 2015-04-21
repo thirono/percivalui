@@ -5,6 +5,7 @@ for notifications (callbacks) on change of data values.
 
 The implementation is thread safe by using python threading locks. 
 '''
+from __future__ import unicode_literals
 import logging
 logger = logging.getLogger(__name__)
 

@@ -3,6 +3,7 @@ Created on 4 Dec 2014
 
 @author: Ulrik Pedersen
 '''
+from __future__ import unicode_literals
 
 import socket
 
