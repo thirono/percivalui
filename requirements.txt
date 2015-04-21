@@ -1,0 +1,11 @@
+numpy>=1.7.0
+h5py>=2.5.0
+nose>=1.3.0
+
+# Oddly cython *is* actually a dependency, however due to some
+# obscure 'pip' bug, sub-dependencies are not installed in the
+# correct order when explicitly listed. It *will* however be
+# installed automatically and correctly when h5py is installed.
+# Pip bug report here: https://github.com/pypa/pip/issues/2478
+# and the equivalent h5py bug report: https://github.com/h5py/h5py/issues/535
+#cython>=0.19.1
