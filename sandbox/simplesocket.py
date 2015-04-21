@@ -3,6 +3,7 @@ Created on 2 Dec 2014
 
 @author: up45
 '''
+from __future__ import print_function
 import socket
 
 #board_ip_address = "192.168.0.3"
@@ -27,16 +28,16 @@ def main():
     client_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_sock.settimeout(1.0)
     client_sock.connect((board_ip_address, board_ip_port))
-    print "Sending message: ", numbers
-    print " as string:      ", [msg]
+    print("Sending message: ", numbers)
+    print(" as string:      ", [msg])
     client_sock.send(msg)
     
-    print "Waiting for response..."
+    print("Waiting for response...")
     response = client_sock.recv(1024)
     
-    print "Got response (%dbytes): "%len(response), [response] 
-    print " which means: ", [ord(r) for r in response]
-    print "  and in hex:", " ".join([hex(ord(r))for r in response])
+    print("Got response (%dbytes): "%len(response), [response]) 
+    print(" which means: ", [ord(r) for r in response])
+    print("  and in hex:", " ".join([hex(ord(r))for r in response]))
 
     client_sock.close()
     

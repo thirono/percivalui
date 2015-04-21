@@ -28,7 +28,7 @@ def decode_message(msg):
     extra_bytes = len(msg)%NUM_BYTES_PER_MSG
     if (extra_bytes > 0):
         msg = msg[:-extra_bytes] # WARNING: we are chopping away some bytes here...
-    num_words =  len(msg)/NUM_BYTES_PER_MSG
+    num_words =  len(msg)//NUM_BYTES_PER_MSG
     fmt = "!"
     fmt += "HI" * num_words
     

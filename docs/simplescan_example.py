@@ -35,23 +35,23 @@ pcvl.data.start_capture(data_filename, nframes=nframes_total)
 
 # Scan through the desired DAC values
 for DAC_value in DAC_scan_values:
-    print "Setting DAC \'some_gain\' = %d"%DAC_value
+    logger.debug( "Setting DAC \'some_gain\' = %d"%DAC_value )
     # Set the desired control DAC parameter. In this example "some_gain"
     pcvl.control.dacs.some_gain = DAC_value
     
     # Acquire 10 frames for each step with a 0.1s exposure per frame
     # With wait=True, this function will block until aquisition completes
-    print "Acquiring %d frames" % nframes_per_step
+    logger.debug( "Acquiring %d frames" % nframes_per_step )
     pcvl.acquire(0.01, nframes_per_step, wait=True)
     
 # Now wait for the data to be stored to disk. This function
 # blocks until data capture is complete or stopped.
 pcvl.data.wait_complete(timeout = None)
 
-print "Opening file: %s, dataset: %s" % (pcvl.data.filename,  pcvl.data.datasetname)
+logger.info( "Opening file: %s, dataset: %s" % (pcvl.data.filename,  pcvl.data.datasetname) )
 # Access the real data through h5py
 import h5py
 h5file = h5py.File(pcvl.data.filename, 'r')
 dset = h5file[pcvl.data.datasetname]
 
-print "Acquire dataset dimensions: ", dset.shape 
+logger.info( "Acquire dataset dimensions: ", dset.shape ) 

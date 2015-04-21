@@ -105,7 +105,7 @@ class Observable(object):
             for (f,exception_handler) in self._callbacks():
                 try:
                     f(value)
-                except Exception, ex:
+                except Exception as ex:
                     if exception_handler and not exception_handler(ex): 
                         raise            # reraise if not handled
     

@@ -3,14 +3,18 @@ Created on 5 Dec 2014
 
 @author: Ulrik Pedersen
 '''
-import unittest
+import unittest, logging
 from carrier import registers
+
+logging.basicConfig()
+logging.getLogger(__name__).setLevel(logging.DEBUG)
 
 class TestUARTRegister(unittest.TestCase):
 
-
     def setUp(self):
         self.reg = registers.UARTRegister("TEST_REG", 0xAABB, 4, 2, 0xCCDD)
+        cl = ".".join([__name__,str( self.__class__)])
+        self.log = logging.getLogger(cl)
 
     def test_read_msg(self):
         '''Check the correctness of the generated readback command/msg from get_read_cmdmsg()'''
@@ -52,7 +56,7 @@ class TestUARTRegister(unittest.TestCase):
         expected_words[1][1] = 0x05060708
         expected_words[1][2] = 0x09101112
         expected_words[1][3] = 0x13141516
-        print expected_words
+        self.log.debug(expected_words)
         self.assertEqual(self.reg._data_words, expected_words, "Entry of 4 words not stored as expected")
 
 if __name__ == "__main__":
