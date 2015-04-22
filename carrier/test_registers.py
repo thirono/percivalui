@@ -32,7 +32,7 @@ class TestUARTRegister(unittest.TestCase):
                        '\xAA\xBF\x00\x00\x00\x00' \
                        '\xAA\xC0\x00\x00\x00\x00' \
                        '\xAA\xC1\x00\x00\x00\x00' \
-                       '\xAA\xC2\x00\x00\x00\x00') 
+                       '\xAA\xC2\x00\x00\x00\x00', encoding='latin-1') 
         self.assertEqual(msg, expected_msg, msg)
         
     def test_set_data_word(self):

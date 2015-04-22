@@ -4,6 +4,7 @@ Created on 4 Dec 2014
 @author: Ulrik Pedersen
 '''
 from __future__ import unicode_literals
+from builtins import bytes
 try:
     import itertools.izip as zip
 except ImportError:
@@ -17,12 +18,12 @@ NUM_BYTES_PER_MSG = 6
 msg_packer = struct.Struct(SINGLE_MSG_FMT)
 
 def encode_message(addr, word):
-    encoded_msg = msg_packer.pack(addr, word)
+    encoded_msg = bytes( msg_packer.pack(addr, word), encoding='latin-1')
     return encoded_msg
 
 def encode_multi_message(start_addr, words):
     addresses = range(start_addr, start_addr + len(words))
-    encoded_msg = b""
+    encoded_msg = bytes("", encoding='latin-1')
     assert len(addresses) == len(words)
     for addr, word in zip(*[addresses, words]):
         encoded_msg += encode_message(addr, word)

@@ -72,7 +72,7 @@ class IABCMeta(object):
             checks.append(result)
         return not False in checks
 
-class IDetector(with_metaclass(IABCMeta, abc.ABCMeta)):
+class IDetector(with_metaclass(abc.ABCMeta, IABCMeta)):
     '''
     Abstract Interface to a detector class
     '''
@@ -92,17 +92,17 @@ class IDetector(with_metaclass(IABCMeta, abc.ABCMeta)):
         '''
         raise NotImplementedError
     
-class IParameter(object):
+class IParameter(with_metaclass(abc.ABCMeta, object)):
     '''Base class interface to describe a detector parameter
     
     The :obj:`value` object is a :class:`detector.parameter.Observable` instance 
     to which callbacks can be registerred to provide notification updates
     '''
-    __metaclass__ = abc.ABCMeta
+    #__metaclass__ = abc.ABCMeta
     value = parameter.Observable('value')
     
 
-class IControl(with_metaclass(IABCMeta, abc.ABCMeta)):
+class IControl(with_metaclass(abc.ABCMeta, IABCMeta)):
     #__metaclass__ = abc.ABCMeta
     
     @abc.abstractmethod
@@ -117,7 +117,7 @@ class IControl(with_metaclass(IABCMeta, abc.ABCMeta)):
     def get_nframes(self):
         raise NotImplementedError
 
-class IData(with_metaclass(IABCMeta, abc.ABCMeta)):
+class IData(with_metaclass(abc.ABCMeta, IABCMeta)):
     #__metaclass__ = abc.ABCMeta
     
     def get_filename(self):
