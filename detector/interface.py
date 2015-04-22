@@ -11,6 +11,7 @@ The interface classes rely on the python :mod:`abc` module to support Abstract B
 Classes
 '''
 from __future__ import unicode_literals
+from future.utils import with_metaclass
 import logging
 logger = logging.getLogger(__name__)
 
@@ -71,11 +72,11 @@ class IABCMeta(object):
             checks.append(result)
         return not False in checks
 
-class IDetector(IABCMeta):
+class IDetector(with_metaclass(IABCMeta, abc.ABCMeta)):
     '''
     Abstract Interface to a detector class
     '''
-    __metaclass__ = abc.ABCMeta
+    #__metaclass__ = abc.ABCMeta
     __iproperties__ = ['exposure']
     __imethods__ = ['acquire']
     _iface_requirements = __imethods__ + __iproperties__
@@ -101,8 +102,8 @@ class IParameter(object):
     value = parameter.Observable('value')
     
 
-class IControl(IABCMeta):
-    __metaclass__ = abc.ABCMeta
+class IControl(with_metaclass(IABCMeta, abc.ABCMeta)):
+    #__metaclass__ = abc.ABCMeta
     
     @abc.abstractmethod
     def start_acquisition(self, exposure, nframes):
@@ -116,8 +117,8 @@ class IControl(IABCMeta):
     def get_nframes(self):
         raise NotImplementedError
 
-class IData(IABCMeta):
-    __metaclass__ = abc.ABCMeta
+class IData(with_metaclass(IABCMeta, abc.ABCMeta)):
+    #__metaclass__ = abc.ABCMeta
     
     def get_filename(self):
         return self.filename
