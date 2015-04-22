@@ -4,6 +4,11 @@ Created on 4 Dec 2014
 @author: Ulrik Pedersen
 '''
 from __future__ import unicode_literals
+try:
+    import itertools.izip as zip
+except ImportError:
+    pass
+
 import struct
 
 SINGLE_MSG_FMT = b'!HI'
@@ -37,7 +42,7 @@ def decode_message(msg):
     
     # reshape the linear list of (addr, word, addr, word, addr, word...) into a 
     # neat [(addr,word), (addr, word) ... ] list
-    addr_word_sets = zip(*[iter(addr_word_list)]*2)
+    addr_word_sets = [ aw_set for aw_set in zip(*[iter(addr_word_list)]*2) ]
     
     return addr_word_sets
 

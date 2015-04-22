@@ -4,6 +4,7 @@ Created on 5 Dec 2014
 @author: Ulrik Pedersen
 '''
 from __future__ import unicode_literals
+from builtins import range
 from carrier.encoding import encode_multi_message, encode_message
 
 class UARTRegister(object):
@@ -26,8 +27,8 @@ class UARTRegister(object):
         self._readback_addr = readback_addr
         
         # Setup a container of data words
-        # Ensure each entry list is an individual instance by using xrange()
-        self._data_words = [[0x0000]*self._words_per_entry for i in xrange(self._entries)]
+        # Ensure each entry list is an individual instance by using builtins.range()
+        self._data_words = [[0x0000]*self._words_per_entry for i in range(self._entries)]
         
     def get_read_cmdmsg(self):
         read_cmdmsg = encode_message(self._readback_addr, 0x00000000)

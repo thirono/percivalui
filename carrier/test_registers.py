@@ -4,7 +4,7 @@ Created on 5 Dec 2014
 @author: Ulrik Pedersen
 '''
 from __future__ import unicode_literals
-from builtins import bytes
+from builtins import bytes, range
 import unittest, logging
 from carrier import registers
 
@@ -25,7 +25,7 @@ class TestUARTRegister(unittest.TestCase):
         
     def test_write_msg(self):
         msg = self.reg.get_write_cmdmsg()
-        expected_msg = bytes('\xAA\xBB\x00\x00\x00\x00' \
+        expected_msg = bytes(b'\xAA\xBB\x00\x00\x00\x00' \
                        '\xAA\xBC\x00\x00\x00\x00' \
                        '\xAA\xBD\x00\x00\x00\x00' \
                        '\xAA\xBE\x00\x00\x00\x00' \
@@ -37,7 +37,7 @@ class TestUARTRegister(unittest.TestCase):
         
     def test_set_data_word(self):
         self.reg.set_data_word(1, 1, 0x01020304)
-        expected_words = [[0x00000000] * 4 for i in xrange(2)]
+        expected_words = [[0x00000000] * 4 for i in range(2)]
         expected_words[1][1] = 0x01020304
         self.assertEqual(self.reg._data_words, expected_words, "Word not stored as expected")
 
@@ -53,7 +53,7 @@ class TestUARTRegister(unittest.TestCase):
 
     def test_set_data_entry(self):
         self.reg.set_data_entry(1, [0x01020304, 0x05060708, 0x09101112, 0x13141516])
-        expected_words = [[0x00000000] * 4 for i in xrange(2)]
+        expected_words = [[0x00000000] * 4 for i in range(2)]
         expected_words[1][0] = 0x01020304
         expected_words[1][1] = 0x05060708
         expected_words[1][2] = 0x09101112

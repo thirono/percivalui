@@ -9,7 +9,6 @@ from __future__ import unicode_literals
 import logging
 logger = logging.getLogger(__name__)
 
-import exceptions
 from functools import wraps
 import threading  # for lock
 import weakref
@@ -33,7 +32,7 @@ def threadsafe( lockname ):
         return _synchronizer
     return _synched
 
-class RecursionError(exceptions.RuntimeError):
+class RecursionError(RuntimeError):
     pass
 
 
