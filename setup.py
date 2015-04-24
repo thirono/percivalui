@@ -61,11 +61,9 @@ setup(
     # Additional groups of dependencies (e.g. development dependencies). 
     # You can install these using the following syntax, for example:
     # $ pip install -e .[dev,test]
-    #extras_require={
-    #    'test': ['coverage'],
-    #},
-      
-    setup_requires = ['nose>=1.3'],
+    extras_require={
+        'test': ['nose>=1.3', 'coverage'],
+    },
 
     # Data files included in the packages
     #package_data={

@@ -10,7 +10,11 @@ before_install:
  
 install:
   - "pip install -r requirements.txt"
+  - pip install python-coveralls
   - python setup.py install
   
 # command to run tests
 script: nosetests
+
+after_success:
+  - coveralls
