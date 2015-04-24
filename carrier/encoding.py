@@ -28,16 +28,17 @@ def encode_message(addr, word):
     # need to convert to a 'bytes' object.
     if isinstance(encoded_msg, str):
         encoded_msg = bytes( encoded_msg, encoding=DATA_ENCODING)
-    logger.debug("returning: %s"%encoded_msg)
+    logger.debug("returning: %s"%[encoded_msg])
     return encoded_msg
 
 def encode_multi_message(start_addr, words):
+    logger.debug("%s"%([start_addr, words]))
     addresses = range(start_addr, start_addr + len(words))
     encoded_msg = bytes("", encoding=DATA_ENCODING)
     assert len(addresses) == len(words)
     for addr, word in zip(*[addresses, words]):
         encoded_msg += encode_message(addr, word)
-        
+    logger.debug("returning: %s"%[encoded_msg])
     return encoded_msg
 
 def decode_message(msg):
