@@ -7,6 +7,8 @@ from __future__ import unicode_literals
 from builtins import range
 from carrier.encoding import encode_multi_message, encode_message
 
+import logging
+
 class UARTRegister(object):
     '''
     classdocs
@@ -18,6 +20,7 @@ class UARTRegister(object):
         '''
         Constructor
         '''
+        self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._name = name
         self._start_addr = start_addr
         if start_addr.bit_length() > self.UART_ADDR_WIDTH:
@@ -32,6 +35,7 @@ class UARTRegister(object):
         
     def get_read_cmdmsg(self):
         read_cmdmsg = encode_message(self._readback_addr, 0x00000000)
+        self.log.debug(read_cmdmsg)
         return read_cmdmsg
     
     def get_write_cmdmsg(self):
