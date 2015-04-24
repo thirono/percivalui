@@ -18,7 +18,12 @@ NUM_BYTES_PER_MSG = 6
 msg_packer = struct.Struct(SINGLE_MSG_FMT)
 
 def encode_message(addr, word):
-    encoded_msg = bytes( msg_packer.pack(addr, word), encoding='latin-1')
+    encoded_msg = msg_packer.pack(addr, word)
+    # Python 2 -> 3 compatibility workaround:
+    # In python2 struct.pack() returns a string which we then
+    # need to convert to a 'bytes' object.
+    if isinstance(encoded_msg, str):
+        return bytes( encoded_msg, encoding='latin-1')
     return encoded_msg
 
 def encode_multi_message(start_addr, words):
