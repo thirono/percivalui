@@ -3,7 +3,7 @@ Configuration of the Percival Detector system can be loaded from various files.
 
 This module contain classes and functions to manage the loading of configurations.
 '''
-from __future__ import unicode_literals
+from __future__ import unicode_literals, absolute_import
 
 import logging
 logger = logging.getLogger(__name__)

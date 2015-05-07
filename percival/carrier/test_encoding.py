@@ -3,10 +3,10 @@ Created on 4 Dec 2014
 
 @author: up45
 '''
-from __future__ import unicode_literals
+from __future__ import unicode_literals, absolute_import
 import unittest
 
-from carrier import encoding
+from . import encoding
 import struct
 
 class TestEncodeMessage(unittest.TestCase):

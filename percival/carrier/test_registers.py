@@ -3,10 +3,10 @@ Created on 5 Dec 2014
 
 @author: Ulrik Pedersen
 '''
-from __future__ import unicode_literals
+from __future__ import unicode_literals, absolute_import
 from builtins import bytes, range
 import unittest, logging
-from carrier import registers
+from . import registers
 
 logging.basicConfig()
 logging.getLogger(__name__).setLevel(logging.DEBUG)

@@ -2,7 +2,7 @@
 The main PercivalUI module
 
 '''
-from __future__ import unicode_literals
+from __future__ import unicode_literals, absolute_import
 
 import numpy as np
 import h5py
@@ -11,8 +11,8 @@ import time
 import logging
 logger = logging.getLogger(__name__)
 
-import detector.parameter
-from detector.interface import IDetector, IControl, IData
+import detector
+from detector import parameter, interface
 
 class PercivalSimulator:
     # This is a singleton
@@ -77,7 +77,7 @@ class CarrierBoard(object):
     def initialise_fpga(self):
         raise NotImplementedError
 
-class MezzanineBoard(IData):
+class MezzanineBoard(interface.IData):
     def __init__(self):
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         
@@ -146,11 +146,11 @@ class PercivalUI(object):
         return nframes_acq
 
 # Register the classes as implementing the relevant interfaces
-IControl.register(CarrierBoard)
-IDetector.register(PercivalUI)
-IData.register(MezzanineBoard)
+interface.IControl.register(CarrierBoard)
+interface.IDetector.register(PercivalUI)
+interface.IData.register(MezzanineBoard)
 
 # Sanity check: ensure the classes fully implement the interfaces
-assert issubclass(CarrierBoard, IControl)
-assert issubclass(MezzanineBoard, IData)
-assert issubclass(PercivalUI, IDetector)
+assert issubclass(CarrierBoard, interface.IControl)
+assert issubclass(MezzanineBoard, interface.IData)
+assert issubclass(PercivalUI, interface.IDetector)

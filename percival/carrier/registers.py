@@ -3,9 +3,10 @@ Created on 5 Dec 2014
 
 @author: Ulrik Pedersen
 '''
-from __future__ import unicode_literals
+from __future__ import unicode_literals, absolute_import
 from builtins import range
-from carrier.encoding import encode_multi_message, encode_message
+from . import encoding
+
 
 import logging
 
@@ -34,14 +35,14 @@ class UARTRegister(object):
         self._data_words = [[0x0000]*self._words_per_entry for i in range(self._entries)]
         
     def get_read_cmdmsg(self):
-        read_cmdmsg = encode_message(self._readback_addr, 0x00000000)
+        read_cmdmsg = encoding.encode_message(self._readback_addr, 0x00000000)
         self.log.debug(read_cmdmsg)
         return read_cmdmsg
     
     def get_write_cmdmsg(self):
         # Flatten the 2D matrix of datawords into one continuous list
         contiguous_data_words = [word for entry in self._data_words for word in entry]
-        write_cmdmsg = encode_multi_message(self._start_addr, contiguous_data_words)
+        write_cmdmsg = encoding.encode_multi_message(self._start_addr, contiguous_data_words)
         return write_cmdmsg
     
     def set_data_word(self, entry, word_index, word):
