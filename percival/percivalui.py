@@ -150,7 +150,3 @@ interface.IControl.register(CarrierBoard)
 interface.IDetector.register(PercivalUI)
 interface.IData.register(MezzanineBoard)
 
-# Sanity check: ensure the classes fully implement the interfaces
-assert issubclass(CarrierBoard, interface.IControl)
-assert issubclass(MezzanineBoard, interface.IData)
-assert issubclass(PercivalUI, interface.IDetector)
