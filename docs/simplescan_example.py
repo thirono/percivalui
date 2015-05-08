@@ -9,6 +9,7 @@ try:
     from pkg_resources import require
     require('h5py')
     require('numpy')
+    require('future')
 except:
     pass # not everyone use setuptools and that is OK...
 
@@ -17,7 +18,7 @@ logging.basicConfig()
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
-from percivalui import PercivalUI
+from percival.percivalui import PercivalUI
 import datetime
 
 pcvl = PercivalUI()
@@ -54,4 +55,4 @@ import h5py
 h5file = h5py.File(pcvl.data.filename, 'r')
 dset = h5file[pcvl.data.datasetname]
 
-logger.info( "Acquire dataset dimensions: ", dset.shape ) 
+logger.info( "Acquire dataset dimensions: %s", str(dset.shape) ) 

@@ -11,8 +11,8 @@ import time
 import logging
 logger = logging.getLogger(__name__)
 
-import detector
-from detector import parameter, interface
+import percival.detector as detector
+from percival.detector import parameter, interface
 
 class PercivalSimulator:
     # This is a singleton

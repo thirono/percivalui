@@ -1,6 +1,11 @@
-from __future__ import unicode_literals
-from __future__ import print_function
-from detector.interface import IDetector
+from __future__ import unicode_literals, print_function
+try:
+    from pkg_resources import require
+    require('future')
+except:
+    pass # not everyone use setuptools and that is OK...
+
+from percival.detector.interface import IDetector
 
 class MyDetector( object ):
     exposure = 0.1
