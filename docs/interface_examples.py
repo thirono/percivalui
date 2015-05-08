@@ -1,6 +1,7 @@
 from __future__ import unicode_literals, print_function
 try:
     from pkg_resources import require
+    require('numpy')
     require('future')
 except:
     pass # not everyone use setuptools and that is OK...
