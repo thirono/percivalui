@@ -7,8 +7,16 @@ from __future__ import unicode_literals, absolute_import
 from builtins import range
 from . import encoding
 
-
 import logging
+
+       
+
+class RegisterFunction(object):
+    '''Link a register address with a certain functionality'''
+    def __init__(self, description, uart_reg, reg_bank_type, board_type):
+        pass
+    
+
 
 class UARTRegister(object):
     '''
