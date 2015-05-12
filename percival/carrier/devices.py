@@ -38,6 +38,8 @@ class DeviceSettings(object):
             map_field.extract_field_value(words)
             
     def generate_map(self):
+        """Generate a bitmap from the device MapFields. 
+        :returns: a list of 32bit words"""
         words = list(range(self.num_words))
         logger.debug("map: %s", str(self._mem_map))
         for (key,field) in self._mem_map.items():
@@ -111,7 +113,7 @@ class HeaderInfo(DeviceSettings):
 
 class ControlChannel(DeviceSettings):
     """Represent the map of Control Channels register bank"""
-    num_words = 5
+    num_words = 4
     _mem_map = {"board_type":                   MapField("board_type",                  0,  3, 24),
                 "component_family_id":          MapField("component_family_id",         0,  4, 20),
                 "device_i2c_bus_select":        MapField("device_i2c_bus_select",       0,  2, 18),
@@ -125,12 +127,13 @@ class ControlChannel(DeviceSettings):
                 "channel_default_on":           MapField("channel_default_on",          2, 16, 16),
                 "channel_default_off":          MapField("channel_default_off",         2, 16,  0),
                 
-                "channel_monitoring":           MapField("channel_monitoring",          3,  8, 16),
-                "safety_exception_threshold":   MapField("safety_exception_threshold",  3,  8,  8),
-                "read_frequency":               MapField("read_frequency",              3,  8,  0),
+                # These are not yet in use
+                #"channel_monitoring":           MapField("channel_monitoring",          3,  8, 16),
+                #"safety_exception_threshold":   MapField("safety_exception_threshold",  3,  8,  8),
+                #"read_frequency":               MapField("read_frequency",              3,  8,  0),
 
-                "power_status":                 MapField("power_status",                4,  1, 16),
-                "value":                        MapField("value",                       4, 16,  0),
+                "power_status":                 MapField("power_status",                3,  1, 16),
+                "value":                        MapField("value",                       3, 16,  0),
                 }
 
         
@@ -158,7 +161,7 @@ class MonitoringChannel(DeviceSettings):
 
 class IDeviceSettings(with_metaclass(abc.ABCMeta, IABCMeta)):
     '''
-    classdocs
+    Interface to a Device Setting bitmap.
     '''
     __iproperties__ = ['num_words', "_mem_map"]
     __imethods__ = ['parse_map', 'generate_map']

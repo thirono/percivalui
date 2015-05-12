@@ -72,7 +72,9 @@ class TestControlChannel(unittest.TestCase):
         self.dut = devices.ControlChannel()
         
     def testParseValidMap(self):
-        self.dut.parse_map([0xA1234567, 0x89ABCDEF, 0x11223344, 0x55667788, 0x99AABBCC])
+        # The full 5 word register is not yet in use in the firmware
+        #self.dut.parse_map([0xA1234567, 0x89ABCDEF, 0x11223344, 0x55667788, 0x99AABBCC])
+        self.dut.parse_map( [0xA1234567, 0x89ABCDEF, 0x11223344,             0x99AABBCC])
         self.assertEqual(0x01, self.dut.board_type)
         self.assertEqual(0x02, self.dut.component_family_id)
         self.assertEqual(0x00, self.dut.device_i2c_bus_select)
@@ -86,17 +88,21 @@ class TestControlChannel(unittest.TestCase):
         self.assertEqual(0x1122, self.dut.channel_default_on)
         self.assertEqual(0x3344, self.dut.channel_default_off)
 
-        self.assertEqual(0x66, self.dut.channel_monitoring)
-        self.assertEqual(0x77, self.dut.safety_exception_threshold)
-        self.assertEqual(0x88, self.dut.read_frequency)
+        # No yet in use in firmware
+        #self.assertEqual(0x66, self.dut.channel_monitoring)
+        #self.assertEqual(0x77, self.dut.safety_exception_threshold)
+        #self.assertEqual(0x88, self.dut.read_frequency)
 
         self.assertEqual(0x00, self.dut.power_status)
         self.assertEqual(0xBBCC, self.dut.value)
 
     def testValidGenerateMap(self):
-        self.dut.parse_map([0xA1234567, 0x89ABCDEF, 0x11223344, 0x55667788, 0x99AABBCC])
+        # The full 5 word register is not yet in use in the firmware
+        #self.dut.parse_map([0xA1234567, 0x89ABCDEF, 0x11223344, 0x55667788, 0x99AABBCC])
+        self.dut.parse_map( [0xA1234567, 0x89ABCDEF, 0x11223344,             0x99AABBCC])
         words = self.dut.generate_map()
-        self.assertEqual([0x01234567, 0x89ABCDEF, 0x11223344, 0x00667788, 0x0000BBCC], words)
+        #self.assertEqual([0x01234567, 0x89ABCDEF, 0x11223344, 0x00667788, 0x0000BBCC], words)
+        self.assertEqual( [0x01234567, 0x89ABCDEF, 0x11223344,             0x0000BBCC], words)
         
     def testParseInvalidMap(self):
         """Empty map should raise index error and no values parsed"""
