@@ -4,16 +4,163 @@ Created on 8 May 2015
 @author: Ulrik Pedersen
 '''
 from __future__ import unicode_literals, absolute_import
-from future.utils import with_metaclass
+from future.utils import with_metaclass, raise_with_traceback
+from builtins import range
 import abc
 
 from percival.detector.interface import IABCMeta
+
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+
+    
+class DeviceSettings(object):
+    """Mixin to be used by classes that implement the IDeviceSettings interface"""
+    def __getattr__(self, name):
+        if name in self._mem_map.keys():
+            return self._mem_map[name].value
+        else:
+            raise_with_traceback(AttributeError("No attribute: %s"%name))
+    
+    def __setattr__(self, name, value):
+        if not name in self._mem_map.keys():
+            return object.__setattr__(name, value)
+        else:
+            self._mem_map[name].value = value
+            
+    def parse_map(self, words):
+        """Parse a list of words as a bitmap"""
+        map_fields = [f for (k,f) in sorted(self._mem_map.items(), 
+                                        key=lambda key_field: key_field[1].word_index, reverse=True)] 
+        for map_field in map_fields:
+            map_field.extract_field_value(words)
+            
+    def generate_map(self):
+        words = list(range(self.num_words))
+        logger.debug("map: %s", str(self._mem_map))
+        for (key,field) in self._mem_map.items():
+            logger.debug("field: %s", str(field))
+            field.insert_field_value(words)
+            logger.debug("generate_map: words: %s", str(words))
+        return words
+
+class MapField:
+    def __init__(self, name, word_index, num_bits, bit_offset):
+        self._word_index = word_index
+        self._num_bits = num_bits
+        self._name = name
+        self._bit_offset = bit_offset
+        self._value = None
+    
+    @property
+    def num_bits(self):
+        return self._num_bits
+    
+    @property
+    def bit_offset(self):
+        return self._bit_offset
+    
+    @property
+    def name(self):
+        return self._name
+    
+    @property
+    def word_index(self):
+        return self._word_index
+    
+    @property
+    def mask(self):
+        return (2**self._num_bits -1) << self._bit_offset
+    
+    @property
+    def value(self):
+        return self._value
+    @value.setter
+    def value(self, value):
+        self._value = value
+    
+    def extract_field_value(self, words):
+        self._value = (words[self._word_index] & self.mask) >> self._bit_offset
+        return self._value
+    
+    def insert_field_value(self, words):
+        # Clear the relevant bits in the input word (AND with an inverted mask)
+        # Then set the relevant bit values (value shifted up and OR'ed)
+        words[self._word_index] = (words[self._word_index] & (self.mask ^ 2**32-1)) | (self._value << self._bit_offset)
+    
+    def __str__(self):
+        s = "<MapField: %s word:%i offset:%i bits:%i val:%s>"%(self._name, 
+                                                                 self._word_index,
+                                                                 self._bit_offset,
+                                                                 self._num_bits,
+                                                                 str(self._value))
+        return s
+    
+    def __repr__(self):
+        return self.__str__()
+
+class HeaderInfo(DeviceSettings):
+    """Represent the Header Info register bank"""
+    num_words = 1
+    _mem_map = {"eeprom_address":               MapField("eeprom_address",              0, 8, 16),
+                "monitoring_channels_count":    MapField("monitoring_channels_count",   0, 8,  8),
+                "control_channels_count":       MapField("control_channels_count",      0, 8,  0),
+                }
+
+class ControlChannel(DeviceSettings):
+    """Represent the map of Control Channels register bank"""
+    num_words = 5
+    _mem_map = {"board_type":                   MapField("board_type",                  0,  3, 24),
+                "component_family_id":          MapField("component_family_id",         0,  4, 20),
+                "device_i2c_bus_select":        MapField("device_i2c_bus_select",       0,  2, 18),
+                "channel_device_id":            MapField("channel_device_id",           0,  5, 13),
+                "channel_sub_address":          MapField("channel_sub_address",         0,  5,  8),
+                "device_address":               MapField("device_address",              0,  8,  0), 
+                
+                "channel_range_max":            MapField("channel_range_max",           1, 16, 16),
+                "channel_range_min":            MapField("channel_range_min",           1, 16,  0),
+                
+                "channel_default_on":           MapField("channel_default_on",          2, 16, 16),
+                "channel_default_off":          MapField("channel_default_off",         2, 16,  0),
+                
+                "channel_monitoring":           MapField("channel_monitoring",          3,  8, 16),
+                "safety_exception_threshold":   MapField("safety_exception_threshold",  3,  8,  8),
+                "read_frequency":               MapField("read_frequency",              3,  8,  0),
+
+                "power_status":                 MapField("power_status",                4,  1, 16),
+                "value":                        MapField("value",                       4, 16,  0),
+                }
+
+        
+class MonitoringChannel(DeviceSettings):
+    """Represent the map of Monitoring Channel register bank"""
+    num_words = 4
+    _mem_map = {"board_type":                   MapField("board_type",                  0,  3, 24),
+                "component_family_id":          MapField("component_family_id",         0,  4, 20),
+                "device_i2c_bus_select":        MapField("device_i2c_bus_select",       0,  2, 18),
+                "channel_device_id":            MapField("channel_device_id",           0,  5, 13),
+                "channel_sub_address":          MapField("channel_sub_address",         0,  5,  8),
+                "device_address":               MapField("device_address",              0,  8,  0), 
+                
+                "channel_ext_low_threshold":    MapField("channel_ext_low_threshold",   1, 16, 16),
+                "channel_ext_high_threshold":   MapField("channel_ext_high_threshold",  1, 16,  0),
+                
+                "channel_low_threshold":        MapField("channel_low_threshold",       2, 16, 16),
+                "channel_high_threshold":       MapField("channel_high_threshold",      2, 16,  0),
+                
+                "channel_monitoring":           MapField("channel_monitoring",          3,  8, 16),
+                "safety_exception_threshold":   MapField("safety_exception_threshold",  3,  8,  8),
+                "read_frequency":               MapField("read_frequency",              3,  8,  0),
+                }
+    
 
 class IDeviceSettings(with_metaclass(abc.ABCMeta, IABCMeta)):
     '''
     classdocs
     '''
-    __iproperties__ = ['num_words']
+    __iproperties__ = ['num_words', "_mem_map"]
     __imethods__ = ['parse_map', 'generate_map']
     _iface_requirements = __imethods__ + __iproperties__
     
@@ -21,6 +168,10 @@ class IDeviceSettings(with_metaclass(abc.ABCMeta, IABCMeta)):
     def num_words(self):
         raise NotImplementedError
     
+    @abc.abstractproperty
+    def _mem_map(self):
+        raise NotImplementedError
+    
     @abc.abstractmethod
     def parse_map(self, words):
         raise NotImplementedError
@@ -28,82 +179,9 @@ class IDeviceSettings(with_metaclass(abc.ABCMeta, IABCMeta)):
     @abc.abstractmethod
     def generate_map(self):
         raise NotImplementedError
+    
 
-class HeaderInfo(object):
-    """Represent the Header Info register bank"""
-    num_words = 1
-    
-    def __init__(self):
-        # Word 0
-        self.eeprom_address = 0
-        self.monitoring_channels_count = 0
-        self.control_channels_count = 0
-        
-    def parse_map(self, words):
-        raise NotImplementedError
-        
-    def generate_map(self):
-        word0 = (self.eeprom_address << 16) | \
-                (self.monitoring_channels_count << 8) | \
-                (self.control_channels_count << 0)
-        return [word0]
-
-class ControlChannel(object):
-    """Represent the map of Control Channels register bank"""
-    num_words = 5
-    
-    def __init__(self):
-        # Word 0
-        self.board_type = 0
-        self.component_family_id = 0
-        self.device_i2c_bus_select = 0
-        self.channel_device_id = 0
-        self.channel_sub_address = 0
-        self.device_address = 0
-        
-        # Word 1
-        self.channel_range_max = 0
-        self.channel_range_min = 0
-        
-        # Word 2
-        self.channel_default_on = 0
-        self.channel_default_off = 0
-        
-        # Word 3
-        self.channel_monitoring = 0
-        self.safety_exception_threshold = 0
-        self.read_frequency = 0
-    
-        # Word 4
-        self.power_status = False
-        self.value = 0
-        
-class MonitoringChannel(object):
-    """Represent the map of Monitoring Channel register bank"""
-    num_words = 4
-    
-    def __init__(self):
-        # Word 0
-        self.board_type = 0
-        self.component_family_id = 0
-        self.device_i2c_bus_select = 0
-        self.channel_device_id = 0
-        self.channel_sub_address = 0
-        self.device_address = 0
-
-        # Word 1
-        self.channel_ext_low_threshold = 0
-        self.channel_ext_high_threshold = 0
-        
-        # Word 2
-        self.channel_low_threshold = 0
-        self.channel_high_threshold = 0
-        
-        # Word 3
-        self.channel_monitoring = 0
-        self.safety_exception_threshold = 0
-        self.read_frequency = 0
-        
+       
 IDeviceSettings.register(HeaderInfo)
 IDeviceSettings.register(ControlChannel)
 IDeviceSettings.register(MonitoringChannel)

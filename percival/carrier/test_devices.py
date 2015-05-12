@@ -36,6 +36,78 @@ class TestDevices(unittest.TestCase):
         self.assertTrue(issubclass(devices.MonitoringChannel, devices.IDeviceSettings), 
                         "MonitoringChannel class does not fully implement the IDeviceSettings interface")
 
+class TestHeaderInfo(unittest.TestCase):
+    def setUp(self):
+        self.dut = devices.HeaderInfo()
+        
+    def testMemMapAttributes(self):
+        self.assertTrue(hasattr(self.dut, "eeprom_address"))
+        self.assertTrue(hasattr(self.dut, "monitoring_channels_count"))
+        self.assertTrue(hasattr(self.dut, "control_channels_count"))
+        with self.assertRaises(AttributeError):
+            self.dut.no_parameter_with_this_name
+        self.assertTrue(hasattr(self.dut, "num_words"))
+        
+    def testParseValidMap(self):
+        self.dut.parse_map([0xA1234567])
+        self.assertEqual(0x23, self.dut.eeprom_address)
+        self.assertEqual(0x45, self.dut.monitoring_channels_count)
+        self.assertEqual(0x67, self.dut.control_channels_count)
+
+    def testValidGenerateMap(self):
+        self.dut.parse_map([0xA1234567])
+        words = self.dut.generate_map()
+        self.assertEqual([0x00234567], words)
+        
+    def testParseInvalidMap(self):
+        """Empty map should raise index error and no values parsed"""
+        with self.assertRaises(IndexError):
+            self.dut.parse_map([])
+        self.assertEqual(None, self.dut.eeprom_address)
+        self.assertEqual(None, self.dut.monitoring_channels_count)
+        self.assertEqual(None, self.dut.control_channels_count)
+
+class TestControlChannel(unittest.TestCase):
+    def setUp(self):
+        self.dut = devices.ControlChannel()
+        
+    def testParseValidMap(self):
+        self.dut.parse_map([0xA1234567, 0x89ABCDEF, 0x11223344, 0x55667788, 0x99AABBCC])
+        self.assertEqual(0x01, self.dut.board_type)
+        self.assertEqual(0x02, self.dut.component_family_id)
+        self.assertEqual(0x00, self.dut.device_i2c_bus_select)
+        self.assertEqual(0x1A, self.dut.channel_device_id)
+        self.assertEqual(0x05, self.dut.channel_sub_address)
+        self.assertEqual(0x67, self.dut.device_address)
+
+        self.assertEqual(0x89AB, self.dut.channel_range_max)
+        self.assertEqual(0xCDEF, self.dut.channel_range_min)
+
+        self.assertEqual(0x1122, self.dut.channel_default_on)
+        self.assertEqual(0x3344, self.dut.channel_default_off)
+
+        self.assertEqual(0x66, self.dut.channel_monitoring)
+        self.assertEqual(0x77, self.dut.safety_exception_threshold)
+        self.assertEqual(0x88, self.dut.read_frequency)
+
+        self.assertEqual(0x00, self.dut.power_status)
+        self.assertEqual(0xBBCC, self.dut.value)
+
+    def testValidGenerateMap(self):
+        self.dut.parse_map([0xA1234567, 0x89ABCDEF, 0x11223344, 0x55667788, 0x99AABBCC])
+        words = self.dut.generate_map()
+        self.assertEqual([0x01234567, 0x89ABCDEF, 0x11223344, 0x00667788, 0x0000BBCC], words)
+        
+    def testParseInvalidMap(self):
+        """Empty map should raise index error and no values parsed"""
+        with self.assertRaises(IndexError):
+            self.dut.parse_map([0xA1234567, 0x89ABCDEF])
+        self.assertEqual(None, self.dut.board_type)
+        self.assertEqual(None, self.dut.component_family_id)
+        self.assertEqual(None, self.dut.device_i2c_bus_select)
+        self.assertEqual(None, self.dut.channel_device_id)
+        self.assertEqual(None, self.dut.channel_sub_address)
+        self.assertEqual(None, self.dut.device_address)
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
