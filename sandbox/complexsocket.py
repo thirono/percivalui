@@ -20,19 +20,22 @@ def main():
     with TxRxContext(board_ip_address) as trx:
         
         #msg = encode_message(0x0144, 0x00000000)
-        msg = encode_message(0x0144, 0x00000000)
+        #msg = encode_message(0x0144, 0x00000000) # Header Info Readback
+        #msg = encode_message(0x0102, 0x00000001) # Device Command: control, device_no-op, device index 1
+        msg = encode_message(0x0102, 0x00000005) # Device Command: control, device_set_and_get, device index 1
+        #msg = encode_message(0x015A, 0x00000000) # ECHO WORD (times out)
 
         log.debug("as string: %s",str([msg]))
         #trx.tx_msg(msg)
         #trx.tx_msg(msg)
         #resp = trx.rx_msg()
         resp = trx.send_recv(msg)
+        log.debug("Got %d bytes: %s", len(resp), [resp])
+        resp = decode_message(resp)
+        log.debug("Got %d words", len(resp))
+        log.debug(resp)
+        
     
-    log.debug("Got %d bytes: %s", len(resp), [resp])
-    
-    resp = decode_message(resp)
-    log.debug("Got %d words", len(resp))
-    log.debug(resp)
     
 if __name__ == '__main__':
     main()

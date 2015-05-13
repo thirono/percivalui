@@ -19,8 +19,10 @@ def main():
     #numbers = [0x03, 0xa4, 0x00, 0x00, 0x00, 0x00 ]
     #numbers = [0x03, 0xb3, 0x00, 0x00, 0x00, 0x00]
     #numbers = [0x03, 0xbd, 0x00, 0x00, 0x00, 0x00]
-    numbers = [0x00, 0xEC, 0x00, 0x00, 0x00, 0x00,
-               0x00, 0xEC, 0x00, 0x02, 0x00, 0x00]
+    #numbers = [0x00, 0xEC, 0x00, 0x00, 0x00, 0x00,
+    #           0x00, 0xEC, 0x00, 0x02, 0x00, 0x00]
+    numbers = [0x01, 0x44, 0x00, 0x00, 0x00, 0x00] # Header Info Readback
+    
     
     msg = bytes_to_str(numbers)
     
@@ -32,8 +34,13 @@ def main():
     client_sock.send(msg)
     
     print("Waiting for response...")
-    response = client_sock.recv(1024)
     
+    try:
+        response = client_sock.recv(1024)
+    except:
+        client_sock.close()
+        raise
+        
     print("Got response (%dbytes): "%len(response), [response]) 
     print(" which means: ", [ord(r) for r in response])
     print("  and in hex:", " ".join([hex(ord(r))for r in response]))
