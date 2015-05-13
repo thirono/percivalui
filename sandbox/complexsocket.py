@@ -21,13 +21,17 @@ def main():
         
         #msg = encode_message(0x0144, 0x00000000)
         msg = encode_message(0x0144, 0x00000000)
-        
+
         log.debug("as string: %s",str([msg]))
+        #trx.tx_msg(msg)
+        #trx.tx_msg(msg)
+        #resp = trx.rx_msg()
         resp = trx.send_recv(msg)
     
-    log.debug([resp])
+    log.debug("Got %d bytes: %s", len(resp), [resp])
     
     resp = decode_message(resp)
+    log.debug("Got %d words", len(resp))
     log.debug(resp)
     
 if __name__ == '__main__':
