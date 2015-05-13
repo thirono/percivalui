@@ -20,13 +20,17 @@ scanrange = [(0x0144, 6),
              (0x0146, None),
              ] # Currently no other "shortcut" addresses return a response
 
+scanrange = range(0x012E, 0x0145, 1)
+
 def main():
     log.debug("Scanning shortcuts...")
     
     with TxRxContext(board_ip_address) as trx:
         trx.timeout = 1.0
-        #scanrange = range(0x0144, 0x0147, 1)
-        for addr, expected_bytes in scanrange:
+        
+        expected_bytes = None
+        #for addr, expected_bytes in scanrange:
+        for addr in scanrange:
             msg = encode_message(addr, 0x00000000)
     
             log.debug("address: %X", addr)
