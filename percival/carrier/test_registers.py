@@ -25,14 +25,14 @@ class TestUARTRegister(unittest.TestCase):
         
     def test_write_msg(self):
         msg = self.reg.get_write_cmdmsg()
-        expected_msg = bytes('\xAA\xBB\x00\x00\x00\x00' \
-                       '\xAA\xBC\x00\x00\x00\x00' \
-                       '\xAA\xBD\x00\x00\x00\x00' \
-                       '\xAA\xBE\x00\x00\x00\x00' \
-                       '\xAA\xBF\x00\x00\x00\x00' \
-                       '\xAA\xC0\x00\x00\x00\x00' \
-                       '\xAA\xC1\x00\x00\x00\x00' \
-                       '\xAA\xC2\x00\x00\x00\x00', encoding='latin-1') 
+        expected_msg = [bytes('\xAA\xBB\x00\x00\x00\x00', encoding='latin-1'),
+                        bytes('\xAA\xBC\x00\x00\x00\x00', encoding='latin-1'),
+                        bytes('\xAA\xBD\x00\x00\x00\x00', encoding='latin-1'),
+                        bytes('\xAA\xBE\x00\x00\x00\x00', encoding='latin-1'),
+                        bytes('\xAA\xBF\x00\x00\x00\x00', encoding='latin-1'),
+                        bytes('\xAA\xC0\x00\x00\x00\x00', encoding='latin-1'),
+                        bytes('\xAA\xC1\x00\x00\x00\x00', encoding='latin-1'),
+                        bytes('\xAA\xC2\x00\x00\x00\x00', encoding='latin-1')]
         self.assertEqual(msg, expected_msg, msg)
         
     def test_set_data_word(self):

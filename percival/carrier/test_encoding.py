@@ -20,8 +20,9 @@ class TestEncodeMessage(unittest.TestCase):
     def test_multi(self):
         '''Testing the encode_multi_message() function with very basic input'''
         result = encoding.encode_multi_message(0x000A, [0x01020304, 0x05060708])
-        self.assertIsInstance(result, bytes, "Must return a byte array rather than %s"%type(result))
-        self.assertEqual(result, b'\x00\x0A\x01\x02\x03\x04\x00\x0B\x05\x06\x07\x08', str([result]))
+        self.assertIsInstance(result, list, "Must return a list of byte arrays rather than %s"%type(result))
+        self.assertIsInstance(result[0], bytes, "Must return a byte array rather than %s"%type(result))
+        self.assertEqual(result, [b'\x00\x0A\x01\x02\x03\x04', b'\x00\x0B\x05\x06\x07\x08'], str([result]))
         
     def test_invalid_data_word(self):
         '''Testing encoding a single message with a too wide data word. This should raise an exception'''
