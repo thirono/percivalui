@@ -158,6 +158,24 @@ class MonitoringChannel(DeviceSettings):
                 "read_frequency":               MapField("read_frequency",              3,  8,  0),
                 }
     
+class Command(DeviceSettings):
+    """Represent the Command register bank:
+    
+    Word 0: Device command interface word
+    Word 1: Sensor command interface word
+    Word 2: System command interface word
+    """
+    num_words = 3
+    _mem_map = {"device_cmd":                   MapField("device_cmd",                   0,  3, 28),
+               #"eeprom_target":                MapField("eeprom_target",                0,  3, 25),
+                "device_index":                 MapField("device_index",                 0, 16,  0),
+                
+                "sensor_cmd":                   MapField("sensor_cmd",                   0, 16,  0),
+                "sensor_cmd_data":              MapField("sensor_cmd_data",              0, 16, 16),
+                
+                "system_cmd":                   MapField("system_cmd",                   0, 16,  0),
+                "system_cmd_data":              MapField("system_cmd_data",              0, 16, 16),
+                }
 
 class IDeviceSettings(with_metaclass(abc.ABCMeta, IABCMeta)):
     '''
