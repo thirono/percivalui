@@ -9,14 +9,32 @@ from . import encoding
 
 import logging
 
-       
+from percival.carrier import devices
+
+BoardTypes = ["left",
+              "bottom",
+              "carrier",
+              "plugin"]
+
+RegisterMapTypes = {"header":     devices.HeaderInfo,
+                    "control":    devices.ControlChannel,
+                    "monitoring": devices.MonitoringChannel,
+                    "command":    devices.Command}       
 
 class RegisterFunction(object):
     '''Link a register address with a certain functionality'''
-    def __init__(self, description, uart_reg, reg_bank_type, board_type):
-        pass
+    def __init__(self, description, uart_reg, reg_bank_type, board):
+        self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+        self.board = board
+        self.uart_reg = uart_reg
+        self.description = description
+        self.settings = None
+        try:
+            self.settings = RegisterMapTypes[reg_bank_type]
+        except:
+            self.log.exception("No register bank type: %s", reg_bank_type)
     
-
+    
 
 class UARTRegister(object):
     '''
@@ -43,9 +61,14 @@ class UARTRegister(object):
         self._data_words = [[0x0000]*self._words_per_entry for i in range(self._entries)]
         
     def get_read_cmdmsg(self):
+        """Generate a message to do a readback (shortcut) command of the current register map
+        
+        :returns: Tuple of (message, expected) where message is the 6 byte array and expected
+                  is the number of (6 byte) words to expect in response
+        """
         read_cmdmsg = encoding.encode_message(self._readback_addr, 0x00000000)
         self.log.debug(read_cmdmsg)
-        return read_cmdmsg
+        return (read_cmdmsg, 1)
     
     def get_write_cmdmsg(self):
         # Flatten the 2D matrix of datawords into one continuous list
