@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 SINGLE_MSG_FMT = b'!HI'
 NUM_BYTES_PER_MSG = 6
 DATA_ENCODING='latin-1' # Just because latin-1 allow values from 0-255
+END_OF_MESSAGE = bytes('\xFF\xFF\xAB\xBA\xBA\xC1', encoding=DATA_ENCODING)
 
 msg_packer = struct.Struct(SINGLE_MSG_FMT)
 
