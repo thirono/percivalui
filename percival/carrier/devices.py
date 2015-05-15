@@ -31,7 +31,7 @@ class DeviceSettings(object):
             self._mem_map[name].value = value
             
     def parse_map(self, words):
-        """Parse a list of words as a bitmap"""
+        """Parse a list of words as a bitmap and write to the relevant internal MapFields"""
         map_fields = [f for (k,f) in sorted(self._mem_map.items(), 
                                         key=lambda key_field: key_field[1].word_index, reverse=True)] 
         for map_field in map_fields:
