@@ -115,6 +115,18 @@ class TestControlChannel(unittest.TestCase):
         self.assertEqual(None, self.dut.channel_sub_address)
         self.assertEqual(None, self.dut.device_address)
 
+class TestCommand(unittest.TestCase):
+    def setUp(self):
+        self.dut = devices.Command()
+        
+    def testInitialMapFieldValue(self):
+        self.assertIs(self.dut.device_index, None, "device_index should be initialised to None")
+        self.assertTrue("device_index" in self.dut._mem_map.keys(), "No device index in: %s"%str(self.dut._mem_map.keys()))
+        self.dut.device_index = 10
+        self.assertIs(self.dut.device_index, 10, "device_index should now be set to 10, not %s"%str(self.dut.device_index))
+        
+
+
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()
