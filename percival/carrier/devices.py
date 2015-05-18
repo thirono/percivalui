@@ -25,8 +25,9 @@ class DeviceSettings(object):
             raise_with_traceback(AttributeError("No attribute: %s"%name))
     
     def __setattr__(self, name, value):
+        logger.debug(str(self._mem_map))
         if not name in self._mem_map.keys():
-            return object.__setattr__(name, value)
+            return object.__setattr__(self, name, value)
         else:
             self._mem_map[name].value = value
             
@@ -50,6 +51,7 @@ class DeviceSettings(object):
 
 class MapField:
     def __init__(self, name, word_index, num_bits, bit_offset):
+        self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._word_index = word_index
         self._num_bits = num_bits
         self._name = name
@@ -78,9 +80,11 @@ class MapField:
     
     @property
     def value(self):
+        self.log.debug("getting value = %s", str(self._value))
         return self._value
     @value.setter
     def value(self, value):
+        self.log.debug("setting value = %s (was = %s)", str(value), str(self._value))
         self._value = value
     
     def extract_field_value(self, words):
@@ -90,6 +94,8 @@ class MapField:
     def insert_field_value(self, words):
         # Clear the relevant bits in the input word (AND with an inverted mask)
         # Then set the relevant bit values (value shifted up and OR'ed)
+        if self._value == None:
+            raise_with_traceback(ValueError("No value initialised for field: \'%s\'"%self._name))
         words[self._word_index] = (words[self._word_index] & (self.mask ^ 2**32-1)) | (self._value << self._bit_offset)
     
     def __str__(self):
@@ -166,16 +172,18 @@ class Command(DeviceSettings):
     Word 2: System command interface word
     """
     num_words = 3
-    _mem_map = {"device_cmd":                   MapField("device_cmd",                   0,  3, 28),
-               #"eeprom_target":                MapField("eeprom_target",                0,  3, 25),
-                "device_index":                 MapField("device_index",                 0, 16,  0),
+    def __init__(self):
+        object.__setattr__(self, '_mem_map', {}) # This prevents infinite recursion when setting attributes
+        self._mem_map = {"device_cmd":                   MapField("device_cmd",                   0,  3, 28),
+                         #"eeprom_target":                MapField("eeprom_target",                0,  3, 25),
+                         "device_index":                 MapField("device_index",                 0, 16,  0),
                 
-                "sensor_cmd":                   MapField("sensor_cmd",                   0, 16,  0),
-                "sensor_cmd_data":              MapField("sensor_cmd_data",              0, 16, 16),
+                         "sensor_cmd":                   MapField("sensor_cmd",                   0, 16,  0),
+                         "sensor_cmd_data":              MapField("sensor_cmd_data",              0, 16, 16),
                 
-                "system_cmd":                   MapField("system_cmd",                   0, 16,  0),
-                "system_cmd_data":              MapField("system_cmd_data",              0, 16, 16),
-                }
+                         "system_cmd":                   MapField("system_cmd",                   0, 16,  0),
+                         "system_cmd_data":              MapField("system_cmd_data",              0, 16, 16),
+                         }
 
 class IDeviceSettings(with_metaclass(abc.ABCMeta, IABCMeta)):
     '''
