@@ -36,7 +36,7 @@ CarrierUARTRegisters = {0x0000: ("Header settings left",         0x012E,       1
                         0x00A4: ("Control settings plugin",      0x0138,       1,     1,  devices.ControlChannel),
                         0x00AC: ("Monitoring settings plugin",   0x0139,       1,     1,  devices.MonitoringChannel),
                         
-                        0x00EC: ("Command",                        None,       1,     1,  devices.Command),
+                        0x00EC: ("Command",                      0x0144,       1,     1,  devices.Command),
                         
                         #0x0001: ("Header settings left",        1,     1,                    None),
                         }
@@ -49,22 +49,22 @@ class UARTRegister(object):
     UART_ADDR_WIDTH = 16
     UART_WORD_WIDTH = 32
 
-    def __init__(self, name, start_addr, words_per_entry, entries, readback_addr):
+    def __init__(self, start_addr):
         '''
         Constructor
         '''
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
-        self._name = name
-        self._words_per_entry = words_per_entry
-        self._entries = entries
+        (self._name, self._readback_addr, self._entries, self._words_per_entry, DeviceClass) = CarrierUARTRegisters[start_addr]
+        
         self.settings = None # A devices.DeviceSettings object
+        if DeviceClass:
+            self.settings = devices.Command()
 
         if start_addr.bit_length() > self.UART_ADDR_WIDTH:
             raise ValueError("start_addr value 0x%H is greater than 16 bits"%start_addr)
         self._start_addr = start_addr
-        if readback_addr.bit_length() > self.UART_ADDR_WIDTH:
-            raise ValueError("readback_addr value 0x%H is greater than 16 bits"%readback_addr)
-        self._readback_addr = readback_addr
+        if self._readback_addr.bit_length() > self.UART_ADDR_WIDTH:
+            raise ValueError("readback_addr value 0x%H is greater than 16 bits"%self._readback_addr)
         
        
     def get_read_cmdmsg(self):
