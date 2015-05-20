@@ -176,14 +176,15 @@ class Command(DeviceSettings):
     def __init__(self):
         object.__setattr__(self, '_mem_map', {}) # This prevents infinite recursion when setting attributes
         self._mem_map = {"device_cmd":                   MapField("device_cmd",                   0,  3, 28),
+                         "device_type":                  MapField("device_type",                  0,  2, 23),
                          #"eeprom_target":                MapField("eeprom_target",                0,  3, 25),
                          "device_index":                 MapField("device_index",                 0, 16,  0),
                 
-                         "sensor_cmd":                   MapField("sensor_cmd",                   0, 16,  0),
-                         "sensor_cmd_data":              MapField("sensor_cmd_data",              0, 16, 16),
+                         "sensor_cmd":                   MapField("sensor_cmd",                   1, 16,  0),
+                         "sensor_cmd_data":              MapField("sensor_cmd_data",              1, 16, 16),
                 
-                         "system_cmd":                   MapField("system_cmd",                   0, 16,  0),
-                         "system_cmd_data":              MapField("system_cmd_data",              0, 16, 16),
+                         "system_cmd":                   MapField("system_cmd",                   2, 16,  0),
+                         "system_cmd_data":              MapField("system_cmd_data",              2, 16, 16),
                          }
 
 class IDeviceSettings(with_metaclass(abc.ABCMeta, IABCMeta)):
