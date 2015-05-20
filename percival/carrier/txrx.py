@@ -7,7 +7,7 @@ from __future__ import unicode_literals, absolute_import
 from builtins import bytes
 
 import logging
-
+import binascii
 import socket
 from contextlib import contextmanager 
 
@@ -33,7 +33,7 @@ class TxMessage(object):
             return END_OF_MESSAGE
         
     def __str__(self, *args, **kwargs):
-        s = "<TxMessag msg=%s resp=%d>"%([self._message], self.num_response_msg)
+        s = "<TxMessag msg=0x%s exp. resp.: %d bytes>"%(binascii.hexlify(self._message).upper(), self.num_response_msg)
         return s
 
 class TxRx(object):
