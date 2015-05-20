@@ -6,11 +6,8 @@ Created on 13 May 2015
 
 from __future__ import print_function
 from builtins import range
-import logging
-logging.basicConfig()
-log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
 
+from percival.log import log
 from percival.carrier.txrx import TxRx, TxRxContext
 from percival.carrier.encoding import (encode_message, encode_multi_message, decode_message)
 
@@ -23,7 +20,7 @@ scanrange = [(0x0144, 6),
 scanrange = range(0x012E, 0x0145, 1)
 
 def main():
-    log.debug("Scanning shortcuts...")
+    log.info("Scanning shortcuts...")
     
     with TxRxContext(board_ip_address) as trx:
         trx.timeout = 1.0
@@ -33,15 +30,17 @@ def main():
         for addr in scanrange:
             msg = encode_message(addr, 0x00000000)
     
-            log.debug("address: %X", addr)
+            log.debug("Qurying address: %X ...", addr)
             try:
                 resp = trx.send_recv(msg, expected_bytes)
             except:
-                log.debug("no response")
+                log.warning("no response (addr: %X", addr)
                 continue
             data = decode_message(resp)
-            log.debug(" bytes: %d  words: %d", len(resp), len(data))
-
+            log.info("Got from addr: 0x%04X bytes: %d  words: %d", addr, len(resp), len(data))
+            for (a, w) in data:
+                log.debug("           (0x%04X) 0x%08X", a, w)
+                
 if __name__ == '__main__':
     main()
     

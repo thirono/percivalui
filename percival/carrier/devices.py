@@ -12,9 +12,6 @@ from percival.detector.interface import IABCMeta
 
 import logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
-
     
 class DeviceSettings(object):
     """Mixin to be used by classes that implement the IDeviceSettings interface"""
@@ -52,7 +49,6 @@ class DeviceSettings(object):
 class MapField(object):
     def __init__(self, name, word_index, num_bits, bit_offset):
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
-        self.log.setLevel(logging.DEBUG)
         self._word_index = word_index
         self._num_bits = num_bits
         self._name = name

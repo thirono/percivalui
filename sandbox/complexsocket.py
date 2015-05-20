@@ -4,11 +4,8 @@ Created on 13 May 2015
 @author: up45
 '''
 from __future__ import print_function
-import logging
-logging.basicConfig()
-log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
 
+from percival.log import log
 from percival.carrier.txrx import TxRx, TxRxContext
 from percival.carrier.encoding import (encode_message, encode_multi_message, decode_message)
 
