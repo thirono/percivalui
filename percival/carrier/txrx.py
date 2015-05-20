@@ -31,6 +31,10 @@ class TxMessage(object):
     def expected_response(self):
         if self._expect_eom:
             return END_OF_MESSAGE
+        
+    def __str__(self, *args, **kwargs):
+        s = "<TxMessag msg=%s resp=%d>"%([self._message], self.num_response_msg)
+        return s
 
 class TxRx(object):
     '''
