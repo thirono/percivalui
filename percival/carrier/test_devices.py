@@ -125,8 +125,22 @@ class TestCommand(unittest.TestCase):
         self.dut.device_index = 10
         self.assertIs(self.dut.device_index, 10, "device_index should now be set to 10, not %s"%str(self.dut.device_index))
         
-
-
+class TestMapField(unittest.TestCase):
+    def setUp(self):
+        self.dut = devices.MapField("TEST", 2, 3, 4)
+        
+    def TestProps(self):
+        self.assertEqual(self.dut.num_bits, 3)
+        self.assertEqual(self.dut.bit_offset, 4)
+        self.assertEqual(self.dut.word_index, 2)
+        self.assertEqual(self.dut.value, None)
+        
+    def TestValue(self):
+        self.assertEqual(self.dut.value, None)
+        self.dut.value = 45
+        self.assertEqual(self.dut.value, 45)
+        self.assertEqual(self.dut._value, 45)
+        
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()
