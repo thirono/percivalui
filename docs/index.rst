@@ -8,9 +8,10 @@ PercivalUI documentation
 
 .. toctree::
    :maxdepth: 4
-
+   
+   percival
    detector
-   percivalui
+   carrier
 
 
 Indices and tables
