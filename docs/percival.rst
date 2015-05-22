@@ -11,12 +11,8 @@ functions to control the system. In fact this use-case is recommended to begin w
 :mod:`percival` package
 -------------------------
 
-.. automodule:: percival
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
-:mod:`percival` module
+:mod:`percival.percivalui` module
 ----------------------
 
 .. automodule:: percival.percivalui

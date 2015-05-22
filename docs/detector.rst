@@ -1,43 +1,43 @@
 detector Package
 ================
 
-:mod:`detector` package
+:mod:`percival.detector` package
 -----------------------
 
-.. automodule:: detector
+.. automodule:: percival.detector
     
-:mod:`interface` module
+:mod:`percival.detector.interface` module
 -----------------------
 
-.. automodule:: detector.interface
+.. automodule:: percival.detector.interface
 
     :class:`IDetector` interface
     --------------------------------------
-    .. autoclass:: detector.interface.IDetector
+    .. autoclass:: percival.detector.interface.IDetector
         :members:
         :show-inheritance:
 
     :class:`IControl` interface
     ------------------------------------
-    .. autoclass:: detector.interface.IControl
+    .. autoclass:: percival.detector.interface.IControl
         :members:
         :show-inheritance:
 
     :class:`IData` interface
     ------------------------------------
-    .. autoclass:: detector.interface.IData
+    .. autoclass:: percvial.detector.interface.IData
          :members:
          :show-inheritance:
 
     :class:`IParameter` interface
     ------------------------------------
-    .. autoclass:: detector.interface.IParameter
+    .. autoclass:: percival.detector.interface.IParameter
          :members:
          :show-inheritance:
 
     :class:`IABCMeta` mix-in
     ---------------------------------
-    .. autoclass:: detector.interface.IABCMeta
+    .. autoclass:: percival.detector.interface.IABCMeta
         :members: _iface_requirements, __subclasshook__
         :show-inheritance:
 
@@ -45,14 +45,14 @@ detector Package
     -------------------------
     .. literalinclude:: interface_examples.py
     
-:mod:`parameter` module
+:mod:`percival.detector.parameter` module
 -----------------------
 
-.. automodule:: detector.parameter
+.. automodule:: percival.detector.parameter
 
     :class:`Observable`
     -------------------
-    .. autoclass:: detector.parameter.Observable
+    .. autoclass:: percival.detector.parameter.Observable
         :members: 
         :private-members:
         :show-inheritance:

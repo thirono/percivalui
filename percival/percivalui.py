@@ -78,6 +78,7 @@ class CarrierBoard(object):
         raise NotImplementedError
 
 class MezzanineBoard(interface.IData):
+    """Model the hardware Mezzanine Board"""
     def __init__(self):
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         
