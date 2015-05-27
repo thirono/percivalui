@@ -14,7 +14,16 @@ from contextlib import contextmanager
 from percival.carrier.encoding import DATA_ENCODING, NUM_BYTES_PER_MSG, END_OF_MESSAGE
 
 class TxMessage(object):
+    """Encapsulate a Percival carrier board message and the number of messages to expect in response"""
     def __init__(self, message, num_response_msg = 1, expect_eom = False):
+        """ TxMessage constructor
+        
+            :param message: A Percival Carrier Board message contain address (2 bytes) and data (4 bytes)
+            :type message: Byte array
+            :param num_response_msg: Number of messages to expect in response
+            :param expected_eom: set true if end-of-message is expected in response
+            :type expected_eom: boolean
+        """
         self.num_response_msg = num_response_msg
         self._message = message
         self._expect_eom = expect_eom
@@ -42,8 +51,14 @@ class TxRx(object):
     '''
 
     def __init__(self, fpga_addr, port = 10001, timeout = 2.0):
-        '''
-        Constructor
+        '''TxRx Constructor
+        
+            :param fpga_addr: IP address or network name of the Carrier Board XPort device
+            :type  fpga_addr: string
+            :param port:      IP port number
+            :type  port:      int
+            :param timeout:   Socket communication timeout (seconds)
+            :type  timeout:   floating point
         '''
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         
@@ -66,9 +81,21 @@ class TxRx(object):
         self.sock.settimeout(value)
     
     def tx_msg(self, msg):
+        """Transmit a single message to the Carrier Board
+        
+            :param msg: Message to transmit
+            :type  msg: Bytearray of :const:`percival.carrier.encoding.NUM_BYTES_PER_MSG` bytes"""
         self.sock.sendall(msg)
     
     def rx_msg(self, expected_bytes = None):
+        """Receive messages of up to `expected_bytes` length
+        
+            :param expected_bytes: Number of bytes expected to be received. If `expected_bytes`
+                                   is None, read at least one single message
+            :raises RuntimeError:  if a message of 0 bytes is received;indicating a broken socket connection
+            :returns: The recieved message
+            :rtype:   byte array
+        """
         msg = bytes()
         block_read_bytes = expected_bytes
         expected_resp_len = expected_bytes
@@ -88,13 +115,23 @@ class TxRx(object):
         return msg
 
     def send_recv(self, msg, expected_bytes = None):
+        """Send `msg` and wait for receipt of `expected_bytes` in response or timeout
+        
+            :param msg: UART message to send
+            :type  msg: Bytearray
+            :returns:   Response from UART
+            :rtype:     Bytearray
+        """ 
         self.tx_msg(msg)
         resp = self.rx_msg(expected_bytes)
         return resp
     
     def send_recv_message(self, message):
         """Send a message and wait for response
-        :param message: a TxMessage object
+        
+            :param message: a TxMessage object
+            :retuns: Response from UART
+            :rtype:  Bytearray
         """
         if not isinstance(message, TxMessage):
             raise TypeError("message must be of type TxMessage, not %s"%str(type(message)))
@@ -106,11 +143,30 @@ class TxRx(object):
         
     
     def clean(self):
+        """Shutdown and close the socket safely
+            
+            Sockets are normally closed down cleanly on exit from the interpreter, however this method 
+            may be used in case the socket need to be closed down temporarily."""
         self.sock.shutdown(socket.SHUT_RDWR)
         self.sock.close()
         
 @contextmanager
 def TxRxContext(*args, **kwargs):
+    """Provide a context which keeps a `TxRx` module alive with an open socket only for the duration of the context
+    
+        Minimal example:
+        
+        >>> msg = encode_message(0x0144, 0x00000000) # Header Info Readback
+        >>>
+        >>> # Start the context - create the TxRx object and open the socket
+        >>> with TxRxContext("192.168.1.3") as trx:
+        >>>     response = trx.send_recv(msg)
+        >>> # End of context - socket is closed down cleanly
+        >>> 
+        >>> response = decode_message(response)
+        >>> print response
+
+    """
     trx = TxRx(*args, **kwargs)
     yield trx
     trx.clean()

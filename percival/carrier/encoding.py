@@ -15,18 +15,23 @@ import logging
 logger = logging.getLogger(__name__)
 
 SINGLE_MSG_FMT = b'!HI'
+
 NUM_BYTES_PER_MSG = 6
+"""Number of bytes per message. Each message consist of a 2 byte address field and a 4 byte data field"""
+
 DATA_ENCODING='latin-1' # Just because latin-1 allow values from 0-255
+
 END_OF_MESSAGE = bytes('\xFF\xFF\xAB\xBA\xBA\xC1', encoding=DATA_ENCODING)
+"""End of message is used in some cases. The EOM word is 0xFFFFABBABAC1"""
 
 msg_packer = struct.Struct(SINGLE_MSG_FMT)
 
 def encode_message(addr, word):
     """Encode a single address and dataword into a bytearray.
     
-    :param addr: address (16bit integer)
-    :param word: data word (32bit integer)
-    :returns: bytearray of 6 bytes with address and dataword encoded
+        :param addr: UART address (16bit integer)
+        :param word: data word (32bit integer)
+        :returns: bytearray of 6 bytes with address and dataword encoded
     """
     logger.debug("%s"%([addr, word]))
     encoded_msg = msg_packer.pack(addr, word)
@@ -41,10 +46,10 @@ def encode_message(addr, word):
 def encode_multi_message(start_addr, words):
     """Encode multiple 32bit words as a multi-message.
     
-    :param start_addr: The starting address (a 16bit integer word)
-    :param words:      A list of 32bit integer words to be encoded
-    :returns:          A list of encoded words, each of which consists of 6 bytes: 
-                       2 words of address and 4 words of data
+        :param start_addr: The UART starting address (a 16bit integer word)
+        :param words:      A list of 32bit integer words to be encoded
+        :returns:          A list of encoded words, each of which consists of 6 bytes: 
+                           2 words of address and 4 words of data
     """ 
     logger.debug("%s"%([start_addr, words]))
     addresses = range(start_addr, start_addr + len(words))
@@ -57,10 +62,12 @@ def encode_multi_message(start_addr, words):
 
 def decode_message(msg):
     """Decode a byte array into a list of (address, dataword) tuples.
-    The address field is a 16bit integer and the dataword is a 32bit integer.
     
-    :param msg: The input message (a byte-array)
-    :returns:   A list of (address, data) tuples
+        The address field is a 16bit integer and the dataword is a 32bit integer.
+    
+        :param msg: The input message
+        :type  msg: Bytearray
+        :returns:   A list of (address, data) tuples
     """
     logger.debug(msg)
     extra_bytes = len(msg)%NUM_BYTES_PER_MSG

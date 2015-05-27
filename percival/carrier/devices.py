@@ -29,15 +29,12 @@ class DeviceSettings(object):
             self._mem_map[name].value = value
             
     def parse_map(self, words):
-        """Parse a list of words as a bitmap and write to the relevant internal MapFields"""
         map_fields = [f for (k,f) in sorted(self._mem_map.items(), 
                                         key=lambda key_field: key_field[1].word_index, reverse=True)] 
         for map_field in map_fields:
             map_field.extract_field_value(words)
             
     def generate_map(self):
-        """Generate a bitmap from the device MapFields. 
-        :returns: a list of 32bit words"""
         words = list(range(self.num_words))
         logger.debug("map: %s", str(self._mem_map))
         for (key,field) in self._mem_map.items():
@@ -164,9 +161,9 @@ class MonitoringChannel(DeviceSettings):
 class Command(DeviceSettings):
     """Represent the Command register bank:
     
-    Word 0: Device command interface word
-    Word 1: Sensor command interface word
-    Word 2: System command interface word
+        * Word 0: Device command interface word
+        * Word 1: Sensor command interface word
+        * Word 2: System command interface word
     """
     num_words = 3
     def __init__(self):
@@ -193,18 +190,30 @@ class IDeviceSettings(with_metaclass(abc.ABCMeta, IABCMeta)):
     
     @abc.abstractproperty
     def num_words(self):
+        """Number of 32bit words in the bitmap"""
         raise NotImplementedError
     
     @abc.abstractproperty
     def _mem_map(self):
+        """Internal (private) logical representation of the bitmap
+            
+            Must be a dictionary of :class:`MapField` objects
+        """
         raise NotImplementedError
     
     @abc.abstractmethod
     def parse_map(self, words):
+        """Parse a list of words as a bitmap and write to the relevant internal MapFields
+        
+            :param words: 32 bit integer words
+            :type  words: list"""
         raise NotImplementedError
     
     @abc.abstractmethod
     def generate_map(self):
+        """Generate a bitmap from the device MapFields. 
+        
+            :returns: a list of 32bit words"""
         raise NotImplementedError
     
 

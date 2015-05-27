@@ -15,7 +15,9 @@ import percival.detector as detector
 from percival.detector import parameter, interface
 
 class PercivalSimulator:
-    # This is a singleton
+    """Top-level simulator of the Percival system
+    
+        Mostly just used for demo purposes as it has very little functionality in itself"""
     __instance = None
     def __new__(cls, *args, **kwargs):
         if not cls.__instance:
@@ -49,13 +51,14 @@ class PercivalSimulator:
             f.close()
         
         
-class DACs:
-    some_gain = detector.parameter.Observable('some_gain')
+#class DACs:
+#    some_gain = detector.parameter.Observable('some_gain')
 
 class CarrierBoard(object):
+    """Implements the :class:`percival.detector.interface.IControl` interface for the Percival Carrier Board"""
     def __init__(self):
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
-        self.dacs = DACs
+        #self.dacs = DACs
 
     #### IControl interface implementation ####        
     def start_acquisition(self, exposure, nframes):
@@ -120,22 +123,19 @@ class MezzanineBoard(interface.IData):
 
 
 class PercivalUI(object):
-    '''
-    classdocs
+    '''Top-level class which allow control and monitoring of the entire Percival detector system.
+    
+        Internally maintains objects that implement control and data monitoring.
     '''
     exposure= 1
     control = CarrierBoard()
     data = MezzanineBoard()
 
     def __init__(self):
-        '''
-        Constructor
-        '''
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         
     def acquire(self, exposure, nframes=1, wait=True):
-        '''
-        Start the detector acquiring data
+        '''Start the detector acquiring data
         '''
         self.control.start_acquisition(exposure, nframes)
         if wait:

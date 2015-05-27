@@ -1,35 +1,34 @@
-carrier Package
-================
-
 :mod:`percival.carrier` package
------------------------
-
-.. automodule:: percival.carrier
+===============================
 
 
-    
 :mod:`percival.carrier.devices` module
------------------------
+--------------------------------------
 
 .. automodule:: percival.carrier.devices
-
-    :class:`IDeviceSettings` interface
-    --------------------------------------
-    .. autoclass:: percival.carrier.devices.IDeviceSettings
-        :members:
-        :show-inheritance:
-
-    :class:`DeviceSettings` base class
-    --------------------------------------
-    .. autoclass:: percival.carrier.devices.DeviceSettings
-        :members:
-        :show-inheritance:
+    :members:
+    :special-members: __init__
 
 
+:mod:`percival.carrier.registers` module
+----------------------------------------
 
-    :class:`MapField`
-    --------------------------------------
-    .. autoclass:: percival.carrier.devices.MapField
-        :members:
-        :show-inheritance:
-        
+.. automodule:: percival.carrier.registers
+    :members:
+    :special-members: __init__
+
+
+:mod:`percival.carrier.txrx` module
+-----------------------------------
+
+.. automodule:: percival.carrier.txrx
+    :members:
+    :special-members: __init__
+
+
+:mod:`percival.carrier.encoding` module
+---------------------------------------
+
+.. automodule:: percival.carrier.encoding
+	:members:
+	
