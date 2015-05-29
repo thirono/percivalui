@@ -5,21 +5,60 @@ Created on 5 Dec 2014
 '''
 from __future__ import unicode_literals, absolute_import
 from builtins import range
+from enum import Enum, unique
+
 from . import encoding
 
 import logging
 
 from percival.carrier import devices, txrx
 
-BoardTypes = ["left",
-              "bottom",
-              "carrier",
-              "plugin"]
+@unique
+class SystemCmd(Enum):
+    """Enumeration of all available system level commands
+    
+    This represents the documented "SYSTEM_CMD details"
+    """
+    no_operation = 0
+    enable_global_monitoring = 1
+    disable_global_monitoring = 2
+    enable_device_level_safety_controls = 3
+    disable_device_level_safety_controls = 4
+    enable_system_level_safety_controls = 5
+    disable_system_level_safety_controls = 6
+    enable_experimental_level_safety_controls = 7
+    disable_experimental_level_safety_controls = 8
+    enable_safety_actions = 9
+    disable_safety_actions = 10
+    start_acquisition = 11
+    stop_acquisition = 12
+    fast_sensor_powerup = 13
+    fast_sensor_powerdown = 14
+    switch_on_mgt_of_mezzanine_board_a = 15
+    switch_off_mgt_of_mezzanine_board_a = 16
+    switch_on_mgt_of_mezzanine_board_b = 17
+    switch_off_mgt_of_mezzanine_board_b = 18
+    switch_on_phy_of_mezzanine_board_a = 19
+    switch_off_phy_of_mezzanine_board_a = 20
 
-RegisterMapTypes = {"header":     devices.HeaderInfo,
-                    "control":    devices.ControlChannel,
-                    "monitoring": devices.MonitoringChannel,
-                    "command":    devices.Command}
+@unique
+class BoardTypes(Enum):
+    left = 0
+    bottom = 1
+    carrier = 2
+    plugin = 3
+
+@unique
+class RegisterMapType(Enum):
+    header = 0
+    control = 1
+    monitoring = 2
+    command  = 3
+    
+RegisterMapClasses = {RegisterMapType.header:     devices.HeaderInfo,
+                      RegisterMapType.control:    devices.ControlChannel,
+                      RegisterMapType.monitoring: devices.MonitoringChannel,
+                      RegisterMapType.command:    devices.Command}
 
 # Each entry is a tuple of:     (description,                 read_addr, entries, words, DeviceSettings subclass)
 CarrierUARTRegisters = {0x0000: ("Header settings left",         0x012E,       1,     1,  devices.HeaderInfo),
@@ -68,7 +107,7 @@ class UARTRegister(object):
         
         self.settings = None # A devices.DeviceSettings object
         if DeviceClass:
-            self.settings = devices.Command()
+            self.settings = DeviceClass()
 
         if start_addr.bit_length() > self.UART_ADDR_WIDTH:
             raise ValueError("start_addr value 0x%H is greater than 16 bits"%start_addr)
