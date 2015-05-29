@@ -22,6 +22,7 @@ class TestUARTRegister(unittest.TestCase):
         '''Check the correctness of the generated readback command/msg from get_read_cmdmsg()'''
         msg = self.command_reg.get_read_cmdmsg()
         self.assertIsInstance(msg, txrx.TxMessage)
+        self.assertIs(msg.expected_bytes, 3 * 6)
         self.assertEqual(msg.message, b'\x01\x44\x00\x00\x00\x00', "Readback msg not correct: %s"%str([msg]))
         
     def test_write_msg(self):

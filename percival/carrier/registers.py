@@ -23,19 +23,19 @@ RegisterMapTypes = {"header":     devices.HeaderInfo,
 
 # Each entry is a tuple of:     (description,                 read_addr, entries, words, DeviceSettings subclass)
 CarrierUARTRegisters = {0x0000: ("Header settings left",         0x012E,       1,     1,  devices.HeaderInfo),
-                        0x0001: ("Control settings left",        0x012F,       1,     1,  devices.ControlChannel),
-                        0x0041: ("Monitoring settings left",     0x0130,       1,     1,  devices.MonitoringChannel),
+                        0x0001: ("Control settings left",        0x012F,      16,     4,  devices.ControlChannel),
+                        0x0041: ("Monitoring settings left",     0x0130,      16,     4,  devices.MonitoringChannel),
                         0x0081: ("Header settings bottom",       0x0131,       1,     1,  devices.HeaderInfo),
-                        0x0082: ("Control settings bottom",      0x0132,       1,     1,  devices.ControlChannel),
-                        0x008A: ("Monitoring settings bottom",   0x0133,       1,     1,  devices.MonitoringChannel),
+                        0x0082: ("Control settings bottom",      0x0132,       2,     4,  devices.ControlChannel),
+                        0x008A: ("Monitoring settings bottom",   0x0133,       2,     4,  devices.MonitoringChannel),
                         0x0092: ("Header settings carrier",      0x0134,       1,     1,  devices.HeaderInfo),
-                        0x0093: ("Control settings carrier",     0x0135,       1,     1,  devices.ControlChannel),
-                        0x009B: ("Monitoring settings carrier",  0x0136,       1,     1,  devices.MonitoringChannel),
+                        0x0093: ("Control settings carrier",     0x0135,       2,     4,  devices.ControlChannel),
+                        0x009B: ("Monitoring settings carrier",  0x0136,       2,     4,  devices.MonitoringChannel),
                         0x00A3: ("Header settings plugin",       0x0137,       1,     1,  devices.HeaderInfo),
-                        0x00A4: ("Control settings plugin",      0x0138,       1,     1,  devices.ControlChannel),
-                        0x00AC: ("Monitoring settings plugin",   0x0139,       1,     1,  devices.MonitoringChannel),
+                        0x00A4: ("Control settings plugin",      0x0138,       2,     4,  devices.ControlChannel),
+                        0x00AC: ("Monitoring settings plugin",   0x0139,       2,     4,  devices.MonitoringChannel),
                         
-                        0x00EC: ("Command",                      0x0144,       1,     1,  devices.Command),
+                        0x00EC: ("Command",                      0x0144,       1,     3,  devices.Command),
                         
                         #0x0001: ("Header settings left",        1,     1,                    None),
                         }
@@ -68,7 +68,7 @@ class UARTRegister(object):
         
         self.settings = None # A devices.DeviceSettings object
         if DeviceClass:
-            self.settings = devices.Command()
+            self.settings = DeviceClass()
 
         if start_addr.bit_length() > self.UART_ADDR_WIDTH:
             raise ValueError("start_addr value 0x%H is greater than 16 bits"%start_addr)
