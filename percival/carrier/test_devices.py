@@ -124,6 +124,26 @@ class TestCommand(unittest.TestCase):
         self.assertTrue("device_index" in self.dut._mem_map.keys(), "No device index in: %s"%str(self.dut._mem_map.keys()))
         self.dut.device_index = 10
         self.assertIs(self.dut.device_index, 10, "device_index should now be set to 10, not %s"%str(self.dut.device_index))
+
+class TestEchoWord(unittest.TestCase):
+    def setUp(self):
+        self.dut = devices.EchoWord()
+        
+    def testInitialMapFieldValue(self):
+        self.assertIs(self.dut.read_value, None, "read_value should be initialised to None")
+        self.assertTrue("read_value" in self.dut._mem_map.keys(), "No read_value in: %s"%str(self.dut._mem_map.keys()))
+        self.dut.read_value = 10
+        self.assertIs(self.dut.read_value, 10, "read_value should now be set to 10, not %s"%str(self.dut.read_value))
+
+class TestReadValue(unittest.TestCase):
+    def setUp(self):
+        self.dut = devices.ReadValue()
+        
+    def testInitialMapFieldValue(self):
+        self.assertIs(self.dut.sample_number, None, "sample_number should be initialised to None")
+        self.assertTrue("sample_number" in self.dut._mem_map.keys(), "No sample_number in: %s"%str(self.dut._mem_map.keys()))
+        self.dut.sample_number = 10
+        self.assertIs(self.dut.sample_number, 10, "sample_number should now be set to 10, not %s"%str(self.dut.sample_number))
         
 class TestMapField(unittest.TestCase):
     def setUp(self):

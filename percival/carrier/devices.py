@@ -186,6 +186,33 @@ class Command(DeviceSettings):
                          "system_cmd_data":              MapField("system_cmd_data",              2, 16, 16),
                          }
 
+class EchoWord(DeviceSettings):
+    """Represent the ECHO WORD register bank of just one single word
+    """
+    num_words = 1
+    def __init__(self):
+        object.__setattr__(self, '_mem_map', {}) # This prevents infinite recursion when setting attributes
+        self._mem_map = {"read_value":                   MapField("read_value",                   0,  16,  0),
+                         "i2c_communication_error":      MapField("i2c_communication_error",      0,   1, 16),
+                         }
+
+class ReadValue(DeviceSettings):
+    """Represent the READ VALUE register bank of just one single word
+    """
+    num_words = 1
+    def __init__(self):
+        object.__setattr__(self, '_mem_map', {}) # This prevents infinite recursion when setting attributes
+        self._mem_map = {"read_value":                   MapField("read_value",                   0,  16,  0),
+                         "i2c_communication_error":      MapField("i2c_communication_error",      0,   1, 16),
+                         "safety_exception_detected":    MapField("safety_exception_detected",    0,   1, 17),
+                         "below_extreme_low_threshold":  MapField("below_extreme_low_threshold",  0,   1, 18),
+                         "below_low_threshold":          MapField("below_low_threshold",          0,   1, 19),
+                         "above_high_threshold":         MapField("above_high_threshold",         0,   1, 20),
+                         "above_extreme_high_threshold": MapField("above_extreme_high_threshold", 0,   1, 21),
+                         "sample_number":                MapField("sample_number",                0,   8, 24),
+                         }
+
+
 class IDeviceSettings(with_metaclass(abc.ABCMeta, IABCMeta)):
     '''
     Interface to a Device Setting bitmap.
