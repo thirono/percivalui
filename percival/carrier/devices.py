@@ -7,12 +7,165 @@ from __future__ import unicode_literals, absolute_import
 from future.utils import with_metaclass, raise_with_traceback
 from builtins import range
 import abc
+from enum import Enum, unique
 
 from percival.detector.interface import IABCMeta
 
 import logging
 logger = logging.getLogger(__name__)
+
+@unique
+class DeviceCmd(Enum):
+    """Equivalent enumeration as per the documented "Supported DEVICE_CMDs"
     
+    Enumerated commands include:
+    
+    * `no_operation`
+    * `reset`
+    * `initialize`
+    * `set_value`
+    * `get_value`
+    * `set_and_get_value`
+    * `set_value_on`
+    * `set_value_off`
+    * `enable_standby_mode`
+    * `disable_standby_mode`
+    * `set_word_value`
+    * `get_word_value`
+    * `set_page_value`
+    * `get_page_value`
+    """
+    no_operation = 0
+    reset = 1
+    initialize = 2
+    set_value = 3
+    get_value = 4
+    set_and_get_value = 5
+    set_value_on = 6
+    set_value_off = 7
+    enable_standby_mode = 8
+    disable_standby_mode = 9
+    set_word_value = 10
+    get_word_value = 11
+    set_page_value = 12
+    get_page_value = 13
+    
+@unique
+class DeviceFunction(Enum):
+    """Equivalent enumeration as per the documented "Supported DEVICE_TYPEs"
+    
+    Enumerated functionalities include:
+    
+    * `control`
+    * `monitoring`
+    * `eeprom`
+    * `none`
+    """
+    control = 0
+    monitoring = 1
+    eeprom = 2
+    none = 3
+    
+
+class DeviceFeatures(object):
+    """Mapping PCB devices to their supported functionality
+    
+    This represent the documented table "Supported DEVICE_CMD vs device family"
+    """
+    def __init__(self, device_id, function, description = "", commands = [] ):
+        """
+            :param device_id: The integer device ID as documented
+            :type  device_id: `int`
+            :param function:  The enumerated functionality of the device
+            :type  function:  `DeviceFunction` item
+            :param description: Human readable description of the device
+            :type  description: string
+            :param commands: Supported commands for this device
+            :type  commands: list of `DeviceCmd` items
+        """
+        self._device_id = device_id
+        self._function = function
+        self._description = description
+        self._commands = commands
+        
+    @property
+    def device_id(self):
+        return self._device_id
+    @property
+    def function(self):
+        return self._function
+    @property
+    def description(self):
+        return self._description
+    
+    def supports_cmd(self, cmd):
+        """Check if a given command is supported for this device
+        
+            :param cmd: The command to check for
+            :type cmd:  `DeviceCmd`
+            :returns: True if the command is supported, False if not.
+            :rtype: boolean
+        """
+        return cmd in self._commands
+        
+@unique
+class DeviceFamily(Enum):
+    """Enumeration of the available electronic component families"""
+    AD5242 = DeviceFeatures(    0, DeviceFunction.control ,     "Digital potentiometer",        [DeviceCmd.no_operation,
+                                                                                                 DeviceCmd.reset,
+                                                                                                 DeviceCmd.set_value,
+                                                                                                 DeviceCmd.get_value,
+                                                                                                 DeviceCmd.set_and_get_value,
+                                                                                                 DeviceCmd.set_value_on,
+                                                                                                 DeviceCmd.set_value_off] )
+    """Digital potentiometer for control"""
+    AD5263 = DeviceFeatures(    1, DeviceFunction.control ,     "Digital potentiometer",        [DeviceCmd.no_operation,
+                                                                                                 DeviceCmd.reset,
+                                                                                                 DeviceCmd.set_value,
+                                                                                                 DeviceCmd.get_value,
+                                                                                                 DeviceCmd.set_and_get_value] )
+    """Digital potentiometer for control"""
+    AD5629 = DeviceFeatures(    2, DeviceFunction.control ,     "DAC for control",              [DeviceCmd.no_operation,
+                                                                                                 DeviceCmd.reset,
+                                                                                                 DeviceCmd.initialize,
+                                                                                                 DeviceCmd.set_value,
+                                                                                                 DeviceCmd.get_value,
+                                                                                                 DeviceCmd.set_and_get_value,
+                                                                                                 DeviceCmd.enable_standby_mode,
+                                                                                                 DeviceCmd.disable_standby_mode] )
+    """DAC for control"""
+    AD5669 = DeviceFeatures(    3, DeviceFunction.control ,     "DAC for control",              [DeviceCmd.no_operation,
+                                                                                                 DeviceCmd.reset,
+                                                                                                 DeviceCmd.initialize,
+                                                                                                 DeviceCmd.set_value,
+                                                                                                 DeviceCmd.get_value,
+                                                                                                 DeviceCmd.set_and_get_value,
+                                                                                                 DeviceCmd.enable_standby_mode,
+                                                                                                 DeviceCmd.disable_standby_mode] )
+    """DAC for control"""
+    LTC2309 = DeviceFeatures(   7, DeviceFunction.monitoring ,  "ADC for monitoring",           [DeviceCmd.no_operation,
+                                                                                                 DeviceCmd.set_value,
+                                                                                                 DeviceCmd.get_value,
+                                                                                                 DeviceCmd.set_and_get_value])
+    """ADC for monitoring"""
+    LTC2497 = DeviceFeatures(   4, DeviceFunction.monitoring ,  "ADC for monitoring",           [DeviceCmd.no_operation,
+                                                                                                 DeviceCmd.set_value,
+                                                                                                 DeviceCmd.get_value,
+                                                                                                 DeviceCmd.set_and_get_value])
+    """ADC for monitoring"""
+    MAX31730 = DeviceFeatures(  5, DeviceFunction.monitoring ,  "Temperature for monitoring",   [DeviceCmd.no_operation,
+                                                                                                 DeviceCmd.reset,
+                                                                                                 DeviceCmd.initialize,
+                                                                                                 DeviceCmd.set_and_get_value])
+    """Temperature for monitoring"""
+    AT24CM01 = DeviceFeatures(  6, DeviceFunction.eeprom ,      "EEPROM for on-board storage",  [DeviceCmd.no_operation,
+                                                                                                 DeviceCmd.set_word_value,
+                                                                                                 DeviceCmd.get_word_value,
+                                                                                                 DeviceCmd.set_page_value,
+                                                                                                 DeviceCmd.get_page_value])
+    """EEPROM for on-board configuration storage"""
+
+
 class DeviceSettings(object):
     """Mixin to be used by classes that implement the IDeviceSettings interface"""
     def __getattr__(self, name):

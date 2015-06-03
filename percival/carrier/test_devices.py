@@ -8,6 +8,7 @@ from __future__ import unicode_literals, absolute_import
 import unittest
 
 import percival.carrier.devices as devices
+from percival.carrier.devices import DeviceCmd
 
 
 class TestDevices(unittest.TestCase):
@@ -160,6 +161,46 @@ class TestMapField(unittest.TestCase):
         self.dut.value = 45
         self.assertEqual(self.dut.value, 45)
         self.assertEqual(self.dut._value, 45)
+        
+        
+class TestDeviceFamilyEnum(unittest.TestCase):
+    def setUp(self):
+        self.digipot = devices.DeviceFamily.AD5242
+        self.dac = devices.DeviceFamily.AD5629
+        self.adc = devices.DeviceFamily.LTC2497
+        
+    def TestFunctions(self):
+        self.assertIs(self.digipot.value.function, devices.DeviceFunction.control)
+        self.assertIs(self.dac.value.function, devices.DeviceFunction.control)
+        self.assertIs(self.adc.value.function, devices.DeviceFunction.monitoring)
+
+    def TestDeviceID(self):
+        self.assertIs(self.digipot.value.device_id, 0)
+        self.assertIs(self.dac.value.device_id, 2)
+        self.assertIs(self.adc.value.device_id, 4)
+        
+    def TestSupportedCommands(self):
+        dev = self.digipot.value
+        self.assertIs(dev.supports_cmd( DeviceCmd.no_operation),        True  )
+        self.assertIs(dev.supports_cmd( DeviceCmd.reset),               True  )
+        self.assertIs(dev.supports_cmd( DeviceCmd.initialize),          False )
+        self.assertIs(dev.supports_cmd( DeviceCmd.set_and_get_value),   True  )
+        self.assertIs(dev.supports_cmd( DeviceCmd.set_word_value),      False )
+
+        dev = self.dac.value
+        self.assertIs(dev.supports_cmd( DeviceCmd.no_operation),        True  )
+        self.assertIs(dev.supports_cmd( DeviceCmd.reset),               True  )
+        self.assertIs(dev.supports_cmd( DeviceCmd.initialize),          True  )
+        self.assertIs(dev.supports_cmd( DeviceCmd.set_and_get_value),   True  )
+        self.assertIs(dev.supports_cmd( DeviceCmd.set_word_value),      False )
+        
+        dev = self.adc.value
+        self.assertIs(dev.supports_cmd( DeviceCmd.no_operation),        True  )
+        self.assertIs(dev.supports_cmd( DeviceCmd.reset),               False )
+        self.assertIs(dev.supports_cmd( DeviceCmd.initialize),          False )
+        self.assertIs(dev.supports_cmd( DeviceCmd.set_and_get_value),   True  )
+        self.assertIs(dev.supports_cmd( DeviceCmd.set_word_value),      False )
+        
         
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
