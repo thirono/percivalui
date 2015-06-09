@@ -1,0 +1,34 @@
+// UML example using suml from scruffy: https://github.com/aivarsk/scruffy
+// Generate UML class diagram image with the following command:
+// suml --svg --font-family "Humor Sans" --scruffy -i classes.suml -o classes.svg
+
+[note: this is just for my own reference and may not be true anymore!{bg:cornsilk}],
+[<<IDeviceSettings>>| +num_words; +parse_map(); +generate_map() | -_mem_map], \
+[MapField| +num_bits; +bit_offset; +name; +word_index; +mask; +value; \
+           +extract_field_value(); +insert_field_value()],
+
+[<<IDeviceSettings>>]^-.-[HeaderInfo],
+[HeaderInfo]<1-3>[MapField],
+[<<IDeviceSettings>>]^-.-[ControlChannel],
+[ControlChannel]<1-12>[MapField],
+[<<IDeviceSettings>>]^-.-[MonitoringChannel],
+[MonitoringChannel]<1-13>[MapField],
+[<<IDeviceSettings>>]^-.-[Command],
+[Command]<1-7..8>[MapField],
+[<<IDeviceSettings>>]^-.-[EchoWord],
+[EchoWord]<1-2>[MapField],
+[<<IDeviceSettings>>]^-.-[ReadValue],
+[ReadValue]<1-8>[MapField],
+
+[UARTRegister]<1-1>[<<IDeviceSettings>>],
+[UARTRegister]uses -.->[TxMessage],
+[UARTRegister]uses -.->[encoding],
+
+[TxMessage| +message; +expected_bytes; +expected_response],
+[TxRx| +fpga_addr; +timeout; +send_recv_message(); +clean(); \
+     | -tx_msg(); -rx_msg(); -send_resv()]uses -.->[TxMessage],
+     
+[<<Context>>;TxRxContext]<1-1>[TxRx],
+
+[encoding | +encode_message(); +decode_message()]
+
