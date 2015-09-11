@@ -1,12 +1,19 @@
+sudo: false
 language: python
 python:
   - "2.7"
   - "3.3"
   - "3.4"
 
-before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq libhdf5-serial-dev
+cache:
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/virtualenv/python$TRAVIS_PYTHON_VERSION/lib/python$TRAVIS_PYTHON_VERSION/site-packages
+
+addons:
+  apt:
+    packages:
+      - libhdf5-serial-dev
  
 install:
   - "pip install -r requirements.txt"
@@ -18,3 +25,4 @@ script: nosetests
 
 after_success:
   - coveralls
+
