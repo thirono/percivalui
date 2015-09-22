@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/percival-detector/percivalui.svg)](https://travis-ci.org/percival-detector/percivalui)
 [![Coverage Status](https://coveralls.io/repos/percival-detector/percivalui/badge.svg?branch=master)](https://coveralls.io/r/percival-detector/percivalui?branch=master)
+[![Code Health](https://landscape.io/github/percival-detector/percivalui/master/landscape.svg?style=flat)](https://landscape.io/github/percival-detector/percivalui/master)
 
 # Percival UI #
 
