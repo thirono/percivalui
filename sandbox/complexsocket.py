@@ -9,7 +9,8 @@ from percival.log import log
 from percival.carrier.txrx import TxRx, TxRxContext
 from percival.carrier.encoding import (encode_message, encode_multi_message, decode_message)
 
-board_ip_address = "percival2.diamond.ac.uk"
+#board_ip_address = "percival2.diamond.ac.uk"
+board_ip_address = "percival3.diamond.ac.uk"
 
 def main():
     log.debug("complexsocket...")

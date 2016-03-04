@@ -7,8 +7,9 @@ from __future__ import print_function
 import socket
 
 #board_ip_address = "192.168.0.3"
-board_ip_address = "percival2.diamond.ac.uk"
+#board_ip_address = "percival2.diamond.ac.uk"
 #board_ip_address = 'localhost'
+board_ip_address = "percival3.diamond.ac.uk"
 board_ip_port = 10001
 
 def bytes_to_str(byte_list):
