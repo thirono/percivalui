@@ -43,24 +43,37 @@ If you have a github account, you can load your public ssh key into your profile
     git@github.com:percival-detector/percivalui.git
 
 
-Building and installing the sources and scripts can be done with the usual python package build system (i.e. setuptools):
+Building and installing the sources and scripts can be done with the usual python package build system (i.e. setuptools)
+and it is recommended to setup a virtualenv first:
 
 	cd percivalui
 	
+	# Setup your virtual python environment and activate it
+	virtualenv --no-site-packages -p /path/to/python2.7 venv27
+	source venv27/bin/activate
+	
+	# Point to your HDF5 installation if it is not in the system path
+	export HDF5_DIR=/path/to/your/hdf5/installation
+	
+	# Install the python dependencies
+	pip install -r requirements.txt
+	
+	# Run the unittests to ensure everything is setup in the environment
+	# there should be no failures/errors reported
+	python setup.py nosetests
+	
+	# Optionally build the documentation
+	python setup.py build_sphinx
+
+Once you have everything working you can build and install the product:
+
     # Do a local build
     python setup.py build
     
     # Install into the system environment or specify a --prefix
-    python setup.py install
+    python setup.py --prefix=/path/to/install/dir install
     
 
 ## Docs ##
-
-Documentation is (optionally) built using Sphinx. If your site uses a http/https proxy server then you may need to set your http_proxy and https_proxy environment variables before building the docs.
-
-Documentation build instructions:
-
-    cd docs/
-    make html
 
 The built documentation will be located in `docs/build/html/index.html`
