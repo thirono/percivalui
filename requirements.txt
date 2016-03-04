@@ -1,6 +1,8 @@
 future>=0.14
 numpy>=1.7.0
-h5py>=2.5.0
+#h5py>=2.5.0
+-e git+git://github.com/h5py/h5py.git@2.6.0#egg=h5py
 nose>=1.3
 enum34>=1.0
 coverage
+sphinx
