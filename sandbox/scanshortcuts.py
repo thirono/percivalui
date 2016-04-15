@@ -18,7 +18,7 @@ scanrange = [(0x0144, 6),
              (0x0146, None),
              ] # Currently no other "shortcut" addresses return a response
 
-scanrange = range(0x012E, 0x0145, 1)
+scanrange = range(0x01B3, 0x01BE, 1)
 
 def main():
     log.info("Scanning shortcuts...")

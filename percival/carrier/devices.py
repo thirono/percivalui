@@ -186,7 +186,11 @@ class DeviceSettings(object):
                                         key=lambda key_field: key_field[1].word_index, reverse=True)] 
         for map_field in map_fields:
             map_field.extract_field_value(words)
-            
+
+    def parse_map_from_tuples(self, tuples):
+        words = [value for addr, value in tuples]
+        self.parse_map(words)
+
     def generate_map(self):
         words = list(range(self.num_words))
         logger.debug("map: %s", str(self._mem_map))
@@ -332,11 +336,11 @@ class Command(DeviceSettings):
                          #"eeprom_target":                MapField("eeprom_target",                0,  3, 25),
                          "device_index":                 MapField("device_index",                 0, 16,  0),
                 
-                         "sensor_cmd":                   MapField("sensor_cmd",                   1, 16,  0),
-                         "sensor_cmd_data":              MapField("sensor_cmd_data",              1, 16, 16),
+                         "sensor_cmd":                   MapField("sensor_cmd",                   1, 16, 16),
+                         "sensor_cmd_data":              MapField("sensor_cmd_data",              1, 16,  0),
                 
-                         "system_cmd":                   MapField("system_cmd",                   2, 16,  0),
-                         "system_cmd_data":              MapField("system_cmd_data",              2, 16, 16),
+                         "system_cmd":                   MapField("system_cmd",                   2, 16, 16),
+                         "system_cmd_data":              MapField("system_cmd_data",              2, 16,  0),
                          }
 
 class EchoWord(DeviceSettings):
@@ -371,7 +375,7 @@ class IDeviceSettings(with_metaclass(abc.ABCMeta, IABCMeta)):
     Interface to a Device Setting bitmap.
     '''
     __iproperties__ = ['num_words']
-    __imethods__ = ['parse_map', 'generate_map']
+    __imethods__ = ['parse_map', 'parse_map_from_tuples', 'generate_map']
     _iface_requirements = __imethods__ + __iproperties__
     
     @abc.abstractproperty
@@ -390,11 +394,19 @@ class IDeviceSettings(with_metaclass(abc.ABCMeta, IABCMeta)):
     @abc.abstractmethod
     def parse_map(self, words):
         """Parse a list of words as a bitmap and write to the relevant internal MapFields
-        
+
             :param words: 32 bit integer words
             :type  words: list"""
         raise NotImplementedError
-    
+
+    @abc.abstractmethod
+    def parse_map_from_tuples(self, tuples):
+        """Parse a list of words as a bitmap and write to the relevant internal MapFields
+
+            :param tuples: List of tuples with (address, value) where address is 16bit and value is 32 bit integer words
+            :type  tuples: list"""
+        raise NotImplementedError
+
     @abc.abstractmethod
     def generate_map(self):
         """Generate a bitmap from the device MapFields. 

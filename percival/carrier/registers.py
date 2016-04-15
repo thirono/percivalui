@@ -61,21 +61,22 @@ RegisterMapClasses = {RegisterMapType.header:     devices.HeaderInfo,
                       RegisterMapType.command:    devices.Command}
 
 # Each entry is a tuple of:     (description,                 read_addr, entries, words, DeviceSettings subclass)
-CarrierUARTRegisters = {0x0000: ("Header settings left",         0x012E,       1,     1,  devices.HeaderInfo),
-                        0x0001: ("Control settings left",        0x012F,      16,     4,  devices.ControlChannel),
-                        0x0041: ("Monitoring settings left",     0x0130,      16,     4,  devices.MonitoringChannel),
-                        0x0081: ("Header settings bottom",       0x0131,       1,     1,  devices.HeaderInfo),
-                        0x0082: ("Control settings bottom",      0x0132,       2,     4,  devices.ControlChannel),
-                        0x008A: ("Monitoring settings bottom",   0x0133,       2,     4,  devices.MonitoringChannel),
-                        0x0092: ("Header settings carrier",      0x0134,       1,     1,  devices.HeaderInfo),
-                        0x0093: ("Control settings carrier",     0x0135,       2,     4,  devices.ControlChannel),
-                        0x009B: ("Monitoring settings carrier",  0x0136,       2,     4,  devices.MonitoringChannel),
-                        0x00A3: ("Header settings plugin",       0x0137,       1,     1,  devices.HeaderInfo),
-                        0x00A4: ("Control settings plugin",      0x0138,       2,     4,  devices.ControlChannel),
-                        0x00AC: ("Monitoring settings plugin",   0x0139,       2,     4,  devices.MonitoringChannel),
+CarrierUARTRegisters = {0x0000: ("Header settings left",         0x01B3,       1,     1,  devices.HeaderInfo),
+                        0x0001: ("Control settings left",        0x01B4,      16,     4,  devices.ControlChannel),
+                        0x0041: ("Monitoring settings left",     0x01B5,      16,     4,  devices.MonitoringChannel),
+                        0x0081: ("Header settings bottom",       0x01B6,       1,     1,  devices.HeaderInfo),
+                        0x0082: ("Control settings bottom",      0x01B7,       2,     4,  devices.ControlChannel),
+                        0x008A: ("Monitoring settings bottom",   0x01B8,       2,     4,  devices.MonitoringChannel),
+                        0x0092: ("Header settings carrier",      0x01B9,       1,     1,  devices.HeaderInfo),
+                        0x0093: ("Control settings carrier",     0x01BA,      14,     4,  devices.ControlChannel),
+                        0x00CB: ("Monitoring settings carrier",  0x01BB,      19,     4,  devices.MonitoringChannel),
+                        0x0117: ("Header settings plugin",       0x01BC,       1,     1,  devices.HeaderInfo),
+                        0x0118: ("Control settings plugin",      0x01BD,       2,     4,  devices.ControlChannel),
+                        0x0120: ("Monitoring settings plugin",   0x01BE,       2,     4,  devices.MonitoringChannel),
                         
-                        0x00EC: ("Command",                      0x0144,       1,     3,  devices.Command),
-                        
+                        0x0170: ("Command",                        None,       1,     3,  devices.Command),
+                        0x01B2: ("Read Echo Word",               0x01CA,       1,     1,  devices.EchoWord),
+
                         #0x0001: ("Header settings left",        1,     1,                    None),
                         }
 """Look-up table of UART addresses and the corresponding details
@@ -112,8 +113,9 @@ class UARTRegister(object):
         if start_addr.bit_length() > self.UART_ADDR_WIDTH:
             raise ValueError("start_addr value 0x%H is greater than 16 bits"%start_addr)
         self._start_addr = start_addr
-        if self._readback_addr.bit_length() > self.UART_ADDR_WIDTH:
-            raise ValueError("readback_addr value 0x%H is greater than 16 bits"%self._readback_addr)
+        if self._readback_addr:
+            if self._readback_addr.bit_length() > self.UART_ADDR_WIDTH:
+                raise ValueError("readback_addr value 0x%H is greater than 16 bits"%self._readback_addr)
         
        
     def get_read_cmdmsg(self):
@@ -122,6 +124,8 @@ class UARTRegister(object):
             :returns: A read UART command message
             :rtype:  list of :class:`percival.carrier.txrx.TxMessage` objects
         """
+        if not  self._readback_addr:
+            raise TypeError("A readback shortcut is not available for \'%s\'"%self._name)
         read_cmdmsg = encoding.encode_message(self._readback_addr, 0x00000000)
         self.log.debug(read_cmdmsg)
         return txrx.TxMessage(read_cmdmsg, self._words_per_entry * self._entries)

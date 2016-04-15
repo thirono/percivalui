@@ -13,6 +13,10 @@ from percival.carrier.encoding import (encode_message, encode_multi_message, dec
 board_ip_address = "percival3.diamond.ac.uk"
 
 def main():
+    """
+
+    :rtype: int
+    """
     log.debug("complexsocket...")
     
     with TxRxContext(board_ip_address) as trx:
@@ -20,7 +24,7 @@ def main():
         #msg = encode_message(0x0144, 0x00000000)
         #msg = encode_message(0x0144, 0x00000000) # Header Info Readback
         #msg = encode_message(0x0102, 0x00000001) # Device Command: control, device_no-op, device index 1
-        msg = encode_message(0x00EC, 0x00000005) # Device Command: control, device_set_and_get, device index 1
+        msg = encode_message(0x0170, 0x00000005) # Device Command: control, device_set_and_get, device index 1
 
         log.debug("as string: %s",str([msg]))
         #trx.tx_msg(msg)
@@ -32,7 +36,7 @@ def main():
         log.debug("Got %d words", len(resp))
         log.debug(resp)
         
-        msg = encode_message(0x0144, 0x00000000) # ECHO WORD (times out)
+        msg = encode_message(0x01CA, 0x00000000) # ECHO WORD (times out)
         resp = trx.send_recv(msg)
         log.debug("ECHO WORD: %d bytes: %s", len(resp), [resp])
         resp = decode_message(resp)
@@ -41,4 +45,3 @@ def main():
     
 if __name__ == '__main__':
     main()
-    
