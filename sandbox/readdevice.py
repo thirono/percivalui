@@ -18,8 +18,8 @@ from percival.carrier.encoding import (encode_message, encode_multi_message, dec
 board_ip_address = "percival3.diamond.ac.uk"
 
 def main():
-    log.debug("read device...")
-    
+    log.debug("Creating comms context...")
+
     with TxRxContext(board_ip_address) as trx:
     
         cmd = UARTRegister(0x0170)  # Command register
@@ -28,36 +28,32 @@ def main():
         # First generate and send a no-op system command
         cmd.settings.system_cmd = 0 # no-op system command
         cmd.settings.system_cmd_data = 0  # not used
-        no_op_cmd_msg = cmd.get_write_cmdmsg()[2]
+        no_op_cmd_msg = cmd.get_write_cmdmsg(eom=True)[2]
         log.info("System no-op command: %s", str(no_op_cmd_msg))
         response = trx.send_recv_message(no_op_cmd_msg)
         decoded_response = decode_message(response)
-        log.info("    response: 0x%04X: 0x%08X", decoded_response[0][0], decoded_response[0][1])
-       
+
         cmd.settings.system_cmd = 1 # enable global monitoring
-        disable_global_mon_cmd_msg = cmd.get_write_cmdmsg()[2]
+        disable_global_mon_cmd_msg = cmd.get_write_cmdmsg(eom=True)[2]
         log.info("System enable global monitoring command: %s", str(disable_global_mon_cmd_msg))
         response = trx.send_recv_message(disable_global_mon_cmd_msg)
         decoded_response = decode_message(response)
-        log.info("    response: 0x%04X: 0x%08X", decoded_response[0][0], decoded_response[0][1])
-        
+
         cmd.settings.device_cmd = 0 # device no-op
         cmd.settings.device_type = 1 # device monitoring
         cmd.settings.device_index = 18 # T sensor...
-        device_no_op_cmd_msg = cmd.get_write_cmdmsg()[0]
+        device_no_op_cmd_msg = cmd.get_write_cmdmsg(eom=True)[0]
         log.info("Device no-op command: %s", str(device_no_op_cmd_msg))
         response = trx.send_recv_message(device_no_op_cmd_msg)
         decoded_response = decode_message(response)
-        log.info("    response: 0x%04X: 0x%08X", decoded_response[0][0], decoded_response[0][1])
 
         cmd.settings.device_cmd = 5 # device set and get
         log.debug("cmd map: %s", cmd.settings.generate_map())
         log.debug("       : %s", cmd.settings._mem_map)
-        device_set_and_get_cmd_msg = cmd.get_write_cmdmsg()[0]
+        device_set_and_get_cmd_msg = cmd.get_write_cmdmsg(eom=True)[0]
         log.info("Device get and set command: %s", str(device_set_and_get_cmd_msg))
         response = trx.send_recv_message(device_set_and_get_cmd_msg)
         decoded_response = decode_message(response)
-        log.info("    response: 0x%04X: 0x%08X", decoded_response[0][0], decoded_response[0][1])
 
         while True:
             echo_word_cmd = UARTRegister(0x01B2)

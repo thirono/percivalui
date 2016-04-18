@@ -26,7 +26,9 @@ class TxMessage(object):
         """
         self.num_response_msg = num_response_msg
         self._message = message
-        self._expect_eom = expect_eom
+        self._expect_eom = False
+        if expect_eom:
+            self._expect_eom = END_OF_MESSAGE
         
     @property
     def message(self):
@@ -40,9 +42,18 @@ class TxMessage(object):
     def expected_response(self):
         if self._expect_eom:
             return END_OF_MESSAGE
+
+    def validate_eom(self, response):
+        if self._expect_eom:
+            return response == self._expect_eom
+
+        # If no EOM is expected then just return OK
+        else:
+            return True
         
     def __str__(self, *args, **kwargs):
-        s = "<TxMessag msg=0x%s exp. resp.: %d bytes>"%(binascii.hexlify(self._message).upper(), self.num_response_msg)
+        s = "<TxMessage msg=0x%s exp. resp.: %d bytes EOM: %s>"%(binascii.hexlify(self._message).upper(),
+                                                               self.num_response_msg, bool(self._expect_eom))
         return s
 
 class TxRx(object):
@@ -138,7 +149,9 @@ class TxRx(object):
         
         self.tx_msg(message.message)
         resp = self.rx_msg(message.expected_bytes)
-        # TODO: check for expected response
+        # Check for expected response
+        if not message.validate_eom(resp):
+            raise RuntimeError("Expected EOM on TxMessage: %s - got %s"%(str(message), resp))
         return resp
         
     
