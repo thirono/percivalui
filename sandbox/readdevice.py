@@ -88,12 +88,13 @@ class ReadDevice:
 
             with h5py.File("readdevice.h5", "w") as f:
                 numbers = numpy.array(list(zip(*sample_data))[0], dtype=numpy.uint8)
-                log.debug("numbers: %s", str(numbers))
                 data = numpy.array(list(zip(*sample_data))[1], dtype=numpy.uint16)
-                log.debug("data: %s", str(data))
                 dset_sample = f.create_dataset("sample", data=numbers)
                 dset_data = f.create_dataset("data", data=data)
 
+            log.info("File written. Use one of the following commands to analyse:")
+            log.info("  h5dump readdevice.h5")
+            log.info("  hdfview readdevice.h5")
 
 if __name__ == '__main__':
     rd = ReadDevice()
