@@ -5,7 +5,7 @@ Created on 19 May 2015
 '''
 from __future__ import print_function
 
-import time, binascii, signal
+import os, time, binascii, signal
 import numpy, h5py
 
 from percival.log import log
@@ -15,8 +15,7 @@ from percival.carrier.devices import ReadValue
 from percival.carrier.txrx import TxRx, TxRxContext, TxMessage
 from percival.carrier.encoding import (encode_message, encode_multi_message, decode_message)
 
-#board_ip_address = "percival2.diamond.ac.uk"
-board_ip_address = "percival3.diamond.ac.uk"
+board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
 
 class ReadDevice:
     def __init__(self):
