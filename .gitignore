@@ -84,3 +84,7 @@ docs/build
 venv27/
 venv34/
 
+/*.hdf
+/*.hdf5
+/*.h5
+
