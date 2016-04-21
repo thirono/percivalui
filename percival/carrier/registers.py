@@ -60,10 +60,10 @@ RegisterMapClasses = {RegisterMapType.header:     devices.HeaderInfo,
                       RegisterMapType.monitoring: devices.MonitoringChannel,
                       RegisterMapType.command:    devices.Command}
 
-BoardRegisters = {BoardTypes.left: (0x0000, 0x0001, 0x0005),
-                  BoardTypes.left: (0x0009, 0x000A, 0x000E),
-
-                  #TODO: left off here....
+BoardRegisters = {BoardTypes.left:    (0x0000, 0x0001, 0x0005),
+                  BoardTypes.bottom:  (0x0009, 0x000A, 0x000E),
+                  BoardTypes.carrier: (0x0012, 0x0013, 0x004B),
+                  BoardTypes.plugin:  (0x0097, 0x0098, 0x009C),
                   }
 
 # Each entry is a tuple of:     (description,                 read_addr, entries, words, DeviceSettings subclass)
