@@ -50,6 +50,11 @@ class TxMessage(object):
         # If no EOM is expected then just return OK
         else:
             return True
+
+    def __repr__(self):
+        s = "<TxMessage msg=0x%s %d bytes %s>"%(binascii.hexlify(self._message).upper(),
+                                                               self.num_response_msg, bool(self._expect_eom))
+        return s
         
     def __str__(self, *args, **kwargs):
         s = "<TxMessage msg=0x%s exp. resp.: %d bytes EOM: %s>"%(binascii.hexlify(self._message).upper(),
