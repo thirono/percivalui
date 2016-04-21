@@ -23,9 +23,9 @@ class TestUARTRegister(unittest.TestCase):
         with self.assertRaises( TypeError) as cm: self.command_reg.get_read_cmdmsg( )
 
     def test_write_msg(self):
-        self.command_reg.settings.parse_map([0,0,0])
-        self.assertEqual(self.command_reg.settings.device_index, 0)
-        self.assertEqual(self.command_reg.settings.device_cmd, 0)
+        self.command_reg.fields.parse_map([0, 0, 0])
+        self.assertEqual(self.command_reg.fields.device_index, 0)
+        self.assertEqual(self.command_reg.fields.device_cmd, 0)
         msg = self.command_reg.get_write_cmdmsg()
         self.assertTrue(type(msg), list)
         self.assertIsInstance(msg[0], txrx.TxMessage)

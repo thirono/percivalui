@@ -60,6 +60,12 @@ RegisterMapClasses = {RegisterMapType.header:     devices.HeaderInfo,
                       RegisterMapType.monitoring: devices.MonitoringChannel,
                       RegisterMapType.command:    devices.Command}
 
+BoardRegisters = {BoardTypes.left: (0x0000, 0x0001, 0x0005),
+                  BoardTypes.left: (0x0009, 0x000A, 0x000E),
+
+                  #TODO: left off here....
+                  }
+
 # Each entry is a tuple of:     (description,                 read_addr, entries, words, DeviceSettings subclass)
 CarrierUARTRegisters = {0x0000: ("Header settings left",         0x013A,       1,     1,  devices.HeaderInfo),
                         0x0001: ("Control settings left",        0x013B,       1,     4,  devices.ControlChannel),
@@ -104,9 +110,9 @@ class UARTRegister(object):
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         (self._name, self._readback_addr, self._entries, self._words_per_entry, DeviceClass) = CarrierUARTRegisters[start_addr]
         
-        self.settings = None # A devices.DeviceSettings object
+        self.fields = None # A devices.DeviceSettings object
         if DeviceClass:
-            self.settings = DeviceClass()
+            self.fields = DeviceClass()
 
         if start_addr.bit_length() > self.UART_ADDR_WIDTH:
             raise ValueError("start_addr value 0x%H is greater than 16 bits"%start_addr)
@@ -114,7 +120,9 @@ class UARTRegister(object):
         if self._readback_addr:
             if self._readback_addr.bit_length() > self.UART_ADDR_WIDTH:
                 raise ValueError("readback_addr value 0x%H is greater than 16 bits"%self._readback_addr)
-        
+
+    def initialize_map(self, map_words):
+        self.fields.parse_map(map_words)
        
     def get_read_cmdmsg(self):
         """Generate a message to do a readback (shortcut) command of the current register map
@@ -128,13 +136,13 @@ class UARTRegister(object):
         self.log.debug(read_cmdmsg)
         return txrx.TxMessage(read_cmdmsg, self._words_per_entry * self._entries)
     
-    def get_write_cmdmsg(self, eom=False):
+    def get_write_cmdmsg(self, eom=False, device_index=0):
         """Flatten the 2D matrix of datawords into one continuous list
         
             :returns: A write UART command message
             :rtype:  list of :class:`percival.carrier.txrx.TxMessage` objects"""
-        data_words = self.settings.generate_map()
-        write_cmdmsg = encoding.encode_multi_message(self._start_addr, data_words)
+        data_words = self.fields.generate_map()
+        write_cmdmsg = encoding.encode_multi_message(self._start_addr + device_index, data_words)
         write_cmdmsg = [txrx.TxMessage(msg, num_response_msg=1, expect_eom=eom) for msg in write_cmdmsg]
         return write_cmdmsg
     

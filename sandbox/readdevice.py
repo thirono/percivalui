@@ -32,17 +32,17 @@ class ReadDevice:
         with TxRxContext(board_ip_address) as trx:
 
             cmd = UARTRegister(0x00F8)  # Command register
-            cmd.settings.parse_map([0,0,0]) # initialise all registers to 0
+            cmd.fields.parse_map([0, 0, 0]) # initialise all registers to 0
 
             # First generate and send a no-op system command
-            cmd.settings.system_cmd = 0 # no-op system command
-            cmd.settings.system_cmd_data = 0  # not used
+            cmd.fields.system_cmd = 0 # no-op system command
+            cmd.fields.system_cmd_data = 0  # not used
             no_op_cmd_msg = cmd.get_write_cmdmsg(eom=True)[2]
             log.info("System no-op command: %s", str(no_op_cmd_msg))
             response = trx.send_recv_message(no_op_cmd_msg)
             decoded_response = decode_message(response)
 
-            cmd.settings.system_cmd = 0 # disable global monitoring
+            cmd.fields.system_cmd = 0 # disable global monitoring
             disable_global_mon_cmd_msg = cmd.get_write_cmdmsg(eom=True)[2]
             log.info("System enable global monitoring command: %s", str(disable_global_mon_cmd_msg))
             response = trx.send_recv_message(disable_global_mon_cmd_msg)
@@ -51,17 +51,17 @@ class ReadDevice:
             sample_data = [] # list of tuples: (sample, data)
             previous_sample = 0
             while self.keep_running:
-                cmd.settings.device_cmd = 0 # device no-op
-                cmd.settings.device_type = 1 # device monitoring
-                cmd.settings.device_index = 18 # T sensor...
+                cmd.fields.device_cmd = 0 # device no-op
+                cmd.fields.device_type = 1 # device monitoring
+                cmd.fields.device_index = 18 # T sensor...
                 device_no_op_cmd_msg = cmd.get_write_cmdmsg(eom=True)[0]
                 log.info("Device no-op command: %s", str(device_no_op_cmd_msg))
                 response = trx.send_recv_message(device_no_op_cmd_msg)
                 decoded_response = decode_message(response)
 
-                cmd.settings.device_cmd = 5 # device set and get
-                log.debug("cmd map: %s", cmd.settings.generate_map())
-                log.debug("       : %s", cmd.settings._mem_map)
+                cmd.fields.device_cmd = 5 # device set and get
+                log.debug("cmd map: %s", cmd.fields.generate_map())
+                log.debug("       : %s", cmd.fields._mem_map)
                 device_set_and_get_cmd_msg = cmd.get_write_cmdmsg(eom=True)[0]
                 log.info("Device get and set command: %s", str(device_set_and_get_cmd_msg))
                 response = trx.send_recv_message(device_set_and_get_cmd_msg)
