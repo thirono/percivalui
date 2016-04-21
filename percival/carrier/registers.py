@@ -4,7 +4,8 @@ Created on 5 Dec 2014
 @author: Ulrik Pedersen
 '''
 from __future__ import unicode_literals, absolute_import
-from builtins import range
+from future.utils import raise_with_traceback
+
 from enum import Enum, unique
 
 from . import encoding
@@ -115,11 +116,11 @@ class UARTRegister(object):
             self.fields = DeviceClass()
 
         if start_addr.bit_length() > self.UART_ADDR_WIDTH:
-            raise ValueError("start_addr value 0x%H is greater than 16 bits"%start_addr)
+            raise_with_traceback( ValueError("start_addr value 0x%H is greater than 16 bits"%start_addr) )
         self._start_addr = start_addr
         if self._readback_addr:
             if self._readback_addr.bit_length() > self.UART_ADDR_WIDTH:
-                raise ValueError("readback_addr value 0x%H is greater than 16 bits"%self._readback_addr)
+                raise_with_traceback( ValueError("readback_addr value 0x%H is greater than 16 bits"%self._readback_addr) )
 
     def initialize_map(self, map_words):
         self.fields.parse_map(map_words)
@@ -131,7 +132,7 @@ class UARTRegister(object):
             :rtype:  list of :class:`percival.carrier.txrx.TxMessage` objects
         """
         if not  self._readback_addr:
-            raise TypeError("A readback shortcut is not available for \'%s\'"%self._name)
+            raise_with_traceback( TypeError("A readback shortcut is not available for \'%s\'"%self._name) )
         read_cmdmsg = encoding.encode_message(self._readback_addr, 0x00000000)
         self.log.debug(read_cmdmsg)
         return txrx.TxMessage(read_cmdmsg, self._words_per_entry * self._entries)
@@ -142,7 +143,10 @@ class UARTRegister(object):
             :returns: A write UART command message
             :rtype:  list of :class:`percival.carrier.txrx.TxMessage` objects"""
         data_words = self.fields.generate_map()
-        write_cmdmsg = encoding.encode_multi_message(self._start_addr + device_index, data_words)
+        if device_index > self._entries:
+            raise_with_traceback( IndexError("device_index out of range") )
+        addr_offset = device_index * self._words_per_entry
+        write_cmdmsg = encoding.encode_multi_message(self._start_addr + addr_offset, data_words)
         write_cmdmsg = [txrx.TxMessage(msg, num_response_msg=1, expect_eom=eom) for msg in write_cmdmsg]
         return write_cmdmsg
     
