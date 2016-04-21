@@ -61,23 +61,21 @@ RegisterMapClasses = {RegisterMapType.header:     devices.HeaderInfo,
                       RegisterMapType.command:    devices.Command}
 
 # Each entry is a tuple of:     (description,                 read_addr, entries, words, DeviceSettings subclass)
-CarrierUARTRegisters = {0x0000: ("Header settings left",         0x01B3,       1,     1,  devices.HeaderInfo),
-                        0x0001: ("Control settings left",        0x01B4,      16,     4,  devices.ControlChannel),
-                        0x0041: ("Monitoring settings left",     0x01B5,      16,     4,  devices.MonitoringChannel),
-                        0x0081: ("Header settings bottom",       0x01B6,       1,     1,  devices.HeaderInfo),
-                        0x0082: ("Control settings bottom",      0x01B7,       2,     4,  devices.ControlChannel),
-                        0x008A: ("Monitoring settings bottom",   0x01B8,       2,     4,  devices.MonitoringChannel),
-                        0x0092: ("Header settings carrier",      0x01B9,       1,     1,  devices.HeaderInfo),
-                        0x0093: ("Control settings carrier",     0x01BA,      14,     4,  devices.ControlChannel),
-                        0x00CB: ("Monitoring settings carrier",  0x01BB,      19,     4,  devices.MonitoringChannel),
-                        0x0117: ("Header settings plugin",       0x01BC,       1,     1,  devices.HeaderInfo),
-                        0x0118: ("Control settings plugin",      0x01BD,       2,     4,  devices.ControlChannel),
-                        0x0120: ("Monitoring settings plugin",   0x01BE,       2,     4,  devices.MonitoringChannel),
+CarrierUARTRegisters = {0x0000: ("Header settings left",         0x013A,       1,     1,  devices.HeaderInfo),
+                        0x0001: ("Control settings left",        0x013B,       1,     4,  devices.ControlChannel),
+                        0x0005: ("Monitoring settings left",     0x013C,       1,     4,  devices.MonitoringChannel),
+                        0x0009: ("Header settings bottom",       0x013D,       1,     1,  devices.HeaderInfo),
+                        0x000A: ("Control settings bottom",      0x013E,       1,     4,  devices.ControlChannel),
+                        0x000E: ("Monitoring settings bottom",   0x013F,       1,     4,  devices.MonitoringChannel),
+                        0x0012: ("Header settings carrier",      0x0140,       1,     1,  devices.HeaderInfo),
+                        0x0013: ("Control settings carrier",     0x0141,      14,     4,  devices.ControlChannel),
+                        0x004B: ("Monitoring settings carrier",  0x0142,      19,     4,  devices.MonitoringChannel),
+                        0x0097: ("Header settings plugin",       0x0143,       1,     1,  devices.HeaderInfo),
+                        0x0098: ("Control settings plugin",      0x0144,       1,     4,  devices.ControlChannel),
+                        0x009C: ("Monitoring settings plugin",   0x0145,       1,     4,  devices.MonitoringChannel),
                         
-                        0x0170: ("Command",                        None,       1,     3,  devices.Command),
-                        0x01B2: ("Read Echo Word",               0x01CA,       1,     1,  devices.EchoWord),
-
-                        #0x0001: ("Header settings left",        1,     1,                    None),
+                        0x00F8: ("Command",                        None,       1,     3,  devices.Command),
+                        0x0139: ("Read Echo Word",               0x0151,       1,     1,  devices.EchoWord),
                         }
 """Look-up table of UART addresses and the corresponding details
 

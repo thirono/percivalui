@@ -14,7 +14,7 @@ logging.getLogger(__name__).setLevel(logging.DEBUG)
 class TestUARTRegister(unittest.TestCase):
 
     def setUp(self):
-        self.command_reg = registers.UARTRegister( 0x0170 ) # Command Register
+        self.command_reg = registers.UARTRegister( 0x00F8 ) # Command Register
         cl = ".".join([__name__,str( self.__class__)])
         self.log = logging.getLogger(cl)
 
@@ -30,9 +30,9 @@ class TestUARTRegister(unittest.TestCase):
         self.assertTrue(type(msg), list)
         self.assertIsInstance(msg[0], txrx.TxMessage)
         self.assertEqual(len(msg), 3)
-        expected_msg = [bytes('\x01\x70\x00\x00\x00\x00', encoding='latin-1'),
-                        bytes('\x01\x71\x00\x00\x00\x00', encoding='latin-1'),
-                        bytes('\x01\x72\x00\x00\x00\x00', encoding='latin-1')]
+        expected_msg = [bytes('\x00\xF8\x00\x00\x00\x00', encoding='latin-1'),
+                        bytes('\x00\xF9\x00\x00\x00\x00', encoding='latin-1'),
+                        bytes('\x00\xFA\x00\x00\x00\x00', encoding='latin-1')]
         for i in range(3):
             self.assertEqual(msg[i].message, expected_msg[i], msg[i].message)
         

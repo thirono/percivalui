@@ -31,7 +31,7 @@ class ReadDevice:
 
         with TxRxContext(board_ip_address) as trx:
 
-            cmd = UARTRegister(0x0170)  # Command register
+            cmd = UARTRegister(0x00F8)  # Command register
             cmd.settings.parse_map([0,0,0]) # initialise all registers to 0
 
             # First generate and send a no-op system command
@@ -67,7 +67,7 @@ class ReadDevice:
             sample_data = [] # list of tuples: (sample, data)
             previous_sample = 0
             while self.keep_running:
-                echo_word_cmd = UARTRegister(0x01B2)
+                echo_word_cmd = UARTRegister(0x0139)
                 read_echo_cmd_msg = echo_word_cmd.get_read_cmdmsg()  # READ ECHO WORD
                 log.info("READ ECHO WORD command: %s", str(read_echo_cmd_msg))
                 response = trx.send_recv_message(read_echo_cmd_msg)

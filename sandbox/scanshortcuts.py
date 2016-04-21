@@ -14,12 +14,7 @@ from percival.carrier.encoding import (encode_message, encode_multi_message, dec
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
 
-scanrange = [(0x0144, 6),
-             (0x0145, 96),
-             (0x0146, None),
-             ] # Currently no other "shortcut" addresses return a response
-
-scanrange = range(0x01B3, 0x01BE, 1)
+scanrange = range(0x013A, 0x0145, 1)
 
 def main():
     log.info("Scanning shortcuts...")
@@ -41,7 +36,7 @@ def main():
             data = decode_message(resp)
             log.info("Got from addr: 0x%04X bytes: %d  words: %d", addr, len(resp), len(data))
             for (a, w) in data:
-                log.debug("           (0x%04X) 0x%08X", a, w)
+                log.info("           (0x%04X) 0x%08X", a, w)
                 
 if __name__ == '__main__':
     main()
