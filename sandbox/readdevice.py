@@ -42,31 +42,31 @@ class ReadDevice:
             response = trx.send_recv_message(no_op_cmd_msg)
             decoded_response = decode_message(response)
 
-            cmd.settings.system_cmd = 1 # enable global monitoring
+            cmd.settings.system_cmd = 0 # disable global monitoring
             disable_global_mon_cmd_msg = cmd.get_write_cmdmsg(eom=True)[2]
             log.info("System enable global monitoring command: %s", str(disable_global_mon_cmd_msg))
             response = trx.send_recv_message(disable_global_mon_cmd_msg)
             decoded_response = decode_message(response)
 
-            cmd.settings.device_cmd = 0 # device no-op
-            cmd.settings.device_type = 1 # device monitoring
-            cmd.settings.device_index = 18 # T sensor...
-            device_no_op_cmd_msg = cmd.get_write_cmdmsg(eom=True)[0]
-            log.info("Device no-op command: %s", str(device_no_op_cmd_msg))
-            response = trx.send_recv_message(device_no_op_cmd_msg)
-            decoded_response = decode_message(response)
-
-            cmd.settings.device_cmd = 5 # device set and get
-            log.debug("cmd map: %s", cmd.settings.generate_map())
-            log.debug("       : %s", cmd.settings._mem_map)
-            device_set_and_get_cmd_msg = cmd.get_write_cmdmsg(eom=True)[0]
-            log.info("Device get and set command: %s", str(device_set_and_get_cmd_msg))
-            response = trx.send_recv_message(device_set_and_get_cmd_msg)
-            decoded_response = decode_message(response)
-
             sample_data = [] # list of tuples: (sample, data)
             previous_sample = 0
             while self.keep_running:
+                cmd.settings.device_cmd = 0 # device no-op
+                cmd.settings.device_type = 1 # device monitoring
+                cmd.settings.device_index = 18 # T sensor...
+                device_no_op_cmd_msg = cmd.get_write_cmdmsg(eom=True)[0]
+                log.info("Device no-op command: %s", str(device_no_op_cmd_msg))
+                response = trx.send_recv_message(device_no_op_cmd_msg)
+                decoded_response = decode_message(response)
+
+                cmd.settings.device_cmd = 5 # device set and get
+                log.debug("cmd map: %s", cmd.settings.generate_map())
+                log.debug("       : %s", cmd.settings._mem_map)
+                device_set_and_get_cmd_msg = cmd.get_write_cmdmsg(eom=True)[0]
+                log.info("Device get and set command: %s", str(device_set_and_get_cmd_msg))
+                response = trx.send_recv_message(device_set_and_get_cmd_msg)
+                decoded_response = decode_message(response)
+
                 echo_word_cmd = UARTRegister(0x0139)
                 read_echo_cmd_msg = echo_word_cmd.get_read_cmdmsg()  # READ ECHO WORD
                 log.info("READ ECHO WORD command: %s", str(read_echo_cmd_msg))
@@ -76,19 +76,23 @@ class ReadDevice:
 
                 read_word = ReadValue()
                 read_word.parse_map_from_tuples(decoded_response)
-                log.debug("    Sample, read value: %d, %d", read_word.sample_number, read_word.read_value)
-                if read_word.sample_number != previous_sample:
+                log.info("    Sample, read value: %d, %d", read_word.sample_number, read_word.read_value)
+
+                # In FW version 2016.04.20 the sample number does not increment. So we can't use it to discover and
+                # filter out double readings and have to store every single sample instead.
+                #if read_word.sample_number != previous_sample:
+                if True:
                     log.info("    Appending: (%d, %d)", read_word.sample_number, read_word.read_value)
                     sample_data.append((read_word.sample_number, read_word.read_value))
                 previous_sample = read_word.sample_number
-                time.sleep(0.5)
+                time.sleep(0.2)
 
             log.debug("Got data: %s", str(sample_data))
 
             with h5py.File("readdevice.h5", "w") as f:
                 numbers = numpy.array(list(zip(*sample_data))[0], dtype=numpy.uint8)
-                data = numpy.array(list(zip(*sample_data))[1], dtype=numpy.uint16)
                 dset_sample = f.create_dataset("sample", data=numbers)
+                data = numpy.array(list(zip(*sample_data))[1], dtype=numpy.uint16)
                 dset_data = f.create_dataset("data", data=data)
 
             log.info("File written. Use one of the following commands to analyse:")
