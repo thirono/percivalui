@@ -14,7 +14,7 @@ from percival.carrier.encoding import (encode_message, encode_multi_message, dec
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
 
-scanrange = range(0x013A, 0x0145, 1)
+scanrange = range(0x013A, 0x0145+1, 1)
 
 def main():
     log.info("Scanning shortcuts...")
