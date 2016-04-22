@@ -5,7 +5,7 @@ percival_log_config = {
     'disable_existing_loggers': True,
     'formatters': {
         'verbose': {
-            'format': '%(name)40s  [%(filename)16s:%(lineno)d]  %(levelname)6s -  %(message)s'
+            'format': '%(name)26s [%(filename)18s:%(lineno)4d]  %(levelname)6s -  %(message)s'
         },
         'simple': {
             'format': '%(levelname)6s - %(message)s'
@@ -14,7 +14,7 @@ percival_log_config = {
     'handlers': {
         'console':{
                    
-            'level':'INFO',
+            'level':'DEBUG',
             'class':'logging.StreamHandler',
             'formatter': 'verbose'
         },
@@ -49,7 +49,17 @@ percival_log_config = {
             'handlers': ['console'],
             'level': 'INFO',
             'propagate': False,
-        }
+        },
+        'BoardSettings': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'ControlChannel': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
     }
 }
 
