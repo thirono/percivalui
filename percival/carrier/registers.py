@@ -122,8 +122,24 @@ class UARTRegister(object):
             if self._readback_addr.bit_length() > self.UART_ADDR_WIDTH:
                 raise_with_traceback( ValueError("readback_addr value 0x%H is greater than 16 bits"%self._readback_addr) )
 
-    def initialize_map(self, map_words):
-        self.fields.parse_map(map_words)
+    @property
+    def words_per_item(self):
+        return self._words_per_entry
+
+    @property
+    def num_items(self):
+        return self._entries
+
+    def initialize_map(self, register_map):
+        if len(register_map) >= 1:
+            if type(register_map[0]) == int:
+                self.fields.parse_map(register_map)
+            elif type(register_map[0]) == tuple:
+                self.fields.parse_map_from_tuples(register_map)
+            else:
+                raise_with_traceback(TypeError("register_map must be list/tuple of type int or tuple"))
+        else:
+            raise_with_traceback("Cannot initialize register map with an empty container")
        
     def get_read_cmdmsg(self):
         """Generate a message to do a readback (shortcut) command of the current register map
