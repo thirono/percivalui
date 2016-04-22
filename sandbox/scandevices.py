@@ -57,6 +57,9 @@ class ControlChannel:
         self.log.debug("Control Settings Map: %s", self._reg_control_settings.fields)
         self.log.debug(self._reg_control_settings.get_write_cmdmsg(uart_offset=self.uart_offset))
 
+        # Send an initialize command to the device
+        self.cmd_initialize()
+
     def read_echo_word(self):
         self.log.debug("READ ECHO WORD")
         echo_cmd_msg = self._reg_echo.get_read_cmdmsg()
@@ -83,6 +86,10 @@ class ControlChannel:
 
     def cmd_set_and_get_value(self):
         result = self.command(DeviceCmd.set_and_get_value)
+        return result
+
+    def cmd_initialize(self):
+        result = self.command(DeviceCmd.initialize)
         return result
 
     def cmd_control_set_value(self, value):
@@ -132,15 +139,18 @@ if __name__ == '__main__':
         bs = BoardSettings(trx, BoardTypes.carrier)
         bs.readback_control_settings()
 
-        cc_settings = bs.device_control_settings(2)
+        cc_settings = bs.device_control_settings(0)
         log.info("Control Channel #2 settings from board: %s", hexify(cc_settings))
         cc = ControlChannel(trx, DeviceFamily.AD5669, 2, 0, cc_settings, BoardTypes.carrier)
 
-        log.info("Writing DAC channel 2 value = %d", 9)
-        echo_result = cc.set_value(9)
+        log.info("Writing DAC channel 2 value = %d", 5000)
+        echo_result = cc.set_value(5000)
         log.info("  Echo result: %d", echo_result)
 
-        log.info("Writing DAC channel 2 value = %d", 200)
-        echo_result = cc.set_value(200)
+        log.info("Writing DAC channel 2 value = %d", 10000)
+        echo_result = cc.set_value(10000)
         log.info("  Echo result: %d", echo_result)
 
+        log.info("Writing DAC channel 2 value = %d", 0)
+        echo_result = cc.set_value(0)
+        log.info("  Echo result: %d", echo_result)
