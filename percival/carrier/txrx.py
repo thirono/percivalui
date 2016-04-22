@@ -12,6 +12,26 @@ import socket
 from contextlib import contextmanager 
 
 from percival.carrier.encoding import DATA_ENCODING, NUM_BYTES_PER_MSG, END_OF_MESSAGE
+from percival.carrier.encoding import (encode_message, encode_multi_message, decode_message)
+
+def hexify(registers):
+    '''
+    Utility function to generate a string representation of a register map with hexadecimal formatted values.
+
+    :param registers: A list of ints or tuples that represents an register map
+    :type registers:  list
+    :return: string
+    '''
+    registers_str = "|"
+    if type(registers[0]) == int:
+        for word in registers:
+            registers_str += " %s |"%(hex(word))
+    elif type(registers[0]) == tuple:
+        for addr,word in registers:
+            registers_str += " %s: %s |"%(hex(addr), hex(word))
+    else:
+        registers_str = str(registers)
+    return registers_str
 
 class TxMessage(object):
     """Encapsulate a Percival carrier board message and the number of messages to expect in response"""
@@ -149,15 +169,19 @@ class TxRx(object):
             :retuns: Response from UART
             :rtype:  Bytearray
         """
+        self.log.debug("Sending:   %s"%message)
         if not isinstance(message, TxMessage):
             raise TypeError("message must be of type TxMessage, not %s"%str(type(message)))
         
         self.tx_msg(message.message)
         resp = self.rx_msg(message.expected_bytes)
+        result = decode_message(resp)
+
+        self.log.debug(" response: %s"%hexify(result))
         # Check for expected response
         if not message.validate_eom(resp):
-            raise RuntimeError("Expected EOM on TxMessage: %s - got %s"%(str(message), resp))
-        return resp
+            raise RuntimeError("Expected EOM on TxMessage: %s - got %s"%(str(message), str(result)))
+        return result
         
     
     def clean(self):

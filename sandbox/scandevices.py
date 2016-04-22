@@ -54,8 +54,7 @@ class ControlChannel:
     def read_echo_word(self):
         echo_cmd_msg = self._reg_echo.get_read_cmdmsg()
         response = self._txrx.send_recv_message(echo_cmd_msg)
-        result = decode_message(response)
-        return result
+        return response
 
     def get_command_msg(self, cmd):
         if not self.device_family.value.supports_cmd(cmd):
@@ -67,8 +66,7 @@ class ControlChannel:
     def command(self, cmd):
         cmd_msg = self.get_command_msg(cmd)
         response = self._txrx.send_recv_message(cmd_msg)
-        result = decode_message(response)
-        return result
+        return response
 
     def cmd_no_operation(self):
         result = self.command(DeviceCmd.no_operation)

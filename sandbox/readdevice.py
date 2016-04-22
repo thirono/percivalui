@@ -13,7 +13,6 @@ from percival.log import log
 from percival.carrier.registers import UARTRegister
 from percival.carrier.devices import ReadValue
 from percival.carrier.txrx import TxRx, TxRxContext, TxMessage
-from percival.carrier.encoding import (encode_message, encode_multi_message, decode_message)
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
 
@@ -40,13 +39,11 @@ class ReadDevice:
             no_op_cmd_msg = cmd.get_write_cmdmsg(eom=True)[2]
             log.info("System no-op command: %s", str(no_op_cmd_msg))
             response = trx.send_recv_message(no_op_cmd_msg)
-            decoded_response = decode_message(response)
 
             cmd.fields.system_cmd = 0 # disable global monitoring
             disable_global_mon_cmd_msg = cmd.get_write_cmdmsg(eom=True)[2]
             log.info("System enable global monitoring command: %s", str(disable_global_mon_cmd_msg))
             response = trx.send_recv_message(disable_global_mon_cmd_msg)
-            decoded_response = decode_message(response)
 
             sample_data = [] # list of tuples: (sample, data)
             previous_sample = 0
@@ -57,7 +54,6 @@ class ReadDevice:
                 device_no_op_cmd_msg = cmd.get_write_cmdmsg(eom=True)[0]
                 log.info("Device no-op command: %s", str(device_no_op_cmd_msg))
                 response = trx.send_recv_message(device_no_op_cmd_msg)
-                decoded_response = decode_message(response)
 
                 cmd.fields.device_cmd = 5 # device set and get
                 log.debug("cmd map: %s", cmd.fields.generate_map())
@@ -65,17 +61,15 @@ class ReadDevice:
                 device_set_and_get_cmd_msg = cmd.get_write_cmdmsg(eom=True)[0]
                 log.info("Device get and set command: %s", str(device_set_and_get_cmd_msg))
                 response = trx.send_recv_message(device_set_and_get_cmd_msg)
-                decoded_response = decode_message(response)
 
                 echo_word_cmd = UARTRegister(0x0139)
                 read_echo_cmd_msg = echo_word_cmd.get_read_cmdmsg()  # READ ECHO WORD
                 log.info("READ ECHO WORD command: %s", str(read_echo_cmd_msg))
                 response = trx.send_recv_message(read_echo_cmd_msg)
-                decoded_response = decode_message(response)
-                log.info("    response: 0x%04X: 0x%08X", decoded_response[0][0], decoded_response[0][1])
+                log.info("    response: 0x%04X: 0x%08X", response[0][0], response[0][1])
 
                 read_word = ReadValue()
-                read_word.parse_map_from_tuples(decoded_response)
+                read_word.parse_map_from_tuples(response)
                 log.info("    Sample, read value: %d, %d", read_word.sample_number, read_word.read_value)
 
                 # In FW version 2016.04.20 the sample number does not increment. So we can't use it to discover and
