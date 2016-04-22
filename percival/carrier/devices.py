@@ -72,10 +72,10 @@ class DeviceFeatures(object):
     
     This represent the documented table "Supported DEVICE_CMD vs device family"
     """
-    def __init__(self, device_id, function, description = "", commands = [] ):
+    def __init__(self, device_family_id, function, description ="", commands = []):
         """
-            :param device_id: The integer device ID as documented
-            :type  device_id: `int`
+            :param device_family_id: The integer device ID as documented
+            :type  device_family_id: `int`
             :param function:  The enumerated functionality of the device
             :type  function:  `DeviceFunction` item
             :param description: Human readable description of the device
@@ -83,14 +83,14 @@ class DeviceFeatures(object):
             :param commands: Supported commands for this device
             :type  commands: list of `DeviceCmd` items
         """
-        self._device_id = device_id
+        self._device_family_id = device_family_id
         self._function = function
         self._description = description
         self._commands = commands
         
     @property
-    def device_id(self):
-        return self._device_id
+    def device_family_id(self):
+        return self._device_family_id
     @property
     def function(self):
         return self._function
@@ -200,6 +200,18 @@ class DeviceSettings(object):
             logger.debug("generate_map: words: %s", str(words))
         return words
 
+    def __str__(self):
+        map_str = ""
+        map_fields = [f for (k,f) in sorted(self._mem_map.items(),
+                                        key=lambda key_field: key_field[1].word_index, reverse=True)]
+        for map_field in map_fields:
+            map_str += str(map_field) + ", "
+        s = "<%s: Fields = %s>"%(self.__class__.__name__, map_str)
+        return s
+
+    def __repr__(self):
+        return self.__str__()
+
 class MapField(object):
     def __init__(self, name, word_index, num_bits, bit_offset):
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
@@ -249,16 +261,17 @@ class MapField(object):
             raise_with_traceback(ValueError("No value initialised for field: \'%s\'"%self._name))
         words[self._word_index] = (words[self._word_index] & (self.mask ^ 2**32-1)) | (self._value << self._bit_offset)
     
-    def __str__(self):
-        s = "<MapField: %s word:%i offset:%i bits:%i val:%s>"%(self._name, 
+    def __repr__(self):
+        s = "<MapField: \"%s\" word:%i offset:%i bits:%i val:%s>"%(self._name,
                                                                  self._word_index,
                                                                  self._bit_offset,
                                                                  self._num_bits,
                                                                  str(self._value))
         return s
     
-    def __repr__(self):
-        return self.__str__()
+    def __str__(self):
+        s = "<%s=%s>"%(self._name, str(self._value))
+        return s
 
 class HeaderInfo(DeviceSettings):
     """Represent the Header Info register bank"""

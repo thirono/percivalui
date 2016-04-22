@@ -175,9 +175,9 @@ class TestDeviceFamilyEnum(unittest.TestCase):
         self.assertIs(self.adc.value.function, devices.DeviceFunction.monitoring)
 
     def TestDeviceID(self):
-        self.assertIs(self.digipot.value.device_id, 0)
-        self.assertIs(self.dac.value.device_id, 2)
-        self.assertIs(self.adc.value.device_id, 4)
+        self.assertIs(self.digipot.value.device_family_id, 0)
+        self.assertIs(self.dac.value.device_family_id, 2)
+        self.assertIs(self.adc.value.device_family_id, 4)
         
     def TestSupportedCommands(self):
         dev = self.digipot.value
