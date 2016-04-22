@@ -153,19 +153,15 @@ class UARTRegister(object):
         self.log.debug(read_cmdmsg)
         return txrx.TxMessage(read_cmdmsg, self._words_per_entry * self._entries)
     
-    def get_write_cmdmsg(self, eom=False, device_index=0):
+    def get_write_cmdmsg(self, eom=False, uart_offset=0):
         """Flatten the 2D matrix of datawords into one continuous list
         
             :returns: A write UART command message
             :rtype:  list of :class:`percival.carrier.txrx.TxMessage` objects"""
         data_words = self.fields.generate_map()
-        if device_index > self._entries:
+        if uart_offset > self._entries:
             raise_with_traceback( IndexError("device_index out of range") )
-        addr_offset = device_index * self._words_per_entry
+        addr_offset = uart_offset * self._words_per_entry
         write_cmdmsg = encoding.encode_multi_message(self._start_addr + addr_offset, data_words)
         write_cmdmsg = [txrx.TxMessage(msg, num_response_msg=1, expect_eom=eom) for msg in write_cmdmsg]
         return write_cmdmsg
-    
-    
-    
-    
