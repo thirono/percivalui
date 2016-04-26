@@ -123,6 +123,7 @@ class ControlChannel:
         self.log.debug("set_value=%s", value)
         self.cmd_no_operation()
         self.cmd_control_set_value(value)
+        time.sleep(0.1)
         self.cmd_no_operation()
         self.cmd_set_and_get_value()
         result = self.read_echo_word()
@@ -173,7 +174,6 @@ if __name__ == '__main__':
 
         new_value = 5000
         log.info("Writing DAC channel 2 value = %d", new_value)
-        time.sleep(0.2)
         echo_result = cc.set_value(new_value)
         if echo_result != new_value:
             log.warning("  Echo result does not match demanded value (%d != %d)", echo_result, new_value)
@@ -182,7 +182,6 @@ if __name__ == '__main__':
 
         new_value = 10000
         log.info("Writing DAC channel 2 value = %d", new_value)
-        time.sleep(0.2)
         echo_result = cc.set_value(new_value)
         if echo_result != new_value:
             log.warning("  Echo result does not match demanded value (%d != %d)", echo_result, new_value)
@@ -191,7 +190,6 @@ if __name__ == '__main__':
 
         new_value = 0
         log.info("Writing DAC channel 2 value = %d", new_value)
-        time.sleep(0.2)
         echo_result = cc.set_value(new_value)
         if echo_result != new_value:
             log.warning("  Echo result does not match demanded value (%d != %d)", echo_result, new_value)
