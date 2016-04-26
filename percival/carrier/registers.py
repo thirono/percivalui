@@ -104,22 +104,35 @@ class UARTRegister(object):
     UART_ADDR_WIDTH = 16
     UART_WORD_WIDTH = 32
 
-    def __init__(self, start_addr):
+    def __init__(self, uart_block_address, uart_device_address=None):
         '''Constructor
         
-            :param start_addr: UART start address which also functions as a look-up key to the functionality of that register
-            :type  start_addr: int
+            :param uart_block_address: UART start address for a block of registers.
+                This is used as a look-up key to the functionality of that register in the CarrierUARTRegisters dictionary
+            :type  uart_block_address: int
+            :param uart_device_address: UART start address for a specific device within the register block. If defined
+                this will be used to generate write commands in get_write_cmd_msg().
+            :type uart_device_address: int
         '''
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
-        (self._name, self._readback_addr, self._entries, self._words_per_entry, DeviceClass) = CarrierUARTRegisters[start_addr]
-        
-        self.fields = None # A devices.DeviceSettings object
+        (self._name, self._readback_addr, self._entries,
+         self._words_per_entry, DeviceClass) = CarrierUARTRegisters[uart_block_address]
+        self._uart_block_address = uart_block_address
+        self._uart_address = uart_block_address
+
+        self.fields = None  # A devices.DeviceSettings object
         if DeviceClass:
             self.fields = DeviceClass()
 
-        if start_addr.bit_length() > self.UART_ADDR_WIDTH:
-            raise_with_traceback( ValueError("start_addr value 0x%H is greater than 16 bits"%start_addr) )
-        self._start_addr = start_addr
+        if uart_device_address:
+            self._uart_address = uart_device_address
+            if uart_device_address.bit_length() > self.UART_ADDR_WIDTH:
+                raise_with_traceback(ValueError("UART device address value 0x%H is greater than 16 bits" %
+                                                uart_device_address))
+
+        if uart_block_address.bit_length() > self.UART_ADDR_WIDTH:
+            raise_with_traceback(ValueError("UART block address value 0x%H is greater than 16 bits" %
+                                            uart_block_address))
         if self._readback_addr:
             if self._readback_addr.bit_length() > self.UART_ADDR_WIDTH:
                 raise_with_traceback( ValueError("readback_addr value 0x%H is greater than 16 bits"%self._readback_addr) )
@@ -143,7 +156,7 @@ class UARTRegister(object):
         else:
             raise_with_traceback("Cannot initialize register map with an empty container")
        
-    def get_read_cmdmsg(self):
+    def get_read_cmd_msg(self):
         """Generate a message to do a readback (shortcut) command of the current register map
         
             :returns: A read UART command message
@@ -155,15 +168,12 @@ class UARTRegister(object):
         self.log.debug(read_cmdmsg)
         return txrx.TxMessage(read_cmdmsg, self._words_per_entry * self._entries)
     
-    def get_write_cmdmsg(self, eom=False, uart_offset=0):
+    def get_write_cmd_msg(self, eom=False):
         """Flatten the 2D matrix of datawords into one continuous list
         
             :returns: A write UART command message
             :rtype:  list of :class:`percival.carrier.txrx.TxMessage` objects"""
         data_words = self.fields.generate_map()
-        if uart_offset > self._entries:
-            raise_with_traceback( IndexError("device_index out of range") )
-        addr_offset = uart_offset * self._words_per_entry
-        write_cmdmsg = encoding.encode_multi_message(self._start_addr + addr_offset, data_words)
-        write_cmdmsg = [txrx.TxMessage(msg, num_response_msg=1, expect_eom=eom) for msg in write_cmdmsg]
-        return write_cmdmsg
+        write_cmd_msg = encoding.encode_multi_message(self._uart_address, data_words)
+        write_cmd_msg = [txrx.TxMessage(msg, num_response_msg=1, expect_eom=eom) for msg in write_cmd_msg]
+        return write_cmd_msg

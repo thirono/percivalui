@@ -55,14 +55,13 @@ class ControlChannel:
         self._reg_control_settings = UARTRegister(addr_control)
         self._reg_control_settings.initialize_map(settings)
         self.log.debug("Control Settings Map: %s", self._reg_control_settings.fields)
-        self.log.debug(self._reg_control_settings.get_write_cmdmsg(uart_offset=self.uart_offset))
 
         # Send an initialize command to the device
         self.cmd_initialize()
 
     def read_echo_word(self):
         self.log.debug("READ ECHO WORD")
-        echo_cmd_msg = self._reg_echo.get_read_cmdmsg()
+        echo_cmd_msg = self._reg_echo.get_read_cmd_msg()
         response = self._txrx.send_recv_message(echo_cmd_msg)
         return response
 
@@ -71,7 +70,7 @@ class ControlChannel:
             raise TypeError("Device family does not support command %s"%cmd)
         self._reg_command.fields.device_cmd = cmd.value
         self.log.debug(self._reg_command.fields)
-        cmd_msg = self._reg_command.get_write_cmdmsg(eom=True)[0]
+        cmd_msg = self._reg_command.get_write_cmd_msg(eom=True)[0]
         return cmd_msg
 
     def command(self, cmd):
@@ -96,7 +95,7 @@ class ControlChannel:
         self.log.debug("Device Control Settings write:")
         self._reg_control_settings.fields.value = value
         self.log.debug(self._reg_control_settings.fields)
-        cmd_msg = self._reg_control_settings.get_write_cmdmsg(eom=True, uart_offset=self.uart_offset)
+        cmd_msg = self._reg_control_settings.get_write_cmd_msg(eom=True)
         self.log.debug(cmd_msg)
         # TODO: this is a bit hacky to go this far for the register index...
         value_register_index = self._reg_control_settings.fields._mem_map['value'].word_index
@@ -125,7 +124,7 @@ class BoardSettings:
 
     def readback_control_settings(self):
         self.log.debug("Readback Board Control Settings")
-        cmd_msg = self._reg_control_settings.get_read_cmdmsg()
+        cmd_msg = self._reg_control_settings.get_read_cmd_msg()
         response = self.txrx.send_recv_message(cmd_msg)
         self._control_settings = response
 

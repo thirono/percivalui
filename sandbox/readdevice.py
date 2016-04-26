@@ -36,12 +36,12 @@ class ReadDevice:
             # First generate and send a no-op system command
             cmd.fields.system_cmd = 0 # no-op system command
             cmd.fields.system_cmd_data = 0  # not used
-            no_op_cmd_msg = cmd.get_write_cmdmsg(eom=True)[2]
+            no_op_cmd_msg = cmd.get_write_cmd_msg(eom=True)[2]
             log.info("System no-op command: %s", str(no_op_cmd_msg))
             response = trx.send_recv_message(no_op_cmd_msg)
 
             cmd.fields.system_cmd = 0 # disable global monitoring
-            disable_global_mon_cmd_msg = cmd.get_write_cmdmsg(eom=True)[2]
+            disable_global_mon_cmd_msg = cmd.get_write_cmd_msg(eom=True)[2]
             log.info("System enable global monitoring command: %s", str(disable_global_mon_cmd_msg))
             response = trx.send_recv_message(disable_global_mon_cmd_msg)
 
@@ -51,19 +51,19 @@ class ReadDevice:
                 cmd.fields.device_cmd = 0 # device no-op
                 cmd.fields.device_type = 1 # device monitoring
                 cmd.fields.device_index = 18 # T sensor...
-                device_no_op_cmd_msg = cmd.get_write_cmdmsg(eom=True)[0]
+                device_no_op_cmd_msg = cmd.get_write_cmd_msg(eom=True)[0]
                 log.info("Device no-op command: %s", str(device_no_op_cmd_msg))
                 response = trx.send_recv_message(device_no_op_cmd_msg)
 
                 cmd.fields.device_cmd = 5 # device set and get
                 log.debug("cmd map: %s", cmd.fields.generate_map())
                 log.debug("       : %s", cmd.fields._mem_map)
-                device_set_and_get_cmd_msg = cmd.get_write_cmdmsg(eom=True)[0]
+                device_set_and_get_cmd_msg = cmd.get_write_cmd_msg(eom=True)[0]
                 log.info("Device get and set command: %s", str(device_set_and_get_cmd_msg))
                 response = trx.send_recv_message(device_set_and_get_cmd_msg)
 
                 echo_word_cmd = UARTRegister(0x0139)
-                read_echo_cmd_msg = echo_word_cmd.get_read_cmdmsg()  # READ ECHO WORD
+                read_echo_cmd_msg = echo_word_cmd.get_read_cmd_msg()  # READ ECHO WORD
                 log.info("READ ECHO WORD command: %s", str(read_echo_cmd_msg))
                 response = trx.send_recv_message(read_echo_cmd_msg)
                 log.info("    response: 0x%04X: 0x%08X", response[0][0], response[0][1])

@@ -20,13 +20,13 @@ class TestUARTRegister(unittest.TestCase):
 
     def test_invalid_command_readback_msg(self):
         '''Check that a Readback message from get_read_cmdmsg() throws an exception as Command has no readback shortcut'''
-        with self.assertRaises( TypeError) as cm: self.command_reg.get_read_cmdmsg( )
+        with self.assertRaises( TypeError) as cm: self.command_reg.get_read_cmd_msg()
 
     def test_write_msg(self):
         self.command_reg.fields.parse_map([0, 0, 0])
         self.assertEqual(self.command_reg.fields.device_index, 0)
         self.assertEqual(self.command_reg.fields.device_cmd, 0)
-        msg = self.command_reg.get_write_cmdmsg()
+        msg = self.command_reg.get_write_cmd_msg()
         self.assertTrue(type(msg), list)
         self.assertIsInstance(msg[0], txrx.TxMessage)
         self.assertEqual(len(msg), 3)
