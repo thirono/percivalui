@@ -9,40 +9,57 @@ import os, time, binascii, signal
 import numpy, h5py
 
 import logging
+import sys
 from percival.log import log
 
 from percival.carrier.registers import UARTRegister, BoardRegisters, BoardTypes
 from percival.carrier.devices import DeviceFunction, DeviceCmd, DeviceFamilyFeatures, DeviceFamily
-from percival.carrier.txrx import TxRx, TxRxContext, TxMessage, hexify
+from percival.carrier.txrx import TxRx, TxRxContext, hexify
+from percival.configuration import ChannelParameters, ControlChannelIniParameters
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
 
-class CarrierBoard:
-    pass
-
 
 class ControlChannel:
-    def __init__(self, txrx, device_family, channel_index, uart_offset, settings, board):
-        '''Constructor
+    """
+    Control a specific device channel on any of the control boards.
+    """
 
-            :param txrx: Percival communication context
-            :type  txrx: TxRx
-            :param device_family: The type of device
-            :type  device_family: DeviceFamily
-            :param channel_index: Control device channel index
-            :type  channel_index: int
-            :param settings: Control channel settings register map. The list can contain either integers data words
-                             or tuples of (addr, data).
-            :type  settings: list
-        '''
+    def __init__(self, txrx, channel_ini, settings):
+        """ ControlChannel constructor.
+
+        Keeps a reference to the txrx communication object and initialises itself based on the parameters in channel_ini.
+
+        :param txrx: Percival communication context
+        :type  txrx: TxRx
+        :param channel_ini: Channel configuration parameters from INI file
+        :type channel_ini: ControlChannelIniParameters
+        """
+#    def __init__(self, txrx, device_family, channel_index, uart_offset, settings, board):
+#        '''Constructor
+#
+#            :param txrx: Percival communication context
+#            :type  txrx: TxRx
+#            :param device_family: The type of device
+#            :type  device_family: DeviceFamily
+#            :param channel_index: Control device channel index
+#            :type  channel_index: int
+#            :param settings: Control channel settings register map. The list can contain either integers data words
+#                             or tuples of (addr, data).
+#            :type  settings: list
+#        '''
         #self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self.log = logging.getLogger(self.__class__.__name__)
         self._txrx = txrx
+        self._channel_ini = channel_ini
+
+        self.device_family = DeviceFamily(channel_ini.Component_family_ID)
         self._device_family_features = DeviceFamilyFeatures[self.device_family]
+
         if self._device_family_features.function != DeviceFunction.control:
             raise TypeError("Not a control device")
-        self.channel_index = channel_index
-        self.uart_offset = uart_offset
+        self.channel_index = channel_ini._channel_number
+        self.uart_device_address = channel_ini.UART_address
 
         self._reg_command = UARTRegister(0x00F8)
         self._reg_command.initialize_map([0,0,0])
@@ -51,7 +68,7 @@ class ControlChannel:
 
         self._reg_echo = UARTRegister(0x0139)
 
-        addr_header, addr_control, addr_monitoring = BoardRegisters[board]
+        addr_header, addr_control, addr_monitoring = BoardRegisters[BoardTypes(channel_ini.Board_type)]
         self._reg_control_settings = UARTRegister(addr_control)
         self._reg_control_settings.initialize_map(settings)
         self.log.debug("Control Settings Map: %s", self._reg_control_settings.fields)
@@ -135,21 +152,48 @@ class BoardSettings:
 
 if __name__ == '__main__':
     with TxRxContext(board_ip_address) as trx:
+        ini_params = ChannelParameters("config/Channel parameters.ini")
+        ini_params.load_ini()
+
+        # Get the Control Channels
+        log.debug("Control Channels: %s", str(ini_params.control_channels))
+        log.debug("Monitoring Channels: %s", str(ini_params.monitoring_channels))
+        log.debug("INI parameters: %s", ini_params)
+
         bs = BoardSettings(trx, BoardTypes.carrier)
         bs.readback_control_settings()
 
         cc_settings = bs.device_control_settings(0)
         log.info("Control Channel #2 settings from board: %s", hexify(cc_settings))
-        cc = ControlChannel(trx, DeviceFamily.AD5669, 2, 0, cc_settings, BoardTypes.carrier)
 
-        log.info("Writing DAC channel 2 value = %d", 5000)
-        echo_result = cc.set_value(5000)
-        log.info("  Echo result: %d", echo_result)
+        vch0_ini = ini_params.control_channels_by_name("VCH0")
+        log.info("vch0_ini: %s", vch0_ini)
 
-        log.info("Writing DAC channel 2 value = %d", 10000)
-        echo_result = cc.set_value(10000)
-        log.info("  Echo result: %d", echo_result)
+        cc = ControlChannel(trx, vch0_ini, cc_settings)
 
-        log.info("Writing DAC channel 2 value = %d", 0)
-        echo_result = cc.set_value(0)
-        log.info("  Echo result: %d", echo_result)
+        new_value = 5000
+        log.info("Writing DAC channel 2 value = %d", new_value)
+        time.sleep(0.2)
+        echo_result = cc.set_value(new_value)
+        if echo_result != new_value:
+            log.warning("  Echo result does not match demanded value (%d != %d)", echo_result, new_value)
+        else:
+            log.info("  Echo result: %d", echo_result)
+
+        new_value = 10000
+        log.info("Writing DAC channel 2 value = %d", new_value)
+        time.sleep(0.2)
+        echo_result = cc.set_value(new_value)
+        if echo_result != new_value:
+            log.warning("  Echo result does not match demanded value (%d != %d)", echo_result, new_value)
+        else:
+            log.info("  Echo result: %d", echo_result)
+
+        new_value = 0
+        log.info("Writing DAC channel 2 value = %d", new_value)
+        time.sleep(0.2)
+        echo_result = cc.set_value(new_value)
+        if echo_result != new_value:
+            log.warning("  Echo result does not match demanded value (%d != %d)", echo_result, new_value)
+        else:
+            log.info("  Echo result: %d", echo_result)
