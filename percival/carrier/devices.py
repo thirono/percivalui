@@ -49,7 +49,27 @@ class DeviceCmd(Enum):
     get_word_value = 11
     set_page_value = 12
     get_page_value = 13
-    
+
+@unique
+class DeviceFamily(Enum):
+    """Enumeration of the available electronic component families"""
+    AD5242 = 0
+    """Digital potentiometer for control"""
+    AD5263 = 1
+    """Digital potentiometer for control"""
+    AD5629 = 2
+    """DAC for control"""
+    AD5669 = 3
+    """DAC for control"""
+    LTC2309 = 7
+    """ADC for monitoring"""
+    LTC2497 = 4
+    """ADC for monitoring"""
+    MAX31730 = 5
+    """Temperature for monitoring"""
+    AT24CM01 = 6
+    """EEPROM for on-board configuration storage"""
+
 @unique
 class DeviceFunction(Enum):
     """Equivalent enumeration as per the documented "Supported DEVICE_TYPEs"
@@ -108,62 +128,70 @@ class DeviceFeatures(object):
         """
         return cmd in self._commands
         
-@unique
-class DeviceFamily(Enum):
-    """Enumeration of the available electronic component families"""
-    AD5242 = DeviceFeatures(    0, DeviceFunction.control ,     "Digital potentiometer",        [DeviceCmd.no_operation,
-                                                                                                 DeviceCmd.reset,
-                                                                                                 DeviceCmd.set_value,
-                                                                                                 DeviceCmd.get_value,
-                                                                                                 DeviceCmd.set_and_get_value,
-                                                                                                 DeviceCmd.set_value_on,
-                                                                                                 DeviceCmd.set_value_off] )
-    """Digital potentiometer for control"""
-    AD5263 = DeviceFeatures(    1, DeviceFunction.control ,     "Digital potentiometer",        [DeviceCmd.no_operation,
-                                                                                                 DeviceCmd.reset,
-                                                                                                 DeviceCmd.set_value,
-                                                                                                 DeviceCmd.get_value,
-                                                                                                 DeviceCmd.set_and_get_value] )
-    """Digital potentiometer for control"""
-    AD5629 = DeviceFeatures(    2, DeviceFunction.control ,     "DAC for control",              [DeviceCmd.no_operation,
-                                                                                                 DeviceCmd.reset,
-                                                                                                 DeviceCmd.initialize,
-                                                                                                 DeviceCmd.set_value,
-                                                                                                 DeviceCmd.get_value,
-                                                                                                 DeviceCmd.set_and_get_value,
-                                                                                                 DeviceCmd.enable_standby_mode,
-                                                                                                 DeviceCmd.disable_standby_mode] )
-    """DAC for control"""
-    AD5669 = DeviceFeatures(    3, DeviceFunction.control ,     "DAC for control",              [DeviceCmd.no_operation,
-                                                                                                 DeviceCmd.reset,
-                                                                                                 DeviceCmd.initialize,
-                                                                                                 DeviceCmd.set_value,
-                                                                                                 DeviceCmd.get_value,
-                                                                                                 DeviceCmd.set_and_get_value,
-                                                                                                 DeviceCmd.enable_standby_mode,
-                                                                                                 DeviceCmd.disable_standby_mode] )
-    """DAC for control"""
-    LTC2309 = DeviceFeatures(   7, DeviceFunction.monitoring ,  "ADC for monitoring",           [DeviceCmd.no_operation,
-                                                                                                 DeviceCmd.set_value,
-                                                                                                 DeviceCmd.get_value,
-                                                                                                 DeviceCmd.set_and_get_value])
-    """ADC for monitoring"""
-    LTC2497 = DeviceFeatures(   4, DeviceFunction.monitoring ,  "ADC for monitoring",           [DeviceCmd.no_operation,
-                                                                                                 DeviceCmd.set_value,
-                                                                                                 DeviceCmd.get_value,
-                                                                                                 DeviceCmd.set_and_get_value])
-    """ADC for monitoring"""
-    MAX31730 = DeviceFeatures(  5, DeviceFunction.monitoring ,  "Temperature for monitoring",   [DeviceCmd.no_operation,
-                                                                                                 DeviceCmd.reset,
-                                                                                                 DeviceCmd.initialize,
-                                                                                                 DeviceCmd.set_and_get_value])
-    """Temperature for monitoring"""
-    AT24CM01 = DeviceFeatures(  6, DeviceFunction.eeprom ,      "EEPROM for on-board storage",  [DeviceCmd.no_operation,
-                                                                                                 DeviceCmd.set_word_value,
-                                                                                                 DeviceCmd.get_word_value,
-                                                                                                 DeviceCmd.set_page_value,
-                                                                                                 DeviceCmd.get_page_value])
-    """EEPROM for on-board configuration storage"""
+
+DeviceFamilyFeatures = {
+    DeviceFamily.AD5242:   DeviceFeatures(DeviceFamily.AD5242, DeviceFunction.control,
+                                          "Digital potentiometer",
+                                          [DeviceCmd.no_operation,
+                                           DeviceCmd.reset,
+                                           DeviceCmd.set_value,
+                                           DeviceCmd.get_value,
+                                           DeviceCmd.set_and_get_value,
+                                           DeviceCmd.set_value_on,
+                                           DeviceCmd.set_value_off] ),
+    DeviceFamily.AD5263:   DeviceFeatures(DeviceFamily.AD5263, DeviceFunction.control,
+                                          "Digital potentiometer",
+                                          [DeviceCmd.no_operation,
+                                           DeviceCmd.reset,
+                                           DeviceCmd.set_value,
+                                           DeviceCmd.get_value,
+                                           DeviceCmd.set_and_get_value] ),
+    DeviceFamily.AD5629:   DeviceFeatures(DeviceFamily.AD5629, DeviceFunction.control,
+                                          "DAC for control",
+                                          [DeviceCmd.no_operation,
+                                           DeviceCmd.reset,
+                                           DeviceCmd.initialize,
+                                           DeviceCmd.set_value,
+                                           DeviceCmd.get_value,
+                                           DeviceCmd.set_and_get_value,
+                                           DeviceCmd.enable_standby_mode,
+                                           DeviceCmd.disable_standby_mode] ),
+    DeviceFamily.AD5669:   DeviceFeatures(DeviceFamily.AD5669, DeviceFunction.control,
+                                          "DAC for control",
+                                          [DeviceCmd.no_operation,
+                                           DeviceCmd.reset,
+                                           DeviceCmd.initialize,
+                                           DeviceCmd.set_value,
+                                           DeviceCmd.get_value,
+                                           DeviceCmd.set_and_get_value,
+                                           DeviceCmd.enable_standby_mode,
+                                           DeviceCmd.disable_standby_mode] ),
+    DeviceFamily.LTC2309:  DeviceFeatures(DeviceFamily.LTC2309, DeviceFunction.monitoring,
+                                          "ADC for monitoring",
+                                          [DeviceCmd.no_operation,
+                                           DeviceCmd.set_value,
+                                           DeviceCmd.get_value,
+                                           DeviceCmd.set_and_get_value]),
+    DeviceFamily.LTC2497:  DeviceFeatures(DeviceFamily.LTC2497, DeviceFunction.monitoring,
+                                          "ADC for monitoring",
+                                          [DeviceCmd.no_operation,
+                                           DeviceCmd.set_value,
+                                           DeviceCmd.get_value,
+                                           DeviceCmd.set_and_get_value]),
+    DeviceFamily.MAX31730: DeviceFeatures(DeviceFamily.MAX31730, DeviceFunction.monitoring,
+                                          "Temperature for monitoring",
+                                          [DeviceCmd.no_operation,
+                                           DeviceCmd.reset,
+                                           DeviceCmd.initialize,
+                                           DeviceCmd.set_and_get_value]),
+    DeviceFamily.AT24CM01: DeviceFeatures(DeviceFamily.AT24CM01, DeviceFunction.eeprom,
+                                          "EEPROM for on-board storage",
+                                          [DeviceCmd.no_operation,
+                                           DeviceCmd.set_word_value,
+                                           DeviceCmd.get_word_value,
+                                           DeviceCmd.set_page_value,
+                                           DeviceCmd.get_page_value]),
+    }
 
 
 class DeviceSettings(object):

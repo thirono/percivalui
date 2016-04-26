@@ -12,7 +12,7 @@ import logging
 from percival.log import log
 
 from percival.carrier.registers import UARTRegister, BoardRegisters, BoardTypes
-from percival.carrier.devices import ReadValue, DeviceFamily, DeviceFunction, DeviceCmd
+from percival.carrier.devices import DeviceFunction, DeviceCmd, DeviceFamilyFeatures, DeviceFamily
 from percival.carrier.txrx import TxRx, TxRxContext, TxMessage, hexify
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
@@ -38,15 +38,15 @@ class ControlChannel:
         #self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self.log = logging.getLogger(self.__class__.__name__)
         self._txrx = txrx
-        self.device_family = device_family
-        if self.device_family.value.function != DeviceFunction.control:
+        self._device_family_features = DeviceFamilyFeatures[self.device_family]
+        if self._device_family_features.function != DeviceFunction.control:
             raise TypeError("Not a control device")
         self.channel_index = channel_index
         self.uart_offset = uart_offset
 
         self._reg_command = UARTRegister(0x00F8)
         self._reg_command.initialize_map([0,0,0])
-        self._reg_command.fields.device_type = self.device_family.value.function.value
+        self._reg_command.fields.device_type = self._device_family_features.function.value
         self._reg_command.fields.device_index = self.channel_index
 
         self._reg_echo = UARTRegister(0x0139)
@@ -66,7 +66,7 @@ class ControlChannel:
         return response
 
     def get_command_msg(self, cmd):
-        if not self.device_family.value.supports_cmd(cmd):
+        if not self._device_family_features.supports_cmd(cmd):
             raise TypeError("Device family does not support command %s"%cmd)
         self._reg_command.fields.device_cmd = cmd.value
         self.log.debug(self._reg_command.fields)

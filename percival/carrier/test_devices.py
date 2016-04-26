@@ -8,7 +8,7 @@ from __future__ import unicode_literals, absolute_import
 import unittest
 
 import percival.carrier.devices as devices
-from percival.carrier.devices import DeviceCmd
+from percival.carrier.devices import DeviceCmd, DeviceFamilyFeatures
 
 
 class TestDevices(unittest.TestCase):
@@ -170,31 +170,31 @@ class TestDeviceFamilyEnum(unittest.TestCase):
         self.adc = devices.DeviceFamily.LTC2497
         
     def TestFunctions(self):
-        self.assertIs(self.digipot.value.function, devices.DeviceFunction.control)
-        self.assertIs(self.dac.value.function, devices.DeviceFunction.control)
-        self.assertIs(self.adc.value.function, devices.DeviceFunction.monitoring)
+        self.assertIs(DeviceFamilyFeatures[self.digipot].function, devices.DeviceFunction.control)
+        self.assertIs(DeviceFamilyFeatures[self.dac].function, devices.DeviceFunction.control)
+        self.assertIs(DeviceFamilyFeatures[self.adc].function, devices.DeviceFunction.monitoring)
 
     def TestDeviceID(self):
-        self.assertIs(self.digipot.value.device_family_id, 0)
-        self.assertIs(self.dac.value.device_family_id, 2)
-        self.assertIs(self.adc.value.device_family_id, 4)
+        self.assertIs(self.digipot.value, 0)
+        self.assertIs(self.dac.value, 2)
+        self.assertIs(self.adc.value, 4)
         
     def TestSupportedCommands(self):
-        dev = self.digipot.value
+        dev = DeviceFamilyFeatures[self.digipot]
         self.assertIs(dev.supports_cmd( DeviceCmd.no_operation),        True  )
         self.assertIs(dev.supports_cmd( DeviceCmd.reset),               True  )
         self.assertIs(dev.supports_cmd( DeviceCmd.initialize),          False )
         self.assertIs(dev.supports_cmd( DeviceCmd.set_and_get_value),   True  )
         self.assertIs(dev.supports_cmd( DeviceCmd.set_word_value),      False )
 
-        dev = self.dac.value
+        dev = DeviceFamilyFeatures[self.dac]
         self.assertIs(dev.supports_cmd( DeviceCmd.no_operation),        True  )
         self.assertIs(dev.supports_cmd( DeviceCmd.reset),               True  )
         self.assertIs(dev.supports_cmd( DeviceCmd.initialize),          True  )
         self.assertIs(dev.supports_cmd( DeviceCmd.set_and_get_value),   True  )
         self.assertIs(dev.supports_cmd( DeviceCmd.set_word_value),      False )
         
-        dev = self.adc.value
+        dev = DeviceFamilyFeatures[self.adc]
         self.assertIs(dev.supports_cmd( DeviceCmd.no_operation),        True  )
         self.assertIs(dev.supports_cmd( DeviceCmd.reset),               False )
         self.assertIs(dev.supports_cmd( DeviceCmd.initialize),          False )
