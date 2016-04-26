@@ -44,17 +44,19 @@ class SystemCmd(Enum):
 
 @unique
 class BoardTypes(Enum):
-    left = 0
-    bottom = 1
-    carrier = 2
-    plugin = 3
+    prototype = 0
+    left = 1
+    bottom = 2
+    carrier = 3
+    plugin = 4
+    other = 5
 
 @unique
 class RegisterMapType(Enum):
     header = 0
     control = 1
     monitoring = 2
-    command  = 3
+    command = 3
     
 RegisterMapClasses = {RegisterMapType.header:     devices.HeaderInfo,
                       RegisterMapType.control:    devices.ControlChannel,
