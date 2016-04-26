@@ -11,7 +11,8 @@ import logging
 import os
 import re
 from collections import OrderedDict
-import ConfigParser
+from configparser import SafeConfigParser
+
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +81,7 @@ class PeripheryBoardConfiguration:
     def load_ini(self, config_file):
         self.cfg_filename = find_file( config_file )
 
-        self.conf = ConfigParser.SafeConfigParser(dict_type=OrderedDict)
+        self.conf = SafeConfigParser(dict_type=OrderedDict)
         if self.cfg_filename:
             self.conf.read( self.cfg_filename )
 
@@ -194,7 +195,7 @@ class ChannelParameters(object):
     def load_ini(self):
         self._control_channels = None
         self._monitoring_channels = None
-        self.conf = ConfigParser.SafeConfigParser(dict_type=OrderedDict)
+        self.conf = SafeConfigParser(dict_type=OrderedDict)
         self.conf.read(self._ini_filename)
 
     @staticmethod
