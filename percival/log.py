@@ -5,7 +5,7 @@ percival_log_config = {
     'disable_existing_loggers': True,
     'formatters': {
         'verbose': {
-            'format': '%(name)26s [%(filename)18s:%(lineno)4d]  %(levelname)6s -  %(message)s'
+            'format': '%(name)26s [%(filename)18s:%(lineno)4d]  %(levelname)7s -  %(message)s'
         },
         'simple': {
             'format': '%(levelname)6s - %(message)s'
@@ -58,6 +58,11 @@ percival_log_config = {
         'ControlChannel': {
             'handlers': ['console'],
             'level': 'DEBUG',
+            'propagate': False,
+        },
+        'percival.configuration.ChannelParameters': {
+            'handlers': ['console'],
+            'level': 'INFO',
             'propagate': False,
         },
     }
