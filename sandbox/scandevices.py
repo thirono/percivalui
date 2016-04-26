@@ -5,11 +5,9 @@ Created on 19 May 2015
 '''
 from __future__ import print_function
 
-import os, time, binascii, signal
-import numpy, h5py
+import os, time
 
 import logging
-import sys
 from percival.log import log
 
 from percival.carrier.registers import UARTRegister, BoardRegisters, BoardTypes
@@ -35,19 +33,6 @@ class ControlChannel:
         :param channel_ini: Channel configuration parameters from INI file
         :type channel_ini: ControlChannelIniParameters
         """
-#    def __init__(self, txrx, device_family, channel_index, uart_offset, settings, board):
-#        '''Constructor
-#
-#            :param txrx: Percival communication context
-#            :type  txrx: TxRx
-#            :param device_family: The type of device
-#            :type  device_family: DeviceFamily
-#            :param channel_index: Control device channel index
-#            :type  channel_index: int
-#            :param settings: Control channel settings register map. The list can contain either integers data words
-#                             or tuples of (addr, data).
-#            :type  settings: list
-#        '''
         #self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self.log = logging.getLogger(self.__class__.__name__)
         self._txrx = txrx

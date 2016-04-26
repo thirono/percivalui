@@ -5,14 +5,14 @@ Created on 19 May 2015
 '''
 from __future__ import print_function
 
-import os, time, binascii, signal
+import os, time, signal
 import numpy, h5py
 
 from percival.log import log
 
 from percival.carrier.registers import UARTRegister
 from percival.carrier.devices import ReadValue
-from percival.carrier.txrx import TxRx, TxRxContext, TxMessage
+from percival.carrier.txrx import TxRxContext
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
 

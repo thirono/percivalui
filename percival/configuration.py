@@ -56,36 +56,6 @@ def find_file(filename, env=None):
     raise IOError
 
 
-class PeripheryBoardConfiguration:
-    '''Load and maintain the Periphery Board configuration data'''
-
-    def __init__(self, config_file = None):
-        '''Constructor. Optionally load the configuration file data
-        
-        :param config_file: The name of the configuration file to load. Full or
-                            relative paths is supported. If the file cannot be
-                            found, the directories listed in environment variable 
-                            :obj:`env_config_dir` are searched for the file. 
-        '''
-        self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
-        self.cfg_filename = None
-
-        # The data sections from the ini files are ordered in categories:
-        self.board_header = dict()
-        self.entry_count = dict()
-        self.components = list()
-        self.devices = list()
-        self.control_channels = list()
-        self.monitoring_channels = list()
-
-    def load_ini(self, config_file):
-        self.cfg_filename = find_file( config_file )
-
-        self.conf = SafeConfigParser(dict_type=OrderedDict)
-        if self.cfg_filename:
-            self.conf.read( self.cfg_filename )
-
-
 class IniSectionParameters(object):
     """Mixin to be used by classes that load configuration sections from INI files.
 
