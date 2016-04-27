@@ -6,21 +6,178 @@ Created on 5 Dec 2014
 from __future__ import unicode_literals, absolute_import
 from builtins import bytes, range
 import unittest, logging
-from percival.carrier import registers, txrx
+from percival.carrier import registers, txrx, const
 
 logging.basicConfig()
 logging.getLogger(__name__).setLevel(logging.DEBUG)
 
+
+class TestRegisterMapInterfaces(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    def testHeaderInfoInterface(self):
+        """carrier.devices.HeaderInfoMap class implements the IRegisterMap interface"""
+        self.assertTrue(issubclass(registers.HeaderInfoMap, registers.IRegisterMap),
+                        "HeaderInfoMap class does not fully implement the IRegisterMap interface")
+
+    def testControlChannelInterface(self):
+        """carrier.devices.ControlChannelMap class implements the IRegisterMap interface"""
+        self.assertTrue(issubclass(registers.ControlChannelMap, registers.IRegisterMap),
+                        "ControlChannelMap class does not fully implement the IRegisterMap interface")
+
+    def testMonitoringChannelsInterface(self):
+        """carrier.devices.MonitoringChannelMap class implements the IRegisterMap interface"""
+        self.assertTrue(issubclass(registers.MonitoringChannelMap, registers.IRegisterMap),
+                        "MonitoringChannelMap class does not fully implement the IRegisterMap interface")
+
+
+class TestHeaderInfoMap(unittest.TestCase):
+    def setUp(self):
+        self.dut = registers.HeaderInfoMap()
+
+    def testMemMapAttributes(self):
+        self.assertTrue(hasattr(self.dut, "eeprom_address"))
+        self.assertTrue(hasattr(self.dut, "monitoring_channels_count"))
+        self.assertTrue(hasattr(self.dut, "control_channels_count"))
+        with self.assertRaises(AttributeError):
+            self.dut.no_parameter_with_this_name
+        self.assertTrue(hasattr(self.dut, "num_words"))
+
+    def testParseValidMap(self):
+        self.dut.parse_map([0xA1234567])
+        self.assertEqual(0x23, self.dut.eeprom_address)
+        self.assertEqual(0x45, self.dut.monitoring_channels_count)
+        self.assertEqual(0x67, self.dut.control_channels_count)
+
+    def testValidGenerateMap(self):
+        self.dut.parse_map([0xA1234567])
+        words = self.dut.generate_map()
+        self.assertEqual([0x00234567], words)
+
+    def testParseInvalidMap(self):
+        """Empty map should raise index error and no values parsed"""
+        with self.assertRaises(IndexError):
+            self.dut.parse_map([])
+        self.assertEqual(None, self.dut.eeprom_address)
+        self.assertEqual(None, self.dut.monitoring_channels_count)
+        self.assertEqual(None, self.dut.control_channels_count)
+
+
+class TestControlChannelMap(unittest.TestCase):
+    def setUp(self):
+        self.dut = registers.ControlChannelMap()
+
+    def testParseValidMap(self):
+        # The full 5 word register is not yet in use in the firmware
+        #self.dut.parse_map([0xA1234567, 0x89ABCDEF, 0x11223344, 0x55667788, 0x99AABBCC])
+        self.dut.parse_map( [0xA1234567, 0x89ABCDEF, 0x11223344,             0x99AABBCC])
+        self.assertEqual(0x01, self.dut.board_type)
+        self.assertEqual(0x02, self.dut.component_family_id)
+        self.assertEqual(0x00, self.dut.device_i2c_bus_select)
+        self.assertEqual(0x1A, self.dut.channel_device_id)
+        self.assertEqual(0x05, self.dut.channel_sub_address)
+        self.assertEqual(0x67, self.dut.device_address)
+
+        self.assertEqual(0x89AB, self.dut.channel_range_max)
+        self.assertEqual(0xCDEF, self.dut.channel_range_min)
+
+        self.assertEqual(0x1122, self.dut.channel_default_on)
+        self.assertEqual(0x3344, self.dut.channel_default_off)
+
+        # No yet in use in firmware
+        #self.assertEqual(0x66, self.dut.channel_monitoring)
+        #self.assertEqual(0x77, self.dut.safety_exception_threshold)
+        #self.assertEqual(0x88, self.dut.read_frequency)
+
+        self.assertEqual(0x00, self.dut.power_status)
+        self.assertEqual(0xBBCC, self.dut.value)
+
+    def testValidGenerateMap(self):
+        # The full 5 word register is not yet in use in the firmware
+        #self.dut.parse_map([0xA1234567, 0x89ABCDEF, 0x11223344, 0x55667788, 0x99AABBCC])
+        self.dut.parse_map( [0xA1234567, 0x89ABCDEF, 0x11223344,             0x99AABBCC])
+        words = self.dut.generate_map()
+        #self.assertEqual([0x01234567, 0x89ABCDEF, 0x11223344, 0x00667788, 0x0000BBCC], words)
+        self.assertEqual( [0x01234567, 0x89ABCDEF, 0x11223344,             0x0000BBCC], words)
+
+    def testParseInvalidMap(self):
+        """Empty map should raise index error and no values parsed"""
+        with self.assertRaises(IndexError):
+            self.dut.parse_map([0xA1234567, 0x89ABCDEF])
+        self.assertEqual(None, self.dut.board_type)
+        self.assertEqual(None, self.dut.component_family_id)
+        self.assertEqual(None, self.dut.device_i2c_bus_select)
+        self.assertEqual(None, self.dut.channel_device_id)
+        self.assertEqual(None, self.dut.channel_sub_address)
+        self.assertEqual(None, self.dut.device_address)
+
+
+class TestCommandMap(unittest.TestCase):
+    def setUp(self):
+        self.dut = registers.CommandMap()
+
+    def testInitialMapFieldValue(self):
+        self.assertIs(self.dut.device_index, None, "device_index should be initialised to None")
+        self.assertTrue("device_index" in self.dut._mem_map.keys(), "No device index in: %s"%str(self.dut._mem_map.keys()))
+        self.dut.device_index = 10
+        self.assertIs(self.dut.device_index, 10, "device_index should now be set to 10, not %s"%str(self.dut.device_index))
+
+
+class TestEchoWordMap(unittest.TestCase):
+    def setUp(self):
+        self.dut = registers.EchoWordMap()
+
+    def testInitialMapFieldValue(self):
+        self.assertIs(self.dut.read_value, None, "read_value should be initialised to None")
+        self.assertTrue("read_value" in self.dut._mem_map.keys(), "No read_value in: %s"%str(self.dut._mem_map.keys()))
+        self.dut.read_value = 10
+        self.assertIs(self.dut.read_value, 10, "read_value should now be set to 10, not %s"%str(self.dut.read_value))
+
+
+class TestReadValueMap(unittest.TestCase):
+    def setUp(self):
+        self.dut = registers.ReadValueMap()
+
+    def testInitialMapFieldValue(self):
+        self.assertIs(self.dut.sample_number, None, "sample_number should be initialised to None")
+        self.assertTrue("sample_number" in self.dut._mem_map.keys(), "No sample_number in: %s"%str(self.dut._mem_map.keys()))
+        self.dut.sample_number = 10
+        self.assertIs(self.dut.sample_number, 10, "sample_number should now be set to 10, not %s"%str(self.dut.sample_number))
+
+
+class TestMapField(unittest.TestCase):
+    def setUp(self):
+        self.dut = registers.MapField("TEST", 2, 3, 4)
+
+    def TestProps(self):
+        self.assertEqual(self.dut.num_bits, 3)
+        self.assertEqual(self.dut.bit_offset, 4)
+        self.assertEqual(self.dut.word_index, 2)
+        self.assertEqual(self.dut.value, None)
+
+    def TestValue(self):
+        self.assertEqual(self.dut.value, None)
+        self.dut.value = 45
+        self.assertEqual(self.dut.value, 45)
+        self.assertEqual(self.dut._value, 45)
+
+
 class TestUARTRegister(unittest.TestCase):
 
     def setUp(self):
-        self.command_reg = registers.UARTRegister( 0x00F8 ) # Command Register
-        cl = ".".join([__name__,str( self.__class__)])
+        self.command_reg = registers.UARTRegister(const.COMMAND)  # CommandMap Register
+        cl = ".".join([__name__, str(self.__class__)])
         self.log = logging.getLogger(cl)
 
     def test_invalid_command_readback_msg(self):
-        '''Check that a Readback message from get_read_cmdmsg() throws an exception as Command has no readback shortcut'''
-        with self.assertRaises( TypeError) as cm: self.command_reg.get_read_cmd_msg()
+        """Check that a Readback message from get_read_cmdmsg() throws an exception
+        CommandMap has no readback shortcut"""
+        with self.assertRaises(TypeError) as cm: self.command_reg.get_read_cmd_msg()
 
     def test_write_msg(self):
         self.command_reg.fields.parse_map([0, 0, 0])
@@ -35,7 +192,6 @@ class TestUARTRegister(unittest.TestCase):
                         bytes('\x00\xFA\x00\x00\x00\x00', encoding='latin-1')]
         for i in range(3):
             self.assertEqual(msg[i].message, expected_msg[i], msg[i].message)
-        
 
 
 if __name__ == "__main__":

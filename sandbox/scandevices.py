@@ -10,7 +10,8 @@ import os, time
 import logging
 from percival.log import log
 
-from percival.carrier.registers import UARTRegister, BoardRegisters, BoardTypes
+from percival.carrier import const
+from percival.carrier.registers import UARTRegister, BoardRegisters
 from percival.carrier.devices import DeviceFunction, DeviceCmd, DeviceFamilyFeatures, DeviceFamily
 from percival.carrier.txrx import TxRx, TxRxContext, hexify
 from percival.configuration import ChannelParameters, ControlChannelIniParameters
@@ -24,7 +25,7 @@ class ControlChannel:
     """
 
     def __init__(self, txrx, channel_ini, settings):
-        """ ControlChannel constructor.
+        """ ControlChannelMap constructor.
 
         Keeps a reference to the txrx communication object and initialises itself based on the parameters in channel_ini.
 
@@ -46,14 +47,14 @@ class ControlChannel:
         self.channel_index = channel_ini._channel_number
         self.uart_device_address = channel_ini.UART_address
 
-        self._reg_command = UARTRegister(0x00F8)
+        self._reg_command = UARTRegister(const.COMMAND)
         self._reg_command.initialize_map([0,0,0])
         self._reg_command.fields.device_type = self._device_family_features.function.value
         self._reg_command.fields.device_index = self.channel_index
 
-        self._reg_echo = UARTRegister(0x0139)
+        self._reg_echo = UARTRegister(const.READ_ECHO_WORD)
 
-        addr_header, addr_control, addr_monitoring = BoardRegisters[BoardTypes(channel_ini.Board_type)]
+        addr_header, addr_control, addr_monitoring = BoardRegisters[const.BoardTypes(channel_ini.Board_type)]
         self._reg_control_settings = UARTRegister(addr_control)
         self._reg_control_settings.initialize_map(settings)
         self.log.debug("Control Settings Map: %s", self._reg_control_settings.fields)
@@ -76,7 +77,7 @@ class ControlChannel:
         return cmd_msg
 
     def command(self, cmd):
-        self.log.debug("Device Command: %s", cmd)
+        self.log.debug("Device CommandMap: %s", cmd)
         cmd_msg = self.get_command_msg(cmd)
         response = self._txrx.send_recv_message(cmd_msg)
         return response
@@ -120,20 +121,30 @@ class BoardSettings:
         #self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self.log = logging.getLogger(self.__class__.__name__)
         self.txrx = txrx
-        addr_header, addr_control, addr_monitoring = BoardRegisters[board]
+        header_block, control_block, monitoring_block = BoardRegisters[board]
 
-        self._reg_control_settings = UARTRegister(addr_control)
+        self._reg_control_settings = UARTRegister(control_block)
         self._control_settings = None
+
+        self._reg_monitoring_settings = UARTRegister(monitoring_block)
+        self._monitoring_settings = None
+
+    def _readback_settings(self, uart_register):
+        cmd_msg = uart_register.get_read_cmd_msg()
+        response = self.txrx.send_recv_message(cmd_msg)
+        return response
 
     def readback_control_settings(self):
         self.log.debug("Readback Board Control Settings")
-        cmd_msg = self._reg_control_settings.get_read_cmd_msg()
-        response = self.txrx.send_recv_message(cmd_msg)
-        self._control_settings = response
+        self._control_settings = self._readback_settings(self._reg_control_settings)
 
     def device_control_settings(self, device_index):
         result = self._control_settings[device_index:device_index+self._reg_control_settings.words_per_item]
         return result
+
+    def readback_monitoring_settings(self):
+        self.log.debug("Readback Board Monitoring Settings")
+        self._monitoring_settings = self._readback_settings(self._reg_monitoring_settings)
 
 
 if __name__ == '__main__':
@@ -146,9 +157,10 @@ if __name__ == '__main__':
         log.debug("Monitoring Channels: %s", str(ini_params.monitoring_channels))
         log.debug("INI parameters: %s", ini_params)
 
-        bs = BoardSettings(trx, BoardTypes.carrier)
+        bs = BoardSettings(trx, const.BoardTypes.carrier)
         bs.readback_control_settings()
 
+        # TODO: it should not be necessary to hardcode the index 0 here
         cc_settings = bs.device_control_settings(0)
         log.info("Control Channel #2 settings from board: %s", hexify(cc_settings))
 

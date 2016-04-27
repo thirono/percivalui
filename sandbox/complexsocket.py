@@ -23,24 +23,26 @@ def main():
         
         #msg = encode_message(0x0140, 0x00000000) # Header Settings Carrier shortcut
         #msg = encode_message(0x0141, 0x00000000) # Control Settings Carrier shortcut
-        msg = encode_message(0x0142, 0x00000000) # Monitoring Settings Carrier shortcut
+        #msg = encode_message(0x0142, 0x00000000)  # Monitoring Settings Carrier shortcut
+        msg = encode_message(0x014D, 0x00000000)  # shortcut: Readback READ VALUES CARRIER
+
 
         log.debug("as string: %s",str([msg]))
         #trx.tx_msg(msg)
         #trx.tx_msg(msg)
         #resp = trx.rx_msg()
         resp = trx.send_recv(msg)
-        log.debug("Device Command: %d bytes: %s", len(resp), [resp])
+        log.debug("Device CommandMap: %d bytes: %s", len(resp), [resp])
         resp = decode_message(resp)
         log.info("Got %d words", len(resp))
         log.info(resp)
         
-        msg = encode_message(0x0151, 0x00000000) # ECHO WORD (times out)
-        resp = trx.send_recv(msg)
-        log.debug("ECHO WORD: %d bytes: %s", len(resp), [resp])
-        resp = decode_message(resp)
-        log.info("Got %d words", len(resp))
-        log.info(resp)
+        #msg = encode_message(0x0151, 0x00000000) # ECHO WORD (times out)
+        #resp = trx.send_recv(msg)
+        #log.debug("ECHO WORD: %d bytes: %s", len(resp), [resp])
+        #resp = decode_message(resp)
+        #log.info("Got %d words", len(resp))
+        #log.info(resp)
     
 if __name__ == '__main__':
     main()

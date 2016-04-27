@@ -10,8 +10,8 @@ import numpy, h5py
 
 from percival.log import log
 
-from percival.carrier.registers import UARTRegister
-from percival.carrier.devices import ReadValue
+from percival.carrier import const
+from percival.carrier.registers import UARTRegister, ReadValueMap
 from percival.carrier.txrx import TxRxContext
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
@@ -30,7 +30,7 @@ class ReadDevice:
 
         with TxRxContext(board_ip_address) as trx:
 
-            cmd = UARTRegister(0x00F8)  # Command register
+            cmd = UARTRegister(const.COMMAND)  # CommandMap register
             cmd.fields.parse_map([0, 0, 0]) # initialise all registers to 0
 
             # First generate and send a no-op system command
@@ -62,13 +62,13 @@ class ReadDevice:
                 log.info("Device get and set command: %s", str(device_set_and_get_cmd_msg))
                 response = trx.send_recv_message(device_set_and_get_cmd_msg)
 
-                echo_word_cmd = UARTRegister(0x0139)
+                echo_word_cmd = UARTRegister(const.READ_ECHO_WORD)
                 read_echo_cmd_msg = echo_word_cmd.get_read_cmd_msg()  # READ ECHO WORD
                 log.info("READ ECHO WORD command: %s", str(read_echo_cmd_msg))
                 response = trx.send_recv_message(read_echo_cmd_msg)
                 log.info("    response: 0x%04X: 0x%08X", response[0][0], response[0][1])
 
-                read_word = ReadValue()
+                read_word = ReadValueMap()
                 read_word.parse_map_from_tuples(response)
                 log.info("    Sample, read value: %d, %d", read_word.sample_number, read_word.read_value)
 

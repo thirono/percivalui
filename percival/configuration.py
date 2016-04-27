@@ -236,7 +236,7 @@ class ChannelParameters(object):
     def _get_channels_by_name(channel_list, name):
         result = []
         for ch in channel_list:
-            if ch.Channel_name == name:
+            if re.match(name, ch.Channel_name):
                 result.append(ch)
         if len(result) == 1:
             result = result[0]
