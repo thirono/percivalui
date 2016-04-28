@@ -11,7 +11,7 @@ import logging
 from percival.log import log
 
 from percival.carrier import const
-from percival.carrier.registers import UARTRegister, BoardRegisters
+from percival.carrier.registers import UARTRegister, BoardRegisters, generate_register_maps
 from percival.carrier.devices import DeviceFunction, DeviceCmd, DeviceFamilyFeatures, DeviceFamily
 from percival.carrier.txrx import TxRx, TxRxContext, hexify
 from percival.configuration import ChannelParameters, ControlChannelIniParameters
@@ -105,15 +105,25 @@ class ControlChannel:
         response = self._txrx.send_recv_message(cmd_msg[value_register_index])
         return response
 
-    def set_value(self, value):
-        self.log.debug("set_value=%s", value)
+    def set_value(self, value, timeout=0.1):
+        self.log.debug("set_value=%s (\"%s\")", value, self._channel_ini.Channel_name)
         self.cmd_no_operation()
         self.cmd_control_set_value(value)
-        time.sleep(0.1)
         self.cmd_no_operation()
         self.cmd_set_and_get_value()
-        result = self.read_echo_word()
-        return result[0][1]
+        start_time = time.time()
+        while True:
+            echo = self.read_echo_word()
+            result = generate_register_maps(echo)
+            if result[0].i2c_communication_error:
+                raise IOError("I2C communication error when writing to %s", self._channel_ini.Channel_name)
+            if result[0].read_value == value:
+                break
+            if time.time() > (start_time + timeout):
+                raise RuntimeError("Timeout when reading back value from ECHO word")
+            time.sleep(0.1)
+            log.debug("####### Retrying reading ECHO word. Got: %s", result)
+        return result[0]
 
 
 class BoardSettings:
@@ -171,24 +181,21 @@ if __name__ == '__main__':
 
         new_value = 5000
         log.info("Writing DAC channel 2 value = %d", new_value)
-        echo_result = cc.set_value(new_value)
-        if echo_result != new_value:
-            log.warning("  Echo result does not match demanded value (%d != %d)", echo_result, new_value)
-        else:
-            log.info("  Echo result: %d", echo_result)
+        echo_result = cc.set_value(new_value, timeout=1.0)
+        log.info("ECHO: %s", echo_result)
+        if echo_result.read_value != new_value:
+            log.warning("  Echo result does not match demanded value (%d != %d)", echo_result.read_value, new_value)
 
         new_value = 10000
         log.info("Writing DAC channel 2 value = %d", new_value)
-        echo_result = cc.set_value(new_value)
-        if echo_result != new_value:
-            log.warning("  Echo result does not match demanded value (%d != %d)", echo_result, new_value)
-        else:
-            log.info("  Echo result: %d", echo_result)
+        echo_result = cc.set_value(new_value, timeout=1.0)
+        log.info("ECHO: %s", echo_result)
+        if echo_result.read_value != new_value:
+            log.warning("  Echo result does not match demanded value (%d != %d)", echo_result.read_value, new_value)
 
         new_value = 0
         log.info("Writing DAC channel 2 value = %d", new_value)
-        echo_result = cc.set_value(new_value)
-        if echo_result != new_value:
-            log.warning("  Echo result does not match demanded value (%d != %d)", echo_result, new_value)
-        else:
-            log.info("  Echo result: %d", echo_result)
+        echo_result = cc.set_value(new_value, timeout=1.0)
+        log.info("ECHO: %s", echo_result)
+        if echo_result.read_value != new_value:
+            log.warning("  Echo result does not match demanded value (%d != %d)", echo_result.read_value, new_value)
