@@ -136,12 +136,12 @@ class BoardSettings:
         #self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self.log = logging.getLogger(self.__class__.__name__)
         self.txrx = txrx
-        header_block, control_block, monitoring_block = BoardRegisters[board]
+        self._header_block, self._control_block, self._monitoring_block = BoardRegisters[board]
 
-        self._reg_control_settings = UARTRegister(control_block)
+        self._reg_control_settings = UARTRegister(self._control_block)
         self._control_settings = None
 
-        self._reg_monitoring_settings = UARTRegister(monitoring_block)
+        self._reg_monitoring_settings = UARTRegister(self._monitoring_block)
         self._monitoring_settings = None
 
     def _readback_settings(self, uart_register):
@@ -153,8 +153,12 @@ class BoardSettings:
         self.log.debug("Readback Board Control Settings")
         self._control_settings = self._readback_settings(self._reg_control_settings)
 
-    def device_control_settings(self, device_index):
-        result = self._control_settings[device_index:device_index+self._reg_control_settings.words_per_item]
+    def device_control_settings(self, device_addr):
+        offset = device_addr - self._control_block.start_address
+        if not self._control_block.is_address_valid(device_addr):
+            raise IndexError("Device address 0x%X not in range of block 0x%X" %
+                             (device_addr, self._control_block.start_address))
+        result = self._control_settings[offset:offset+self._reg_control_settings.words_per_item]
         return result
 
     def readback_monitoring_settings(self):
@@ -182,12 +186,11 @@ if __name__ == '__main__':
         bs = BoardSettings(trx, const.BoardTypes.carrier)
         bs.readback_control_settings()
 
-        # TODO: it should not be necessary to hardcode the index 0 here
-        cc_settings = bs.device_control_settings(0)
-        log.info("Control Channel #2 settings from board: %s", hexify(cc_settings))
-
         vch0_ini = ini_params.control_channels_by_name("VCH0")
         log.info("vch0_ini: %s", vch0_ini)
+
+        cc_settings = bs.device_control_settings(vch0_ini.UART_address)
+        log.info("Control Channel #2 settings from board: %s", hexify(cc_settings))
 
         cc = ControlChannel(trx, vch0_ini, cc_settings)
 

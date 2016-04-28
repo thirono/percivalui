@@ -35,6 +35,9 @@ class UARTBlock(object):
         self.words_per_entry = words_per_entry
         self.start_address = start_address
 
+    def is_address_valid(self, address):
+        return self.start_address <= address < (self.start_address + self.words_per_entry * self.entries)
+
 
 HEADER_SETTINGS_LEFT = UARTBlock(1, 1, 0x0000)
 CONTROL_SETTINGS_LEFT = UARTBlock(1, 4, 0x0001)
