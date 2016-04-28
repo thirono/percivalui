@@ -194,6 +194,41 @@ class TestUARTRegister(unittest.TestCase):
             self.assertEqual(msg[i].message, expected_msg[i], msg[i].message)
 
 
+class TestRegister(unittest.TestCase):
+    def setUp(self):
+        addr = const.CONTROL_SETTINGS_CARRIER.start_address
+        self.addr_word = [
+            (addr + 0, 0x000A),
+            (addr + 1, 0x00A0),
+            (addr + 2, 0x0A00),
+            (addr + 3, 0xA000),
+            (addr + 4, 0x000B),
+            (addr + 5, 0x00B0),
+            (addr + 6, 0x0B00),
+            (addr + 7, 0xB000),
+        ]
+
+    def test_generate_maps(self):
+        regs = registers.generate_register_maps(self.addr_word)
+        self.assertIsInstance(regs, list)
+        self.assertEqual(len(regs), 2)
+        self.assertIsInstance(regs[0], registers.ControlChannelMap)
+
+    def test_too_many_words(self):
+        regs = registers.generate_register_maps(self.addr_word[:-1])
+        self.assertIsInstance(regs, list)
+        self.assertEqual(len(regs), 1)
+
+    def test_too_few_words(self):
+        regs = registers.generate_register_maps(self.addr_word[:3])
+        self.assertIsInstance(regs, list)
+        self.assertEqual(len(regs), 0)
+
+    def test_misaligned_words(self):
+        regs = registers.generate_register_maps(self.addr_word[1:])
+        self.assertIsInstance(regs, list)
+        self.assertEqual(len(regs), 1)
+
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

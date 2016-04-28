@@ -34,6 +34,8 @@ class RegisterMap(object):
             self._mem_map[name].value = value
 
     def parse_map(self, words):
+        if len(words) != self.num_words:
+            raise_with_traceback(IndexError("Map must contain %d words. Got only %d" % (self.num_words, len(words))))
         map_fields = [f for (k,f) in sorted(self._mem_map.items(),
                                         key=lambda key_field: key_field[1].word_index, reverse=True)]
         for map_field in map_fields:
@@ -427,3 +429,55 @@ class UARTRegister(object):
         write_cmd_msg = encoding.encode_multi_message(self._uart_address, data_words)
         write_cmd_msg = [txrx.TxMessage(msg, num_response_msg=1, expect_eom=eom) for msg in write_cmd_msg]
         return write_cmd_msg
+
+
+def get_register_block(addr):
+    """Scan through the top-level register blocks to find the block addr belongs in.
+
+    :param addr: UART address
+    :type addr: int
+    :return: Return the address block if found or None if addr is out of range
+    :rtype: :obj:`percival.carrier.const.UARTBlock`
+    """
+    register_blocks = CarrierUARTRegisters.keys()
+    for register_block in register_blocks:
+        if register_block.start_address <= \
+           addr < \
+           (register_block.start_address + (register_block.entries * register_block.words_per_entry)):
+            return register_block
+
+
+def generate_register_maps(registers):
+    """Provides the connection between raw register maps: list of (addr, data) tuples and
+    :class:`percival.carrier.registers.RegisterMap` implementations.
+
+    :param registers: List of (addr, data) register tuples
+    :type registers: list
+    """
+    index = 0
+    register_maps = []
+    while index < len(registers):
+        addr, data = registers[index]
+        uart_block = get_register_block(addr)
+        if not uart_block:
+            logger.warning("Did not find UART block for address: 0x%X", addr)
+            index += 1
+            continue
+        if ((addr - uart_block.start_address) % uart_block.words_per_entry) != 0:
+            logger.warning("UART address %s doesn't align with element boundary within the block %s.", addr, uart_block)
+            index += 1
+            continue
+        (name, readback_addr_block, RegisterMapClass) = CarrierUARTRegisters[uart_block]
+        block_map = RegisterMapClass()
+        block_words = registers[index:index + block_map.num_words]
+        try:
+            block_map.parse_map_from_tuples(block_words)
+        except IndexError as e:
+            logger.warning("Register map length issue: %s", str(e))
+            index += 1
+            continue
+
+        register_maps.append(block_map)
+        index += block_map.num_words
+    return register_maps
+
