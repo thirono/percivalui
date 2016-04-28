@@ -336,6 +336,7 @@ CarrierUARTRegisters = {
     const.HEADER_SETTINGS_PLUGIN:      ("Header settings plugin",      const.READBACK_HEADER_SETTINGS_PLUGIN,       HeaderInfoMap),
     const.CONTROL_SETTINGS_PLUGIN:     ("Control settings plugin",     const.READBACK_CONTROL_SETTINGS_PLUGIN,      ControlChannelMap),
     const.MONITORING_SETTINGS_PLUGIN:  ("Monitoring settings plugin",  const.READBACK_MONITORING_SETTINGS_PLUGIN,   MonitoringChannelMap),
+    const.READ_VALUES_CARRIER:         ("Read monitor values carrier", const.READBACK_READ_VALUES_CARRIER,          ReadValueMap),
 
     const.COMMAND:                     ("CommandMap",                  None,                                        CommandMap),
     const.READ_ECHO_WORD:              ("Read Echo Word",              const.READBACK_READ_ECHO_WORD,               EchoWordMap),

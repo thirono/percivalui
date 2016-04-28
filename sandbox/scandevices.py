@@ -121,6 +121,11 @@ class ControlChannel:
                 break
             if time.time() > (start_time + timeout):
                 raise RuntimeError("Timeout when reading back value from ECHO word")
+
+            # skip the retry!
+            # TODO: fix the retry feature - it doesn't work properly and always times out
+            break
+
             time.sleep(0.1)
             log.debug("####### Retrying reading ECHO word. Got: %s", result)
         return result[0]
@@ -157,6 +162,13 @@ class BoardSettings:
         self._monitoring_settings = self._readback_settings(self._reg_monitoring_settings)
 
 
+def read_carrier_monitors(txrx):
+    uart_block = UARTRegister(const.READ_VALUES_CARRIER)
+    cmd_msg = uart_block.get_read_cmd_msg()
+    response = txrx.send_recv_message(cmd_msg)
+    read_maps = generate_register_maps(response)
+    return read_maps
+
 if __name__ == '__main__':
     with TxRxContext(board_ip_address) as trx:
         ini_params = ChannelParameters("config/Channel parameters.ini")
@@ -185,6 +197,10 @@ if __name__ == '__main__':
         log.info("ECHO: %s", echo_result)
         if echo_result.read_value != new_value:
             log.warning("  Echo result does not match demanded value (%d != %d)", echo_result.read_value, new_value)
+        adcs = read_carrier_monitors(trx)
+        log.info("Read carrier monitoring channels: %s", adcs[:-3])
+        channels = [(dac.sample_number, dac.read_value) for dac in adcs]
+        log.info("  ADCs: %s", channels)
 
         new_value = 10000
         log.info("Writing DAC channel 2 value = %d", new_value)
@@ -192,6 +208,10 @@ if __name__ == '__main__':
         log.info("ECHO: %s", echo_result)
         if echo_result.read_value != new_value:
             log.warning("  Echo result does not match demanded value (%d != %d)", echo_result.read_value, new_value)
+        adcs = read_carrier_monitors(trx)
+        log.info("Read carrier monitoring channels: %s", adcs[:-3])
+        channels = [(dac.sample_number, dac.read_value) for dac in adcs]
+        log.info("  ADCs: %s", channels)
 
         new_value = 0
         log.info("Writing DAC channel 2 value = %d", new_value)
@@ -199,3 +219,7 @@ if __name__ == '__main__':
         log.info("ECHO: %s", echo_result)
         if echo_result.read_value != new_value:
             log.warning("  Echo result does not match demanded value (%d != %d)", echo_result.read_value, new_value)
+        adcs = read_carrier_monitors(trx)
+        log.info("Read carrier monitoring channels: %s", adcs[:-3])
+        channels = [(dac.sample_number, dac.read_value) for dac in adcs]
+        log.info("  ADCs: %s", channels)

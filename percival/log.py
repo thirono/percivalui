@@ -55,7 +55,7 @@ percival_log_config = {
             'level': 'DEBUG',
             'propagate': False,
         },
-        'ControlChannelMap': {
+        'ControlChannel': {
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': False,
