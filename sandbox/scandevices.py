@@ -19,13 +19,13 @@ from percival.configuration import ChannelParameters, ControlChannelIniParameter
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
 
 
-class ControlChannel:
+class Channel(object):
     """
-    Control a specific device channel on any of the control boards.
+    Represent a specific device channel on any of the control boards.
     """
 
     def __init__(self, txrx, channel_ini, settings):
-        """ ControlChannelMap constructor.
+        """ Channel constructor. Call this from derived classes
 
         Keeps a reference to the txrx communication object and initialises itself based on the parameters in channel_ini.
 
@@ -54,13 +54,8 @@ class ControlChannel:
 
         self._reg_echo = UARTRegister(const.READ_ECHO_WORD)
 
-        addr_header, addr_control, addr_monitoring = BoardRegisters[const.BoardTypes(channel_ini.Board_type)]
-        self._reg_control_settings = UARTRegister(addr_control)
-        self._reg_control_settings.initialize_map(settings)
-        self.log.debug("Control Settings Map: %s", self._reg_control_settings.fields)
-
-        # Send an initialize command to the device
-        self.cmd_initialize()
+        self._addr_settings_header, self._addr_settings_control, self._addr_settings_monitoring = \
+            BoardRegisters[const.BoardTypes(channel_ini.Board_type)]
 
     def read_echo_word(self):
         self.log.debug("READ ECHO WORD")
@@ -93,6 +88,18 @@ class ControlChannel:
     def cmd_initialize(self):
         result = self.command(DeviceCmd.initialize)
         return result
+
+
+class ControlChannel(Channel):
+    def __init__(self, txrx, channel_ini, settings):
+        super(ControlChannel, self).__init__(txrx, channel_ini, settings)
+
+        self._reg_control_settings = UARTRegister(self._addr_settings_control)
+        self._reg_control_settings.initialize_map(settings)
+        self.log.debug("Control Settings Map: %s", self._reg_control_settings.fields)
+
+        # Send an initialize command to the device
+        self.cmd_initialize()
 
     def cmd_control_set_value(self, value):
         self.log.debug("Device Control Settings write:")
@@ -131,6 +138,15 @@ class ControlChannel:
         return result[0]
 
 
+class MonitoringChannel(Channel):
+    def __init__(self, txrx, channel_ini, settings):
+        super(MonitoringChannel, self).__init__(txrx, channel_ini, settings)
+
+        self._reg_monitor_settings = UARTRegister(self._addr_settings_monitoring)
+        self._reg_monitor_settings.initialize_map(settings)
+        self.log.debug("Monitor Settings Map: %s", self._reg_monitor_settings.fields)
+
+
 class BoardSettings:
     def __init__(self, txrx, board):
         #self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
@@ -167,6 +183,8 @@ class BoardSettings:
 
 
 def read_carrier_monitors(txrx):
+    time.sleep(1.0)  # Hack because the I2C bus only polls once per second.
+
     uart_block = UARTRegister(const.READ_VALUES_CARRIER)
     cmd_msg = uart_block.get_read_cmd_msg()
     response = txrx.send_recv_message(cmd_msg)
