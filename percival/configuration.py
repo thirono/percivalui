@@ -154,6 +154,9 @@ class MonitoringChannelIniParameters(IniSectionParameters):
 
 
 class ChannelParameters(object):
+    """
+    Loads device channel settings and parameters from an INI file.
+    """
     def __init__(self, ini_file):
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._ini_filename = find_file(ini_file)
@@ -163,6 +166,10 @@ class ChannelParameters(object):
         self._monitoring_channels = None
 
     def load_ini(self):
+        """
+        Loads and parses the data from INI file. The data is stored internally in the object and can be retrieved
+        through the `self.control_channels` and `self.monitoring_channels` properties.
+        """
         self._control_channels = None
         self._monitoring_channels = None
         self.conf = SafeConfigParser(dict_type=OrderedDict)
@@ -192,6 +199,9 @@ class ChannelParameters(object):
 
     @property
     def control_channels(self):
+        """
+        List of `ControlChannelIniParameters`
+        """
         if self._control_channels:
             return self._control_channels
         self._control_channels = self._get_channels(ControlChannelIniParameters)
@@ -199,6 +209,9 @@ class ChannelParameters(object):
 
     @property
     def monitoring_channels(self):
+        """
+        List of `MonitoringChannelIniParameters`
+        """
         if self._monitoring_channels:
             return self._monitoring_channels
         self._monitoring_channels = self._get_channels(MonitoringChannelIniParameters)

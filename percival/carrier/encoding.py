@@ -1,8 +1,6 @@
-'''
-Created on 4 Dec 2014
-
-@author: Ulrik Pedersen
-'''
+"""
+Encode and decode Carrier Board Xport messages
+"""
 from __future__ import unicode_literals, absolute_import
 from builtins import bytes
 try:
@@ -26,12 +24,13 @@ END_OF_MESSAGE = bytes('\xFF\xFF\xAB\xBA\xBA\xC1', encoding=DATA_ENCODING)
 
 msg_packer = struct.Struct(SINGLE_MSG_FMT)
 
+
 def encode_message(addr, word):
-    """Encode a single address and dataword into a bytearray.
+    """Encode a single address and dataword into a bytearray of 6 bytes with address and dataword encoded
     
-        :param addr: UART address (16bit integer)
-        :param word: data word (32bit integer)
-        :returns: bytearray of 6 bytes with address and dataword encoded
+    :param addr: UART address (16bit integer)
+    :param word: data word (32bit integer)
+    :returns: bytearray
     """
     logger.debug("%s"%([addr, word]))
     encoded_msg = msg_packer.pack(addr, word)
@@ -43,13 +42,14 @@ def encode_message(addr, word):
     logger.debug("encode_message returning: %s"%[encoded_msg])
     return encoded_msg
 
+
 def encode_multi_message(start_addr, words):
-    """Encode multiple 32bit words as a multi-message.
-    
-        :param start_addr: The UART starting address (a 16bit integer word)
-        :param words:      A list of 32bit integer words to be encoded
-        :returns:          A list of encoded words, each of which consists of 6 bytes: 
-                           2 words of address and 4 words of data
+    """Encode multiple 32bit words as a multi-message and return list of encoded words,
+    each of which consists of 6 bytes: 2 words of address and 4 words of data
+
+    :param start_addr: The UART starting address (a 16bit integer word)
+    :param words:      A list of 32bit integer words to be encoded
+    :returns: list
     """ 
     logger.debug("%s"%([start_addr, words]))
     addresses = range(start_addr, start_addr + len(words))
@@ -60,14 +60,15 @@ def encode_multi_message(start_addr, words):
     logger.debug("encode_multi_message returning: %s"%encoded_msg)
     return encoded_msg
 
+
 def decode_message(msg):
     """Decode a byte array into a list of (address, dataword) tuples.
     
-        The address field is a 16bit integer and the dataword is a 32bit integer.
+    The address field is a 16bit integer and the dataword is a 32bit integer.
     
-        :param msg: The input message
-        :type  msg: Bytearray
-        :returns:   A list of (address, data) tuples
+    :param msg: The input message
+    :type  msg: bytearray
+    :returns:   list
     """
     logger.debug(msg)
     extra_bytes = len(msg)%NUM_BYTES_PER_MSG

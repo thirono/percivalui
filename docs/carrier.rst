@@ -18,6 +18,14 @@
     :special-members: __init__
 
 
+:mod:`percival.carrier.const` module
+----------------------------------------
+
+.. automodule:: percival.carrier.const
+    :members:
+    :special-members: __init__
+
+
 :mod:`percival.carrier.txrx` module
 -----------------------------------
 

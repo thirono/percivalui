@@ -1,10 +1,10 @@
-'''
-Created on 5 Dec 2014
+"""
+Definitions of the Carrier Board UART control registers
 
-@author: Ulrik Pedersen
-'''
+Update this whenever there are any firmware/documentation changes to register map definitions in the UART blocks.
+"""
+
 from __future__ import unicode_literals, absolute_import
-from future.utils import raise_with_traceback
 
 from future.utils import with_metaclass, raise_with_traceback
 from builtins import range
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class RegisterMap(object):
-    """Mixin to be used by classes that implement the IRegisterMap interface"""
+    """Mixin to be used by classes that implement the `IRegisterMap` interface"""
     def __getattr__(self, name):
         if name in self._mem_map.keys():
             return self._mem_map[name].value
@@ -66,6 +66,13 @@ class RegisterMap(object):
 
 
 class MapField(object):
+    """
+    Store the information required to parse a value out of a specific field in a register map
+
+     * Word index
+     * Number of bits
+     * Value bit offset within the word
+    """
     def __init__(self, name, word_index, num_bits, bit_offset):
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._word_index = word_index
@@ -98,6 +105,7 @@ class MapField(object):
     def value(self):
         self.log.debug("getting value = %s", str(self._value))
         return self._value
+
     @value.setter
     def value(self, value):
         self.log.debug("setting value = %s (was = %s)", str(value), str(self._value))
@@ -248,9 +256,9 @@ class ReadValueMap(RegisterMap):
 
 
 class IRegisterMap(with_metaclass(abc.ABCMeta, IABCMeta)):
-    '''
+    """
     Interface to a Device Setting bitmap.
-    '''
+    """
     __iproperties__ = ['num_words']
     __imethods__ = ['parse_map', 'parse_map_from_tuples', 'generate_map']
     _iface_requirements = __imethods__ + __iproperties__
@@ -332,10 +340,10 @@ CarrierUARTRegisters = {
 }
 """Look-up table of UART addresses and the corresponding details
 
-        The key is the UART write address and each item is a tuple of:
+        The key is the UART write address :obj:`percival.carrier.const.UARTBlock` and each item is a tuple of:
 
         * description
-        * UART read_addr
+        * UART read_addr :obj:`percival.carrier.const.UARTBlock`
         * Corresponding implementation of the :class:`percival.carrier.devices.IRegisterMap` interface
 """
 
@@ -351,7 +359,7 @@ class UARTRegister(object):
         
             :param uart_block: UART start address for a block of registers.
                 This is used as a look-up key to the functionality of that register in the CarrierUARTRegisters dictionary
-            :type  uart_block: :obj:`const.UARTBlocks`
+            :type  uart_block: :obj:`percival.carrier.const.UARTBlock`
             :param uart_device: UART start address for a specific device within the register block. If defined
                 this will be used to generate write commands in get_write_cmd_msg().
             :type uart_device: int

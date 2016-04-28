@@ -17,14 +17,14 @@ class DeviceFeatures(object):
     """
     def __init__(self, device_family_id, function, description="", commands=[]):
         """
-            :param device_family_id: The integer device ID as documented
-            :type  device_family_id: `int`
-            :param function:  The enumerated functionality of the device
-            :type  function:  `DeviceFunction` item
-            :param description: Human readable description of the device
-            :type  description: string
-            :param commands: Supported commands for this device
-            :type  commands: list of `DeviceCmd` items
+            :param device_family_id: The component family ID
+            :type  device_family_id: :obj:`percival.carrier.const.DeviceFamily`
+            :param function:         The enumerated functionality of the device
+            :type  function:         :obj:`percival.carrier.const.DeviceFunction`
+            :param description:      Human readable description of the device
+            :type  description:      str
+            :param commands:         Supported commands for this device
+            :type  commands:         `list` of :obj:`percival.carrier.const.DeviceCmd`
         """
         self._device_family_id = device_family_id
         self._function = function
@@ -47,9 +47,9 @@ class DeviceFeatures(object):
         """Check if a given command is supported for this device
         
             :param cmd: The command to check for
-            :type cmd:  `DeviceCmd`
-            :returns: True if the command is supported, False if not.
-            :rtype: boolean
+            :type cmd:  :obj:`percival.carrier.const.DeviceCmd`
+            :returns:   True if the command is supported, False if not.
+            :rtype:     boolean
         """
         return cmd in self._commands
         
