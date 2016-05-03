@@ -191,6 +191,17 @@ class ChannelParameters(object):
                 sections_matching.append(section)
         return sections_matching
 
+    def _get_channel_name_by_address(self, uart_address, channels):
+        for ch in channels:
+            if ch.UART_address == uart_address:
+                return ch.Channel_name
+
+    def monitoring_channel_name(self, uart_address):
+        return self._get_channel_name_by_address(uart_address, self.monitoring_channels)
+
+    def control_channel_name(self, uart_address):
+        return self._get_channel_name_by_address(uart_address, self.control_channels)
+
     def control_channels_by_name(self, name):
         return self._get_channels_by_name(self.control_channels, name)
 
