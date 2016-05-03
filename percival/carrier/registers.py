@@ -454,6 +454,8 @@ def generate_register_maps(registers):
 
     :param registers: List of (addr, data) register tuples
     :type registers: list
+    :returns: A list of :class:`RegisterMap` objects
+    :rtype: list
     """
     index = 0
     register_maps = []
