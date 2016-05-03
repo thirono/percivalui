@@ -182,14 +182,41 @@ class BoardSettings:
         self._monitoring_settings = self._readback_settings(self._reg_monitoring_settings)
 
 
-def read_carrier_monitors(txrx):
-    time.sleep(1.0)  # Hack because the I2C bus only polls once per second.
+class ReadMonitors(object):
+    def __init__(self, txrx, uart_block, ini_params):
+        """
 
-    uart_block = UARTRegister(const.READ_VALUES_CARRIER)
-    cmd_msg = uart_block.get_read_cmd_msg()
-    response = txrx.send_recv_message(cmd_msg)
-    read_maps = generate_register_maps(response)
-    return read_maps
+        :param txrx:
+        :param uart_block:
+        :type: :obj:`percival.carrier.const.UARTBlock`
+        """
+        self._txrx = txrx
+        self._uart_register_block = UARTRegister(uart_block)
+        self._cmd_msg = self._uart_register_block.get_read_cmd_msg()
+        self._channel_names = []
+        self._set_channel_names(ini_params)
+
+    def _set_channel_names(self, ini_params):
+        response = self._txrx.send_recv_message(self._cmd_msg)
+
+        self._channel_names = []
+        for addr, value in response:
+            self._channel_names.append(ini_params.monitoring_channel_name(addr))
+
+
+    def read_carrier_monitors(self):
+        """Read all carrier monitor channels with one READ VALUES shortcut command
+
+        Parse the resuling [(address, data), (address, data)...] array of tuples into a list of
+        :class:`percival.carrier.register.ReadValueMap` objects.
+
+        :returns: list of :class:`percival.carrier.register.ReadValueMap` objects.
+        :rtype: list
+        """
+        response = self._txrx.send_recv_message(self._cmd_msg)
+        read_maps = generate_register_maps(response)
+        result = dict(zip(self._channel_names, read_maps))
+        return result
 
 if __name__ == '__main__':
     with TxRxContext(board_ip_address) as trx:
@@ -212,16 +239,16 @@ if __name__ == '__main__':
 
         cc = ControlChannel(trx, vch0_ini, cc_settings)
 
+        readmon = ReadMonitors(trx, const.READ_VALUES_CARRIER, ini_params)
+
         new_value = 5000
         log.info("Writing DAC channel 2 value = %d", new_value)
         echo_result = cc.set_value(new_value, timeout=1.0)
         log.info("ECHO: %s", echo_result)
         if echo_result.read_value != new_value:
             log.warning("  Echo result does not match demanded value (%d != %d)", echo_result.read_value, new_value)
-        adcs = read_carrier_monitors(trx)
-        log.info("Read carrier monitoring channels: %s", adcs[:-3])
-        channels = [(dac.sample_number, dac.read_value) for dac in adcs]
-        log.info("  ADCs: %s", channels)
+        adcs = readmon.read_carrier_monitors()
+        log.info("Read carrier monitoring channels: %s", adcs)
 
         new_value = 10000
         log.info("Writing DAC channel 2 value = %d", new_value)
