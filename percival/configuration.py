@@ -90,6 +90,10 @@ class IniSectionParameters(object):
         s = "<%s: Parameters = %s>"%(self.__class__.__name__, param_str)
         return s
 
+    @property
+    def channel_index(self):
+        return self._channel_number
+
     def __repr__(self):
         return self.__str__()
 
@@ -100,6 +104,7 @@ class ControlChannelIniParameters(IniSectionParameters):
     def __init__(self, channel_number):
         object.__setattr__(self, '_parameters', {})  # This prevents infinite recursion when setting attributes
         self._channel_number = channel_number
+        self.ini_section = None
         self._parameters = {"UART_address": (0, int),
                             "Board_type": (0, int),
                             "Channel_name": (0, str),
@@ -128,6 +133,7 @@ class MonitoringChannelIniParameters(IniSectionParameters):
     def __init__(self, channel_number):
         object.__setattr__(self, '_parameters', {})  # This prevents infinite recursion when setting attributes
         self._channel_number = channel_number
+        self.ini_section = None
         self._parameters = {"UART_address": (0, int),
                             "Board_type": (0, int),
                             "Channel_name": (0, str),
@@ -196,6 +202,20 @@ class ChannelParameters(object):
             if ch.UART_address == uart_address:
                 return ch.Channel_name
 
+    def _get_channel_name_by_index(self, index, channels):
+        for ch in channels:
+            if ch.channel_index == index:
+                name = ch.Channel_name
+                if name == None or len(name) == 0:
+                    name = ch.ini_section
+                return name
+
+    def monitoring_channel_name_by_index(self, index):
+        return self._get_channel_name_by_index(index, self.monitoring_channels)
+
+    def control_channel_name_by_index(self, index):
+        return self._get_channel_name_by_index(index, self.control_channels)
+
     def monitoring_channel_name(self, uart_address):
         return self._get_channel_name_by_address(uart_address, self.monitoring_channels)
 
@@ -229,11 +249,20 @@ class ChannelParameters(object):
         return self._monitoring_channels
 
     def _get_channels(self, channel_class):
+        """
+        Loop through all channel sections matching a certain type `channel_class` and parse the parameters of each
+        section into new `channel_class` instance objects.
+
+        :param channel_class: an :class:`IniSectionParameters` derivative class
+        :return: a list of instances of the channel_class :obj:`IniSectionParameters` derivative.
+        :rtype list:
+        """
         channels = []
         sections = self._get_channel_matching(channel_class.section_regexp)
         for section in sections:
             channel_number = self._get_channel_number(section)
             channel = channel_class(channel_number)
+            channel.ini_section = section
             for param in channel.parameters():
                 parameter_type = channel.get_type(param)
                 if parameter_type == int:
