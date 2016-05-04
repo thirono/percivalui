@@ -6,6 +6,7 @@ Created on 19 May 2015
 from __future__ import print_function
 
 import os, time
+from collections import OrderedDict
 
 import logging
 from percival.log import log
@@ -191,17 +192,21 @@ class ReadMonitors(object):
         :type: :obj:`percival.carrier.const.UARTBlock`
         """
         self._txrx = txrx
+        self._uart_block = uart_block
         self._uart_register_block = UARTRegister(uart_block)
         self._cmd_msg = self._uart_register_block.get_read_cmd_msg()
-        self._channel_names = []
+        self._channel_data = OrderedDict()
         self._set_channel_names(ini_params)
+
 
     def _set_channel_names(self, ini_params):
         response = self._txrx.send_recv_message(self._cmd_msg)
-
         self._channel_names = []
         for addr, value in response:
-            self._channel_names.append(ini_params.monitoring_channel_name(addr))
+            index = addr - self._uart_block.start_address
+            #      addr is just a READ VALUES register address - not the channels base address.
+            name = ini_params.monitoring_channel_name_by_index(index)
+            self._channel_data.update({name: []})
 
 
     def read_carrier_monitors(self):
@@ -215,7 +220,9 @@ class ReadMonitors(object):
         """
         response = self._txrx.send_recv_message(self._cmd_msg)
         read_maps = generate_register_maps(response)
-        result = dict(zip(self._channel_names, read_maps))
+        result = dict(zip(self._channel_data.keys(), read_maps))
+        for name, value in result.items():
+            self._channel_data[name].append(value)
         return result
 
 if __name__ == '__main__':
@@ -241,33 +248,14 @@ if __name__ == '__main__':
 
         readmon = ReadMonitors(trx, const.READ_VALUES_CARRIER, ini_params)
 
-        new_value = 5000
-        log.info("Writing DAC channel 2 value = %d", new_value)
-        echo_result = cc.set_value(new_value, timeout=1.0)
-        log.info("ECHO: %s", echo_result)
-        if echo_result.read_value != new_value:
-            log.warning("  Echo result does not match demanded value (%d != %d)", echo_result.read_value, new_value)
-        adcs = readmon.read_carrier_monitors()
-        log.info("Read carrier monitoring channels: %s", adcs)
+        for new_value in [5000, 10000, 30000, 0]:
+            log.info("Writing DAC channel 2 value = %d", new_value)
+            echo_result = cc.set_value(new_value, timeout=1.0)
+            log.info("ECHO: %s", echo_result)
+            if echo_result.read_value != new_value:
+                log.warning("  Echo result does not match demanded value (%d != %d)", echo_result.read_value, new_value)
+            adcs = readmon.read_carrier_monitors()
+            log.info("Read carrier monitoring channels: %s", adcs.keys())
 
-        new_value = 10000
-        log.info("Writing DAC channel 2 value = %d", new_value)
-        echo_result = cc.set_value(new_value, timeout=1.0)
-        log.info("ECHO: %s", echo_result)
-        if echo_result.read_value != new_value:
-            log.warning("  Echo result does not match demanded value (%d != %d)", echo_result.read_value, new_value)
-        adcs = read_carrier_monitors(trx)
-        log.info("Read carrier monitoring channels: %s", adcs[:-3])
-        channels = [(dac.sample_number, dac.read_value) for dac in adcs]
-        log.info("  ADCs: %s", channels)
+        log.info(readmon._channel_data)
 
-        new_value = 0
-        log.info("Writing DAC channel 2 value = %d", new_value)
-        echo_result = cc.set_value(new_value, timeout=1.0)
-        log.info("ECHO: %s", echo_result)
-        if echo_result.read_value != new_value:
-            log.warning("  Echo result does not match demanded value (%d != %d)", echo_result.read_value, new_value)
-        adcs = read_carrier_monitors(trx)
-        log.info("Read carrier monitoring channels: %s", adcs[:-3])
-        channels = [(dac.sample_number, dac.read_value) for dac in adcs]
-        log.info("  ADCs: %s", channels)
