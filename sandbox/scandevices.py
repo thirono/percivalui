@@ -6,6 +6,8 @@ Created on 19 May 2015
 from __future__ import print_function
 
 import os, time
+import numpy as np
+import h5py
 from collections import OrderedDict
 
 import logging
@@ -198,7 +200,6 @@ class ReadMonitors(object):
         self._channel_data = OrderedDict()
         self._set_channel_names(ini_params)
 
-
     def _set_channel_names(self, ini_params):
         response = self._txrx.send_recv_message(self._cmd_msg)
         self._channel_names = []
@@ -207,7 +208,6 @@ class ReadMonitors(object):
             #      addr is just a READ VALUES register address - not the channels base address.
             name = ini_params.monitoring_channel_name_by_index(index)
             self._channel_data.update({name: []})
-
 
     def read_carrier_monitors(self):
         """Read all carrier monitor channels with one READ VALUES shortcut command
@@ -224,6 +224,49 @@ class ReadMonitors(object):
         for name, value in result.items():
             self._channel_data[name].append(value)
         return result
+
+    @property
+    def channel_data(self):
+        """
+        Get all the recorded channel data as a (channel) dict of (field) dicts with numpy arrays:
+
+            { "channel one": { "field_one": numpy.array([...])},
+                               "field_two": numpy.array([...])},
+              "channel two": { "field_one": numpy.array([...])},
+                               "field_two": numpy.array([...])}}
+
+        :return: dictionary of dictionaries of numpy arrays
+        """
+        result = {}
+        for channel_name, channel_data in self._channel_data.items():
+            fields = channel_data[0].map_fields
+            channel = {}
+            for read_value_field in fields:
+                num_bits = channel_data[0][read_value_field].num_bits
+                dtype = np.uint8
+                if num_bits > 8: dtype = np.uint16
+                data = np.array([readvalue[read_value_field].value for readvalue in channel_data], dtype=dtype)
+                channel.update({read_value_field: data})
+            result.update({channel_name: channel})
+        return result
+
+
+
+def store_monitor_data(filename, data_dict):
+    """
+    Store recorded ReadMonitor data to a HDF5 file.
+
+    :param filename: target HDF5 filename
+    :param data_dict: dictionary of `ReadData` objects.
+    :return:
+    """
+    with h5py.File(filename, 'w') as f:
+        for channel_name, channel_fields in data_dict.items():
+            log.debug("=========== Creating group %s ============", channel_name)
+            group = f.create_group(channel_name)
+            for field_name, data_array in channel_fields.items():
+                log.debug("--- Writing %s data: %s ", field_name, data_array)
+                group.create_dataset(field_name, data=data_array)
 
 if __name__ == '__main__':
     with TxRxContext(board_ip_address) as trx:
@@ -256,6 +299,9 @@ if __name__ == '__main__':
                 log.warning("  Echo result does not match demanded value (%d != %d)", echo_result.read_value, new_value)
             adcs = readmon.read_carrier_monitors()
             log.info("Read carrier monitoring channels: %s", adcs.keys())
+            time.sleep(1.0)
 
         log.info(readmon._channel_data)
+    store_monitor_data('out.h5', readmon.channel_data)
+
 
