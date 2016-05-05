@@ -307,15 +307,20 @@ def main():
 
         readmon = ReadMonitors(trx, const.READ_VALUES_CARRIER, ini_params)
 
+        tstamp = time.time()
         for new_value in range(*args.range):
             log.info("Writing DAC channel 2 value = %d", new_value)
             echo_result = cc.set_value(new_value, timeout=1.0)
             log.info("ECHO: %s", echo_result)
             if echo_result.read_value != new_value:
                 log.warning("  Echo result does not match demanded value (%d != %d)", echo_result.read_value, new_value)
+            dt = time.time() - tstamp
+            tstamp = time.time()
+            if args.period - dt > 0.0:
+                time.sleep(args.period - dt)
+                log.debug("sleeping: %f sec", args.period - dt)
             adcs = readmon.read_carrier_monitors()
             log.info("Read carrier monitoring channels: %s", adcs.keys())
-            time.sleep(args.period)
 
         log.info(readmon.channel_data)
     if args.output:
