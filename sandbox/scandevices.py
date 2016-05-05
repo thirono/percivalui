@@ -6,6 +6,7 @@ Created on 19 May 2015
 from __future__ import print_function
 
 import os, time
+import argparse
 import numpy as np
 import h5py
 from collections import OrderedDict
@@ -268,7 +269,22 @@ def store_monitor_data(filename, data_dict):
                 log.debug("--- Writing %s data: %s ", field_name, data_array)
                 group.create_dataset(field_name, data=data_array)
 
-if __name__ == '__main__':
+def options():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-r", "--range", default="0,100,20", help="Scan range in integers formatted like this: start,stop,step")
+    parser.add_argument("-o", "--output", action='store', help="Output HDF5 filename")
+    parser.add_argument("-p", "--period", action='store', type=float, default=1.0, help="Control the loop period time")
+    parser.add_argument("channel", action='store', help="Control Channel to scan")
+    args = parser.parse_args()
+
+    args.range = [int(x) for x in args.range.split(',')]
+    return args
+
+
+def main():
+    args = options()
+    log.info (args)
+
     with TxRxContext(board_ip_address) as trx:
         ini_params = ChannelParameters("config/Channel parameters.ini")
         ini_params.load_ini()
@@ -281,17 +297,17 @@ if __name__ == '__main__':
         bs = BoardSettings(trx, const.BoardTypes.carrier)
         bs.readback_control_settings()
 
-        vch0_ini = ini_params.control_channels_by_name("VCH0")
-        log.info("vch0_ini: %s", vch0_ini)
+        ini = ini_params.control_channels_by_name(args.channel)
+        log.info("ini: %s", ini)
 
-        cc_settings = bs.device_control_settings(vch0_ini.UART_address)
+        cc_settings = bs.device_control_settings(ini.UART_address)
         log.info("Control Channel #2 settings from board: %s", hexify(cc_settings))
 
-        cc = ControlChannel(trx, vch0_ini, cc_settings)
+        cc = ControlChannel(trx, ini, cc_settings)
 
         readmon = ReadMonitors(trx, const.READ_VALUES_CARRIER, ini_params)
 
-        for new_value in [5000, 10000, 30000, 0]:
+        for new_value in range(*args.range):
             log.info("Writing DAC channel 2 value = %d", new_value)
             echo_result = cc.set_value(new_value, timeout=1.0)
             log.info("ECHO: %s", echo_result)
@@ -299,9 +315,12 @@ if __name__ == '__main__':
                 log.warning("  Echo result does not match demanded value (%d != %d)", echo_result.read_value, new_value)
             adcs = readmon.read_carrier_monitors()
             log.info("Read carrier monitoring channels: %s", adcs.keys())
-            time.sleep(1.0)
+            time.sleep(args.period)
 
-        log.info(readmon._channel_data)
-    store_monitor_data('out.h5', readmon.channel_data)
+        log.info(readmon.channel_data)
+    if args.output:
+        store_monitor_data(args.output, readmon.channel_data)
 
 
+if __name__ == '__main__':
+    main()
