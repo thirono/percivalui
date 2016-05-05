@@ -33,6 +33,9 @@ class RegisterMap(object):
         else:
             self._mem_map[name].value = value
 
+    def __getitem__(self, item):
+        return self._mem_map[item]
+
     def parse_map(self, words):
         if len(words) != self.num_words:
             raise_with_traceback(IndexError("Map must contain %d words. Got only %d" % (self.num_words, len(words))))
@@ -53,6 +56,10 @@ class RegisterMap(object):
             field.insert_field_value(words)
             logger.debug("generate_map: words: %s", str(words))
         return words
+
+    @property
+    def map_fields(self):
+        return self._mem_map.keys()
 
     def __str__(self):
         map_str = ""
