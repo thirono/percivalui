@@ -4,34 +4,38 @@
 
 [note: this is just for my own reference and may not be true anymore!{bg:cornsilk}],
 
+[<<IRegisterMap>>],
 [RegisterMap| +num_words; +parse_map(); +parse_map_from_tuples(); +generate_map(); +map_fields | -_mem_map],
 [MapField| +num_bits; +bit_offset; +name; +word_index; +mask; +value; \
 +extract_field_value(); +insert_field_value()],
 [TxMessage| +message; +expected_bytes; +expected_response],
 [TxRx| +fpga_addr; +timeout; +send_recv_message(); +clean(); \
 | -tx_msg(); -rx_msg(); -send_resv()],
+[<<Context>>;TxRxContext]++1-1[TxRx],
+
 [encoding| +encode_message(); +decode_message()],
 [UARTBlock| +entries; +words_per_entry; +start_address; +is_address_valid()],
 [UARTRegister| +get_read_cmd_msg(); +get_write_cmd_msg()],
 
 [TxRx]uses -.->[TxMessage],
 [TxRx]uses -.->[encoding],
-[<<Context>>;TxRxContext]<1-1>[TxRx],
 
-[RegisterMap]^-.-[HeaderInfoMap],
-[HeaderInfoMap]<1-3>[MapField],
-[RegisterMap]^-.-[ControlChannelMap],
-[ControlChannelMap]<1-12>[MapField],
-[RegisterMap]^-.-[MonitoringChannelMap],
-[MonitoringChannelMap]<1-13>[MapField],
-[RegisterMap]^-.-[CommandMap],
-[CommandMap]<1-7..8>[MapField],
-[RegisterMap]^-.-[EchoWordMap],
-[EchoWordMap]<1-2>[MapField],
-[RegisterMap]^-.-[ReadValueMap],
-[ReadValueMap]<1-8>[MapField],
+[<<IRegisterMap>>]^-.-[RegisterMap],
 
-[UARTRegister]<1-1>[RegisterMap],
-[UARTRegister]<1-[UARTBlock],
+[RegisterMap]^-[HeaderInfoMap],
+[HeaderInfoMap]++1-3[MapField],
+[RegisterMap]^-[ControlChannelMap],
+[ControlChannelMap]++1-12[MapField],
+[RegisterMap]^-[MonitoringChannelMap],
+[MonitoringChannelMap]++1-13[MapField],
+[RegisterMap]^-[CommandMap],
+[CommandMap]++1-7..8[MapField],
+[RegisterMap]^-[EchoWordMap],
+[EchoWordMap]++1-2[MapField],
+[RegisterMap]^-[ReadValueMap],
+[ReadValueMap]++1-8[MapField],
+
+[UARTRegister]1-1++[RegisterMap],
+[UARTRegister]++-1[UARTBlock],
 [UARTRegister]uses -.->[TxMessage],
 [UARTRegister]uses -.->[encoding],
