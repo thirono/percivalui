@@ -257,7 +257,7 @@ def store_monitor_data(args, data_dict):
     """
     Store recorded ReadMonitor data to a HDF5 file.
 
-    :param filename: target HDF5 filename
+    :param args: command line arguments supplied to the file.
     :param data_dict: dictionary of `ReadData` objects.
     :return:
     """
