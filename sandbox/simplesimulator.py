@@ -54,6 +54,7 @@ def main():
         block_read_bytes = 6
         expected_resp_len = 6
 
+        set_value = 0
         chunk = client_sock.recv(block_read_bytes)
         while len(chunk) > 0:
             chunk = bytes(chunk, encoding=DATA_ENCODING)
@@ -73,8 +74,15 @@ def main():
                         # We need to send FFFFABBABAC1 as an end of message
                         client_sock.send(END_OF_MESSAGE)
                     else:
-                        # Simply send back the registers
-                        client_sock.send(encode_message(a, registers[a]))
+                        if a == 0x0151:
+                            msg = encode_message(0x0139, set_value)
+                            client_sock.send(msg)
+                        else:
+                            # Simply send back the registers
+                            client_sock.send(encode_message(a, registers[a]))
+
+                if a == 0x0016:
+                    set_value = w
 
 
 
