@@ -253,7 +253,7 @@ class ReadMonitors(object):
 
 
 
-def store_monitor_data(filename, data_dict):
+def store_monitor_data(args, data_dict):
     """
     Store recorded ReadMonitor data to a HDF5 file.
 
@@ -261,7 +261,10 @@ def store_monitor_data(filename, data_dict):
     :param data_dict: dictionary of `ReadData` objects.
     :return:
     """
+    filename = args.output
     with h5py.File(filename, 'w') as f:
+        f.attrs["range"] = np.string_(args.range)
+        f.attrs["channel"] = np.string_(args.channel)
         for channel_name, channel_fields in data_dict.items():
             log.debug("=========== Creating group %s ============", channel_name)
             group = f.create_group(channel_name)
@@ -324,7 +327,7 @@ def main():
 
         log.info(readmon.channel_data)
     if args.output:
-        store_monitor_data(args.output, readmon.channel_data)
+        store_monitor_data(args, readmon.channel_data)
 
 
 if __name__ == '__main__':
