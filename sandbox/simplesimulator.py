@@ -35,12 +35,12 @@ class ShortcutRegister(object):
 
 def main():
     registers = np.zeros(0x0152, dtype=np.int32)
-    eoms = [0x0016, 0x00F8]
+    eoms = [0x0016, 0x001A, 0x0036, 0x00F8]
     shortcuts = {0x0141: ShortcutRegister(0x0013, 14*4),
                  0x014D: ShortcutRegister(0x00FD, 19*1)}
 
     server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_sock.settimeout(128.0)
+    server_sock.settimeout(10000.0)
     server_sock.bind(('', board_ip_port))
     server_sock.listen(5)
 
@@ -81,7 +81,7 @@ def main():
                             # Simply send back the registers
                             client_sock.send(encode_message(a, registers[a]))
 
-                if a == 0x0016:
+                if a == 0x0016 or a == 0x001A or a == 0x0036:
                     set_value = w
 
 
