@@ -264,8 +264,8 @@ def store_monitor_data(args, data_dict):
     """
     filename = args.output
     with h5py.File(filename, 'w') as f:
-        f.attrs["range"] = np.string_(args.range)
-        f.attrs["channel"] = np.string_(args.channel)
+        f.attrs["range"] = bytes(args.range)
+        f.attrs["channel"] = bytes(args.channel)
         for channel_name, channel_fields in data_dict.items():
             log.debug("=========== Creating group %s ============", channel_name)
             group = f.create_group(channel_name)
