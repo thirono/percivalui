@@ -187,7 +187,7 @@ class BoardSettings:
 
 
 class ReadMonitors(object):
-    def __init__(self, txrx, uart_block, ini_params):
+    def __init__(self, txrx, uart_block, ini_params, board_type):
         """
 
         :param txrx:
@@ -196,6 +196,7 @@ class ReadMonitors(object):
         """
         self._txrx = txrx
         self._uart_block = uart_block
+        self._board_type = board_type
         self._uart_register_block = UARTRegister(uart_block)
         self._cmd_msg = self._uart_register_block.get_read_cmd_msg()
         self._channel_data = OrderedDict()
@@ -207,7 +208,7 @@ class ReadMonitors(object):
         for addr, value in response:
             index = addr - self._uart_block.start_address
             #      addr is just a READ VALUES register address - not the channels base address.
-            name = ini_params.monitoring_channel_name_by_index(index)
+            name = ini_params.monitoring_channel_name_by_id_and_board_type(index, self._board_type)
             self._channel_data.update({name: []})
 
     def read_carrier_monitors(self):
@@ -308,7 +309,7 @@ def main():
 
         cc = ControlChannel(trx, ini, cc_settings)
 
-        readmon = ReadMonitors(trx, const.READ_VALUES_CARRIER, ini_params)
+        readmon = ReadMonitors(trx, const.READ_VALUES_CARRIER, ini_params, const.BoardTypes.carrier)
 
         tstamp = time.time()
         for new_value in range(*args.range):
@@ -318,12 +319,30 @@ def main():
             if echo_result.read_value != new_value:
                 log.warning("  Echo result does not match demanded value (%d != %d)", echo_result.read_value, new_value)
             dt = time.time() - tstamp
-            tstamp = time.time()
             if args.period - dt > 0.0:
                 time.sleep(args.period - dt)
                 log.debug("sleeping: %f sec", args.period - dt)
+            tstamp = time.time()
             adcs = readmon.read_carrier_monitors()
             log.info("Read carrier monitoring channels: %s", adcs.keys())
+
+        # check if we need to execute one more iteration
+        if new_value < args.range[1]:
+            new_value = args.range[1]
+            # Execute one last time to include the maximum value
+            log.info("Writing DAC channel 2 value = %d", new_value)
+            echo_result = cc.set_value(new_value, timeout=1.0)
+            log.info("ECHO: %s", echo_result)
+            if echo_result.read_value != new_value:
+                log.warning("  Echo result does not match demanded value (%d != %d)", echo_result.read_value, new_value)
+            dt = time.time() - tstamp
+            if args.period - dt > 0.0:
+                time.sleep(args.period - dt)
+                log.debug("sleeping: %f sec", args.period - dt)
+            tstamp = time.time()
+            adcs = readmon.read_carrier_monitors()
+            log.info("Read carrier monitoring channels: %s", adcs.keys())
+
 
         log.info(readmon.channel_data)
     if args.output:

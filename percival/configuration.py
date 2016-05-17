@@ -12,6 +12,7 @@ import os
 import re
 from collections import OrderedDict
 from configparser import SafeConfigParser
+from percival.carrier.const import BoardTypes
 
 
 logger = logging.getLogger(__name__)
@@ -210,8 +211,19 @@ class ChannelParameters(object):
                     name = ch.ini_section
                 return name
 
+    def _get_channel_name_by_id_and_board_type(self, id, board_type, channels):
+        for ch in channels:
+            if ch.Channel_ID == id and BoardTypes(ch.Board_type) == board_type:
+                name = ch.Channel_name
+                if name == None or len(name) == 0:
+                    name = ch.ini_section
+                return name
+
     def monitoring_channel_name_by_index(self, index):
         return self._get_channel_name_by_index(index, self.monitoring_channels)
+
+    def monitoring_channel_name_by_id_and_board_type(self, id, board_type):
+        return self._get_channel_name_by_id_and_board_type(id, board_type, self.monitoring_channels)
 
     def control_channel_name_by_index(self, index):
         return self._get_channel_name_by_index(index, self.control_channels)
