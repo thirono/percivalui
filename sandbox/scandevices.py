@@ -49,7 +49,9 @@ class Channel(object):
         if self._device_family_features.function != DeviceFunction.control:
             raise TypeError("Not a control device")
         self.channel_index = channel_ini._channel_number
+        self.log.debug("Channel index number: %d", self.channel_index)
         self.uart_device_address = channel_ini.UART_address
+        self.log.debug("Channel device address: %d", self.uart_device_address)
 
         self._reg_command = UARTRegister(const.COMMAND)
         self._reg_command.initialize_map([0,0,0])
@@ -98,12 +100,13 @@ class ControlChannel(Channel):
     def __init__(self, txrx, channel_ini, settings):
         super(ControlChannel, self).__init__(txrx, channel_ini, settings)
 
-        self._reg_control_settings = UARTRegister(self._addr_settings_control)
+        self._reg_control_settings = UARTRegister(self._addr_settings_control, self.uart_device_address)
         self._reg_control_settings.initialize_map(settings)
         self.log.debug("Control Settings Map: %s", self._reg_control_settings.fields)
 
-        # Send an initialize command to the device
-        self.cmd_initialize()
+        # Send an initialize command to the device if it is supported
+        if self._device_family_features.supports_cmd(DeviceCmd.initialize):
+            self.cmd_initialize()
 
     def cmd_control_set_value(self, value):
         self.log.debug("Device Control Settings write:")
@@ -307,6 +310,7 @@ def main():
         cc_settings = bs.device_control_settings(ini.UART_address)
         log.info("Control Channel #2 settings from board: %s", hexify(cc_settings))
 
+        log.debug("Creating control channel")
         cc = ControlChannel(trx, ini, cc_settings)
 
         readmon = ReadMonitors(trx, const.READ_VALUES_CARRIER, ini_params, const.BoardTypes.carrier)

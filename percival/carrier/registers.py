@@ -378,6 +378,7 @@ class UARTRegister(object):
         (self._name, self._readback_addr, DeviceClass) = CarrierUARTRegisters[uart_block]
         self._uart_block_address = uart_block
         self._uart_address = uart_block.start_address
+        self.log.debug("UARTRegister _uart_address: %02X", self._uart_address)
 
         self.fields = None  # A devices.RegisterMap object
         if DeviceClass:
@@ -385,6 +386,7 @@ class UARTRegister(object):
 
         if uart_device:
             self._uart_address = uart_device
+            self.log.debug("UARTRegister updated _uart_address: %02X", self._uart_address)
             if uart_device.bit_length() > self.UART_ADDR_WIDTH:
                 raise_with_traceback(ValueError("UART device address value 0x%H is greater than 16 bits" %
                                                 uart_device))
