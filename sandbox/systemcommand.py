@@ -30,12 +30,18 @@ def main():
     with TxRxContext(board_ip_address) as trx:
         reg_command = UARTRegister(const.COMMAND)
         reg_command.initialize_map([0,0,0])
+
+        log.debug("Sending command: %s", const.SystemCmd.no_operation)
+        reg_command.fields.system_cmd = const.SystemCmd.no_operation.value
+        cmd_msg = reg_command.get_write_cmd_msg(True)[2]
+        response = trx.send_recv_message(cmd_msg)
+        # Log the message response
+        log.debug("Response: %s", response)
+
         log.debug("Sending command: %s", const.SystemCmd[args.action])
         reg_command.fields.system_cmd = const.SystemCmd[args.action].value
         cmd_msg = reg_command.get_write_cmd_msg(True)[2]
-
         response = trx.send_recv_message(cmd_msg)
-
         # Log the message response
         log.debug("Response: %s", response)
 
