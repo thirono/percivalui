@@ -331,7 +331,7 @@ def main():
             log.info("Read carrier monitoring channels: %s", adcs.keys())
 
         # check if we need to execute one more iteration
-        if new_value < args.range[1]:
+        if (args.range[2] > 0 and new_value < args.range[1]) or (args.range[2] < 0 and new_value > args.range[1]):
             new_value = args.range[1]
             # Execute one last time to include the maximum value
             log.info("Writing DAC channel 2 value = %d", new_value)
