@@ -162,7 +162,8 @@ class ControlChannelMap(RegisterMap):
 
     def __init__(self):
         object.__setattr__(self, '_mem_map', {}) # This prevents infinite recursion when setting attributes
-        self._mem_map = {"board_type":                   MapField("board_type",                  0,  3, 24),
+        self._mem_map = {"channel_id":                   MapField("channel_id",                  0,  5, 27),
+                         "board_type":                   MapField("board_type",                  0,  3, 24),
                          "component_family_id":          MapField("component_family_id",         0,  4, 20),
                          "device_i2c_bus_select":        MapField("device_i2c_bus_select",       0,  2, 18),
                          "channel_device_id":            MapField("channel_device_id",           0,  5, 13),
@@ -191,7 +192,8 @@ class MonitoringChannelMap(RegisterMap):
 
     def __init__(self):
         object.__setattr__(self, '_mem_map', {}) # This prevents infinite recursion when setting attributes
-        self._mem_map = {"board_type":                   MapField("board_type",                  0,  3, 24),
+        self._mem_map = {"channel_id":                   MapField("channel_id",                  0,  5, 27),
+                         "board_type":                   MapField("board_type",                  0,  3, 24),
                          "component_family_id":          MapField("component_family_id",         0,  4, 20),
                          "device_i2c_bus_select":        MapField("device_i2c_bus_select",       0,  2, 18),
                          "channel_device_id":            MapField("channel_device_id",           0,  5, 13),
