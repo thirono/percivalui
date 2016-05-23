@@ -219,6 +219,11 @@ class ChannelParameters(object):
                     name = ch.ini_section
                 return name
 
+    def _get_channel_by_address(self, uart_address, channels):
+        for ch in channels:
+            if ch.UART_address == uart_address:
+                return ch
+
     def monitoring_channel_name_by_index(self, index):
         return self._get_channel_name_by_index(index, self.monitoring_channels)
 
@@ -233,6 +238,12 @@ class ChannelParameters(object):
 
     def control_channel_name(self, uart_address):
         return self._get_channel_name_by_address(uart_address, self.control_channels)
+
+    def control_channel_by_address(self, uart_address):
+        return self._get_channel_by_address(uart_address, self.control_channels)
+
+    def monitoring_channel_by_address(self, uart_address):
+        return self._get_channel_by_address(uart_address, self.monitoring_channels)
 
     def control_channels_by_name(self, name):
         return self._get_channels_by_name(self.control_channels, name)
