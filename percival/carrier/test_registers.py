@@ -103,7 +103,7 @@ class TestControlChannelMap(unittest.TestCase):
         self.dut.parse_map( [0xA1234567, 0x89ABCDEF, 0x11223344,             0x99AABBCC])
         words = self.dut.generate_map()
         #self.assertEqual([0x01234567, 0x89ABCDEF, 0x11223344, 0x00667788, 0x0000BBCC], words)
-        self.assertEqual( [0x01234567, 0x89ABCDEF, 0x11223344,             0x0000BBCC], words)
+        self.assertEqual( [0xA1234567, 0x89ABCDEF, 0x11223344,             0x0000BBCC], words)
 
     def testParseInvalidMap(self):
         """Empty map should raise index error and no values parsed"""

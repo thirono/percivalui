@@ -82,6 +82,13 @@ class TxMessage(object):
                                                                self.num_response_msg, bool(self._expect_eom))
         return s
 
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__)
+                and self.__dict__ == other.__dict__)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 class TxRx(object):
     """
     Transmit and receive data and commands to/from the Carrier Board through the XPort Ethernet
