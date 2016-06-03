@@ -120,6 +120,10 @@ class ControlChannel(Channel):
     def cmd_control_set_value(self, value):
         self.log.debug("Device Control Settings write:")
         self._reg_control_settings.fields.value = value
+        # Check if the control device is a potentiometer
+        if self.device_family == DeviceFamily.AD5242 or self.device_family == DeviceFamily.AD5263:
+            # This type of device requires power status set to on (1)
+            self._reg_control_settings.fields.power_status = 1
         self.log.debug(self._reg_control_settings.fields)
         cmd_msg = self._reg_control_settings.get_write_cmd_msg(eom=True)
         self.log.debug(cmd_msg)
