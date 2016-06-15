@@ -118,3 +118,58 @@ DeviceFamilyFeatures = {
                                            DeviceCmd.get_page_value]),
     }
 
+class MAX31730(object):
+    def __init__(self, channel):
+        self._channel = channel
+        self._temperature = 0.0
+        self._low_threshold = 0
+        self._extreme_low_threshold = 0
+        self._high_threshold = 0
+        self._extreme_high_threshold = 0
+        self._safety_exception = 0
+        self._i2c_comms_error = 0
+        self._offset = float(self._channel._channel_ini.Offset)
+        self._divider = float(self._channel._channel_ini.Divider)
+        self._unit = self._channel._channel_ini.Unit
+
+    def update(self, data=None):
+        if data != None:
+            self._updateStatus(data)
+        else:
+            data = self._channel.get_value()
+        self._updateValue(data)
+
+    def _updateValue(self, data):
+        """Internal update of status items
+
+            :param data: Data object containing all related values
+            :type data:  :obj:`percival.carrier.registers.ReadValueMap`
+        """
+        self._i2c_comms_error = data.i2c_communication_error
+        self._temperature = (float(data.read_value) - self._offset) / self._divider
+
+    def _updateStatus(self, data):
+        """Internal update of status items
+             :param data: Data object containing all related values
+             :type data:  :obj:`percival.carrier.registers.ReadValueMap`
+        """
+        self._low_threshold = data.below_low_threshold
+        self._extreme_low_threshold = data.below_extreme_low_threshold
+        self._high_threshold = data.above_high_threshold
+        self._extreme_high_threshold = data.above_extreme_high_threshold
+        self._safety_exception = data.safety_exception_detected
+
+    @property
+    def temperature(self):
+        return self._temperature
+
+
+    @property
+    def unit(self):
+        return self._unit
+
+
+DeviceFactory = {
+    DeviceFamily.MAX31730:   ("Temperature sensor",        MAX31730)
+}
+
