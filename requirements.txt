@@ -7,3 +7,4 @@ enum34>=1.0
 coverage
 sphinx
 mock<=1.0
+pyzmq>=14.0.0 --install-option='--zmq=bundled'
