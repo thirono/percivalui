@@ -118,6 +118,7 @@ DeviceFamilyFeatures = {
                                            DeviceCmd.get_page_value]),
     }
 
+
 class MAX31730(object):
     def __init__(self, channel):
         self._channel = channel
@@ -134,12 +135,12 @@ class MAX31730(object):
 
     def update(self, data=None):
         if data != None:
-            self._updateStatus(data)
+            self._update_status(data)
         else:
             data = self._channel.get_value()
-        self._updateValue(data)
+        self._update_value(data)
 
-    def _updateValue(self, data):
+    def _update_value(self, data):
         """Internal update of status items
 
             :param data: Data object containing all related values
@@ -148,7 +149,7 @@ class MAX31730(object):
         self._i2c_comms_error = data.i2c_communication_error
         self._temperature = (float(data.read_value) - self._offset) / self._divider
 
-    def _updateStatus(self, data):
+    def _update_status(self, data):
         """Internal update of status items
              :param data: Data object containing all related values
              :type data:  :obj:`percival.carrier.registers.ReadValueMap`
@@ -163,13 +164,89 @@ class MAX31730(object):
     def temperature(self):
         return self._temperature
 
+    @property
+    def unit(self):
+        return self._unit
+
+    @property
+    def json(self):
+        return {
+            "temperature":            self._temperature,
+            "low_threshold":          self._low_threshold,
+            "extreme_low_threshold":  self._extreme_low_threshold,
+            "high_threshold":         self._high_threshold,
+            "extreme_high_threshold": self._extreme_high_threshold,
+            "safety_exception":       self._safety_exception,
+            "i2c_comms_error":        self._i2c_comms_error,
+            "unit":                   self._unit
+        }
+
+
+class LTC2309:
+    def __init__(self, channel):
+        self._channel = channel
+        self._voltage = 0.0
+        self._low_threshold = 0
+        self._extreme_low_threshold = 0
+        self._high_threshold = 0
+        self._extreme_high_threshold = 0
+        self._safety_exception = 0
+        self._i2c_comms_error = 0
+        self._offset = float(self._channel._channel_ini.Offset)
+        self._divider = float(self._channel._channel_ini.Divider)
+        self._unit = self._channel._channel_ini.Unit
+
+    def update(self, data=None):
+        if data != None:
+            self._update_status(data)
+        else:
+            data = self._channel.get_value()
+        self._update_value(data)
+
+    def _update_value(self, data):
+        """Internal update of status items
+
+            :param data: Data object containing all related values
+            :type data:  :obj:`percival.carrier.registers.ReadValueMap`
+        """
+        self._i2c_comms_error = data.i2c_communication_error
+        self._voltage = (float(data.read_value) - self._offset) / self._divider
+
+    def _update_status(self, data):
+        """Internal update of status items
+             :param data: Data object containing all related values
+             :type data:  :obj:`percival.carrier.registers.ReadValueMap`
+        """
+        self._low_threshold = data.below_low_threshold
+        self._extreme_low_threshold = data.below_extreme_low_threshold
+        self._high_threshold = data.above_high_threshold
+        self._extreme_high_threshold = data.above_extreme_high_threshold
+        self._safety_exception = data.safety_exception_detected
+
+    @property
+    def voltage(self):
+        return self._voltage
 
     @property
     def unit(self):
         return self._unit
 
+    @property
+    def json(self):
+        return {
+            "voltage":                self._voltage,
+            "low_threshold":          self._low_threshold,
+            "extreme_low_threshold":  self._extreme_low_threshold,
+            "high_threshold":         self._high_threshold,
+            "extreme_high_threshold": self._extreme_high_threshold,
+            "safety_exception":       self._safety_exception,
+            "i2c_comms_error":        self._i2c_comms_error,
+            "unit":                   self._unit
+        }
+
 
 DeviceFactory = {
-    DeviceFamily.MAX31730:   ("Temperature sensor",        MAX31730)
+    DeviceFamily.MAX31730:   ("Temperature sensor",  MAX31730),
+    DeviceFamily.LTC2309:    ("ADC",                 LTC2309)
 }
 
