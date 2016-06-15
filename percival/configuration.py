@@ -336,3 +336,58 @@ class ChannelParameters(object):
         return self.__str__()
 
 
+class BoardParameters(object):
+    """
+    Loads device channel settings and parameters from an INI file.
+    """
+    def __init__(self, ini_file):
+        self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+        self.log.setLevel(logging.DEBUG)
+        self._ini_filename = find_file(ini_file)
+        self.conf = None
+
+
+    def load_ini(self):
+        """
+        Loads and parses the data from INI file. The data is stored internally in the object and can be retrieved
+        through the `self.control_channels` and `self.monitoring_channels` properties.
+        """
+        self._control_channels = None
+        self._monitoring_channels = None
+        self.conf = SafeConfigParser(dict_type=OrderedDict)
+        self.conf.read(self._ini_filename)
+
+        #for section in self.conf.sections():
+        #    log.info(str(section))
+
+    @property
+    def board_name(self):
+        if "Board_header" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Board_header section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.get("Board_header", "Board_name")
+
+    @property
+    def board_type(self):
+        if "Board_header" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Board_header section not found in ini file %s" % str(self._ini_filename)))
+        return BoardTypes(self.conf.getint("Board_header", "Board_type"))
+
+
+    @property
+    def board_revision(self):
+        if "Board_header" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Board_header section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.getint("Board_header", "Board_revision_number")
+
+    @property
+    def control_channels_count(self):
+        if "Entry_counts" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Entry_counts section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.getint("Entry_counts", "Control_channels_count")
+
+
+    @property
+    def monitoring_channels_count(self):
+        if "Entry_counts" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Entry_counts section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.getint("Entry_counts", "Monitoring_channels_count")
