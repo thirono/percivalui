@@ -17,45 +17,12 @@ from percival.log import log
 from percival.carrier import const
 from percival.carrier.registers import UARTRegister, BoardRegisters, generate_register_maps
 from percival.carrier.devices import DeviceFunction, DeviceCmd, DeviceFamilyFeatures, DeviceFamily
+from percival.carrier.settings import BoardSettings
 from percival.carrier.txrx import TxRx, TxRxContext, hexify
 from percival.carrier.channels import ControlChannel
 from percival.configuration import ChannelParameters, ControlChannelIniParameters
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
-
-class BoardSettings:
-    def __init__(self, txrx, board):
-        #self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
-        self.log = logging.getLogger(self.__class__.__name__)
-        self.txrx = txrx
-        self._header_block, self._control_block, self._monitoring_block = BoardRegisters[board]
-
-        self._reg_control_settings = UARTRegister(self._control_block)
-        self._control_settings = None
-
-        self._reg_monitoring_settings = UARTRegister(self._monitoring_block)
-        self._monitoring_settings = None
-
-    def _readback_settings(self, uart_register):
-        cmd_msg = uart_register.get_read_cmd_msg()
-        response = self.txrx.send_recv_message(cmd_msg)
-        return response
-
-    def readback_control_settings(self):
-        self.log.debug("Readback Board Control Settings")
-        self._control_settings = self._readback_settings(self._reg_control_settings)
-
-    def device_control_settings(self, device_addr):
-        offset = device_addr - self._control_block.start_address
-        if not self._control_block.is_address_valid(device_addr):
-            raise IndexError("Device address 0x%X not in range of block 0x%X" %
-                             (device_addr, self._control_block.start_address))
-        result = self._control_settings[offset:offset+self._reg_control_settings.words_per_item]
-        return result
-
-    def readback_monitoring_settings(self):
-        self.log.debug("Readback Board Monitoring Settings")
-        self._monitoring_settings = self._readback_settings(self._reg_monitoring_settings)
 
 
 class ReadMonitors(object):
@@ -125,7 +92,6 @@ class ReadMonitors(object):
         return result
 
 
-
 def store_monitor_data(args, data_dict):
     """
     Store recorded ReadMonitor data to a HDF5 file.
@@ -144,6 +110,7 @@ def store_monitor_data(args, data_dict):
             for field_name, data_array in channel_fields.items():
                 log.debug("--- Writing %s data: %s ", field_name, data_array)
                 group.create_dataset(field_name, data=data_array)
+
 
 def options():
     parser = argparse.ArgumentParser()
