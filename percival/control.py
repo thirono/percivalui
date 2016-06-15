@@ -10,7 +10,6 @@ import os, time
 import argparse
 
 import logging
-from percival.log import log
 
 import os
 from collections import OrderedDict
@@ -28,8 +27,10 @@ from percival.detector.ipc_channel import IpcChannel
 from percival.detector.ipc_message import IpcMessage
 from percival.detector.ipc_reactor import IpcReactor
 
+
 class PercivalParameters(object):
     def __init__(self):
+        self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._board_params = {
             const.BoardTypes.left: BoardParameters("config/Board LEFT.ini"),
             const.BoardTypes.bottom: BoardParameters("config/Board BOTTOM.ini"),
@@ -44,8 +45,7 @@ class PercivalParameters(object):
         self._board_params[const.BoardTypes.carrier].load_ini()
         self._board_params[const.BoardTypes.plugin].load_ini()
         self._channel_params.load_ini()
-        #log.info(self._channel_params.control_channels)
-
+        self._log.info(self._channel_params.control_channels)
 
     def board_name(self, type):
         return self._board_params[type].board_name
@@ -73,8 +73,10 @@ class PercivalParameters(object):
     def monitoring_channels(self):
         return self._channel_params.monitoring_channels
 
+
 class PercivalBoard(object):
     def __init__(self, txrx):
+        self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._txrx = txrx
         self._percival_params = PercivalParameters()
         self._board_settings = {}
@@ -100,7 +102,7 @@ class PercivalBoard(object):
             try:
                 resp = self._txrx.send_recv_message(cmd_msg)
             except:
-                log.warning("no response (message: %s", cmd_msg)
+                self._log.warning("no response (message: %s", cmd_msg)
 
     def load_channels(self):
         self._board_settings[const.BoardTypes.left].readback_monitoring_settings()
@@ -116,7 +118,7 @@ class PercivalBoard(object):
                 settings = self._board_settings[bt].device_monitoring_settings(monitor.UART_address)
                 mc = MonitoringChannel(self._txrx, monitor, settings)
                 if const.DeviceFamily(mc._channel_ini.Component_family_ID) == const.DeviceFamily.MAX31730:
-                    log.info("Adding %s %s to percival", (const.DeviceFamily(mc._channel_ini.Component_family_ID)).name, mc._channel_ini.Channel_name)
+                    self._log.info("Adding %s [%s] to monitor set", (const.DeviceFamily(mc._channel_ini.Component_family_ID)).name, mc._channel_ini.Channel_name)
                     description, device = DeviceFactory[const.DeviceFamily(mc._channel_ini.Component_family_ID)]
                     self._temperatures[mc._channel_ini.Channel_name] = device(mc)
 
@@ -134,13 +136,13 @@ class PercivalBoard(object):
             return self._temperatures[name].temperature
 
     def callback(self, msg):
-        log.debug("Called Back!!")
-        log.debug("%s", msg)
+        self._log.debug("Called Back!!")
+        self._log.debug("%s", msg)
 
     def timer(self):
-        log.debug("Timer called back")
-        log.debug(self._board_values[const.BoardTypes.carrier].read_values())
+        self._log.debug("Timer called back")
+        self._log.debug(self._board_values[const.BoardTypes.carrier].read_values())
 
     def update_status(self):
-        log.debug("Update status called")
+        self._log.debug("Update status called")
 

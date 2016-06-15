@@ -5,20 +5,14 @@ Created on 10 June 2016
 '''
 from __future__ import print_function
 
-import os, time
-
 import logging
-from percival.log import log
 
-from percival.carrier import const
-from percival.carrier.registers import UARTRegister, BoardRegisters, generate_register_maps
-from percival.carrier.devices import DeviceFunction, DeviceCmd, DeviceFamilyFeatures, DeviceFamily
-from percival.carrier.txrx import TxRx, TxRxContext, hexify
-from percival.configuration import ChannelParameters, ControlChannelIniParameters
+from percival.carrier.registers import UARTRegister, BoardRegisters
+
 
 class BoardSettings:
     def __init__(self, txrx, board):
-        self.log = logging.getLogger(self.__class__.__name__)
+        self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self.txrx = txrx
         self.board = board
         self._header_block, self._control_block, self._monitoring_block = BoardRegisters[board]

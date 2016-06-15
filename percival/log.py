@@ -30,6 +30,21 @@ percival_log_config = {
             'level': 'INFO',
             'propagate': False,
         },
+        'percival.carrier.channels': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'percival.carrier.channels.ControlChannel': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'percival.carrier.channels.MonitoringChannel': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
         'percival.carrier.devices': {
             'handlers': ['console'],
             'level': 'INFO',
@@ -42,7 +57,17 @@ percival_log_config = {
         },
         'percival.carrier.txrx': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'percival.carrier.txrx.TxRx': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'percival.control': {
+            'handlers': ['console'],
+            'level': 'ERROR',
             'propagate': False,
         },
         'percival.detector': {
@@ -50,12 +75,12 @@ percival_log_config = {
             'level': 'INFO',
             'propagate': False,
         },
-        'BoardSettings': {
+        'percival.detector.ipc_reactor.IpcReactor': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'propagate': False,
         },
-        'ControlChannel': {
+        'BoardSettings': {
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': False,
@@ -73,6 +98,9 @@ percival_log_config = {
 
 import logging
 import logging.config
-log = logging.getLogger("percival")
 logging.config.dictConfig(percival_log_config)
+log = logging.getLogger("percival")
 
+
+def logger(name):
+    return logging.getLogger(name)

@@ -2,7 +2,6 @@ import zmq
 import datetime
 
 import logging
-from percival.log import log
 
 from percival.detector.ipc_message import IpcMessage
 
@@ -12,6 +11,7 @@ class IpcReactorTimer:
     last_timer_id = 0
 
     def __init__(self, delay_ms, times, callback):
+        self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         IpcReactorTimer.last_timer_id += 1
         self._timer_id = IpcReactorTimer.last_timer_id
         self._delay_ms = delay_ms
@@ -51,6 +51,7 @@ class IpcReactorTimer:
 class IpcReactor:
 
     def __init__(self):
+        self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._terminate_reactor = False
         self._pollitems = {}
         self._callbacks = {}
@@ -110,8 +111,8 @@ class IpcReactor:
                         self._timers.pop(timer)
 
             except Exception, e:
-                log.debug("Exception raised")
-                log.debug(e)
+                self._log.debug("Exception raised")
+                self._log.debug(e)
                 break
 
         return rc
@@ -124,7 +125,7 @@ class IpcReactor:
 
         if self._pollsize > 0:
             for channel in self._channels:
-                log.debug(channel)
+                self._log.debug("Registering %s for polling", channel)
                 self._poller.register(channel, zmq.POLLIN)
 
         self._needs_rebuild = False
