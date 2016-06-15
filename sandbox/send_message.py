@@ -29,10 +29,12 @@ def options():
 
 def main():
     args = options()
-    log.info (args)
+    log.info(args)
 
-    msg = IpcMessage("MsgTypeCmd", "MsgValCmdStatus")
-    msg.set_param("param1", "value1")
+    log.debug("Message")
+    msg = IpcMessage(IpcMessage.MSG_TYPE_CMD, IpcMessage.MSG_VAL_CMD_CONFIGURE)
+#    msg.set_param("status_loop", "run")
+    msg.set_param("status_loop", "stop")
     channel = IpcChannel(IpcChannel.CHANNEL_TYPE_PAIR)
     channel.connect("tcp://127.0.0.1:8888")
     #time.sleep(1.0)
