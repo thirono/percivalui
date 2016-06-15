@@ -1,6 +1,7 @@
 import json
 import datetime
 
+
 class IpcMessageException(Exception):
 
     def __init__(self, msg, errno=None):
@@ -10,7 +11,21 @@ class IpcMessageException(Exception):
     def __str__(self):
         return str(self.msg)
 
+
 class IpcMessage(object):
+
+    MSG_TYPE_ILLEGAL = -1  # Illegal message
+    MSG_TYPE_CMD = 0  # Command
+    MSG_TYPE_ACK = 1  # Message acknowledgement
+    MSG_TYPE_NACK = 2  # Message no - acknowledgement
+    MSG_TYPE_NOTIFY = 3  # Message notification
+
+    MSG_VAL_ILLEGAL = -1  # Illegal value
+    MSG_VAL_CMD_RESET = 0  # Reset command message
+    MSG_VAL_CMD_STATUS = 1  # Status command message
+    MSG_VAL_NOTIFY_FRAME_READY = 2  # Frame ready notification message
+    MSG_VAL_NOTIFY_FRAME_RELEASE = 3  # Frame release notification message
+    MSG_VAL_CMD_CONFIGURE = 4  # Configure command message
 
     def __init__(self, msg_type=None, msg_val=None, from_str=None):
 
