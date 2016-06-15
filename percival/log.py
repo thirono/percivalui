@@ -72,7 +72,7 @@ percival_log_config = {
         },
         'percival.detector': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': 'ERROR',
             'propagate': False,
         },
         'percival.detector.ipc_reactor.IpcReactor': {

@@ -34,4 +34,4 @@ class BoardValues:
         response = self._txrx.send_recv_message(self._cmd_msg)
         read_maps = generate_register_maps(response)
         #result = dict(zip(self._channel_data.keys(), read_maps))
-        return read_maps
+        return response

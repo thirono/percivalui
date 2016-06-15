@@ -6,20 +6,14 @@ Created on 20 May 2016
 from __future__ import print_function
 from future.utils import raise_with_traceback
 
-import os, time
-import argparse
-
 import logging
 
-import os
-from collections import OrderedDict
-from configparser import SafeConfigParser
 from percival.carrier import const
 from percival.carrier.channels import MonitoringChannel
-from percival.carrier.devices import MAX31730, DeviceFactory
+from percival.carrier.devices import DeviceFactory
+from percival.carrier.registers import generate_register_maps, BoardValueRegisters
 from percival.carrier.settings import BoardSettings
 from percival.carrier.system import SystemCommand
-from percival.carrier.txrx import TxRx, TxRxContext, hexify
 from percival.carrier.values import BoardValues
 from percival.configuration import ChannelParameters, BoardParameters
 
@@ -65,8 +59,11 @@ class PercivalParameters(object):
     def monitoring_channel_by_address(self, uart_address):
         return self._channel_params.monitoring_channel_by_address(uart_address)
 
+    def monitoring_channel_name_by_index_and_board_type(self, index, type):
+        return self._channel_params.monitoring_channel_name_by_id_and_board_type(index, type)
+
     def monitoring_channel_by_name(self, channel_name):
-        logging.debug(self._channel_params)
+        self._log.debug(self._channel_params)
         return self._channel_params.monitoring_channels_by_name(channel_name)
 
     @property
@@ -78,10 +75,14 @@ class PercivalBoard(object):
     def __init__(self, txrx):
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._txrx = txrx
+        self._global_monitoring = False
+        self._ctrl_channel = None
+        self._status_channel = None
+        self._reactor = IpcReactor()
         self._percival_params = PercivalParameters()
         self._board_settings = {}
         self._board_values ={}
-        self._temperatures = {}
+        self._monitors = {}
         self._board_settings[const.BoardTypes.left] = BoardSettings(txrx, const.BoardTypes.left)
         self._board_settings[const.BoardTypes.bottom] = BoardSettings(txrx, const.BoardTypes.bottom)
         self._board_settings[const.BoardTypes.carrier] = BoardSettings(txrx, const.BoardTypes.carrier)
@@ -117,16 +118,32 @@ class PercivalBoard(object):
             if bt != const.BoardTypes.prototype:
                 settings = self._board_settings[bt].device_monitoring_settings(monitor.UART_address)
                 mc = MonitoringChannel(self._txrx, monitor, settings)
-                if const.DeviceFamily(mc._channel_ini.Component_family_ID) == const.DeviceFamily.MAX31730:
-                    self._log.info("Adding %s [%s] to monitor set", (const.DeviceFamily(mc._channel_ini.Component_family_ID)).name, mc._channel_ini.Channel_name)
-                    description, device = DeviceFactory[const.DeviceFamily(mc._channel_ini.Component_family_ID)]
-                    self._temperatures[mc._channel_ini.Channel_name] = device(mc)
+                self._log.info("Adding %s [%s] to monitor set", (const.DeviceFamily(mc._channel_ini.Component_family_ID)).name, mc._channel_ini.Channel_name)
+                description, device = DeviceFactory[const.DeviceFamily(mc._channel_ini.Component_family_ID)]
+                self._monitors[mc._channel_ini.Channel_name] = device(mc)
+
+    def setup_control_channel(self, endpoint):
+        self._ctrl_channel = IpcChannel(IpcChannel.CHANNEL_TYPE_PAIR)
+        self._ctrl_channel.bind(endpoint)
+        self._reactor.register_channel(self._ctrl_channel, self.configure)
+
+    def setup_status_channel(self, endpoint):
+        self._status_channel = IpcChannel(IpcChannel.CHANNEL_TYPE_PUB)
+        self._status_channel.bind(endpoint)
+
+    def start_reactor(self):
+        self._reactor.register_timer(1000, 0, self.update_status)
+        self._reactor.run()
 
     def set_global_monitoring(self, state=True):
-        if state == True:
+        if state:
             self._sys_cmd.send_command(const.SystemCmd.enable_global_monitoring)
+            self._sys_cmd.send_command(const.SystemCmd.enable_device_level_safety_controls)
+            self._global_monitoring = True
         else:
+            self._global_monitoring = False
             self._sys_cmd.send_command(const.SystemCmd.disable_global_monitoring)
+            self._sys_cmd.send_command(const.SystemCmd.disable_device_level_safety_controls)
 
     def update(self, name):
         self._temperatures[name].update()
@@ -135,14 +152,36 @@ class PercivalBoard(object):
         if self._temperatures.has_key(name):
             return self._temperatures[name].temperature
 
-    def callback(self, msg):
-        self._log.debug("Called Back!!")
-        self._log.debug("%s", msg)
+    def configure(self, msg):
+        self._log.critical("Received message on configuration channel: %s", msg)
+        if msg.get_param("status_loop") == "run":
+            self.set_global_monitoring(True)
+        if msg.get_param("status_loop") == "stop":
+            self.set_global_monitoring(False)
 
     def timer(self):
         self._log.debug("Timer called back")
         self._log.debug(self._board_values[const.BoardTypes.carrier].read_values())
 
     def update_status(self):
-        self._log.debug("Update status called")
+        self._log.info("Update status callback called")
+        if self._global_monitoring:
+            response = self._board_values[const.BoardTypes.carrier].read_values()
+            self._log.debug(response)
+            read_maps = generate_register_maps(response)
+            self._log.debug(read_maps)
+
+            readback_block = BoardValueRegisters[const.BoardTypes.carrier]
+            status_msg = IpcMessage(IpcMessage.MSG_TYPE_NOTIFY, IpcMessage.MSG_VAL_CMD_STATUS)
+            for addr, value in response:
+                offset = addr - readback_block.start_address
+                name = self._percival_params.monitoring_channel_name_by_index_and_board_type(offset, const.BoardTypes.carrier)
+                if self._monitors.has_key(name):
+                    self._monitors[name].update(read_maps[offset])
+                    status_msg.set_param(name, self._monitors[name].json)
+
+            self._log.debug("Publishing: %s", status_msg.encode())
+            self._status_channel.send(status_msg.encode())
+
+
 
