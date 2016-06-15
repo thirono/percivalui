@@ -39,8 +39,8 @@ class Channel(object):
         self.device_family = DeviceFamily(channel_ini.Component_family_ID)
         self._device_family_features = DeviceFamilyFeatures[self.device_family]
 
-        if self._device_family_features.function != DeviceFunction.control:
-            raise TypeError("Not a control device")
+#        if self._device_family_features.function != DeviceFunction.control:
+#            raise TypeError("Not a control device")
         self.channel_index = channel_ini._channel_number
         self.log.debug("Channel index number: %d", self.channel_index)
         self.uart_device_address = channel_ini.UART_address
@@ -73,6 +73,7 @@ class Channel(object):
     def command(self, cmd):
         self.log.debug("Device CommandMap: %s", cmd)
         cmd_msg = self.get_command_msg(cmd)
+        self.log.debug("Device CommandMsg: %s", cmd_msg)
         response = self._txrx.send_recv_message(cmd_msg)
         return response
 
@@ -145,13 +146,14 @@ class ControlChannel(Channel):
             if result[0].i2c_communication_error:
                 raise IOError("I2C communication error when writing to %s", self._channel_ini.Channel_name)
             if result[0].read_value == value:
+                self.log.debug("Read value same a set value %s (\"%s\")", value, self._channel_ini.Channel_name)
                 break
             if time.time() > (start_time + timeout):
                 raise RuntimeError("Timeout when reading back value from ECHO word")
 
             # skip the retry!
             # TODO: fix the retry feature - it doesn't work properly and always times out
-            break
+            #break
 
             time.sleep(0.1)
             log.debug("####### Retrying reading ECHO word. Got: %s", result)
@@ -164,5 +166,38 @@ class MonitoringChannel(Channel):
 
         self._reg_monitor_settings = UARTRegister(self._addr_settings_monitoring)
         self._reg_monitor_settings.initialize_map(settings)
-        self.log.debug("Monitor Settings Map: %s", self._reg_monitor_settings.fields)
+        log.debug("Monitor Settings Map: %s", self._reg_monitor_settings.fields)
+
+    def get_value(self, timeout=0.1):
+        log.debug("get_value (\"%s\")", self._channel_ini.Channel_name)
+        # We need to store the sample number from the last write
+        echo = self.read_echo_word()
+        result = generate_register_maps(echo)
+        sample_number = result[0].sample_number
+        log.debug("Initial sample_number %s", sample_number)
+        self.cmd_no_operation()
+        self.cmd_set_and_get_value()
+        start_time = time.time()
+        while True:
+            echo = self.read_echo_word()
+            # Although this is a readout of the echo word, for monitors it provides
+            # status as though it was a read value
+            result = generate_register_maps(echo)
+            if result[0].i2c_communication_error:
+                raise IOError("I2C communication error when writing to %s", self._channel_ini.Channel_name)
+            if result[0].sample_number != sample_number:
+                log.debug("Sample number has changed %s", result[0].sample_number)
+                break
+            if time.time() > (start_time + timeout):
+                raise RuntimeError("Timeout when reading back value from ECHO word")
+
+            # skip the retry!
+            # TODO: fix the retry feature - it doesn't work properly and always times out
+            #break
+
+            time.sleep(0.1)
+            log.debug("####### Retrying reading ECHO word. Got: %s", result)
+
+        log.debug("got value=%s (\"%s\")", result[0], self._channel_ini.Channel_name)
+        return result[0]
 
