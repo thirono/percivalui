@@ -245,6 +245,7 @@ class EchoWordMap(RegisterMap):
         object.__setattr__(self, '_mem_map', {}) # This prevents infinite recursion when setting attributes
         self._mem_map = {"read_value":                   MapField("read_value",                   0,  16,  0),
                          "i2c_communication_error":      MapField("i2c_communication_error",      0,   1, 16),
+                         "sample_number":                MapField("sample_number",                0,   8, 24),
                          }
 
 
@@ -329,6 +330,13 @@ BoardRegisters = {
     const.BoardTypes.bottom:  (const.HEADER_SETTINGS_BOTTOM,  const.CONTROL_SETTINGS_BOTTOM,  const.MONITORING_SETTINGS_BOTTOM),
     const.BoardTypes.carrier: (const.HEADER_SETTINGS_CARRIER, const.CONTROL_SETTINGS_CARRIER, const.MONITORING_SETTINGS_CARRIER),
     const.BoardTypes.plugin:  (const.HEADER_SETTINGS_PLUGIN,  const.CONTROL_SETTINGS_PLUGIN,  const.MONITORING_SETTINGS_PLUGIN),
+}
+
+BoardValueRegisters = {
+    const.BoardTypes.left: const.READ_VALUES_PERIPHERY_LEFT,
+    const.BoardTypes.bottom: const.READ_VALUES_PERIPHERY_BOTTOM,
+    const.BoardTypes.carrier: const.READ_VALUES_CARRIER,
+    const.BoardTypes.plugin: const.READ_VALUES_PLUGIN
 }
 
 # Each entry is a tuple of:     (description,                 read_addr, entries, words, RegisterMap subclass)
