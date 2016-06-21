@@ -49,7 +49,7 @@ def find_file(filename, env=None):
     search_paths = os.getenv(env_config_dir, "")
     if search_paths:
         for path in search_paths.split(":"):
-            fn = os.path.abspath( os.path.join([path, filename]) )
+            fn = os.path.abspath(str(os.path.join(path, filename)))
             if os.path.isfile(fn):
                 return fn
 
