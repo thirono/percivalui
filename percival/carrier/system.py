@@ -21,23 +21,23 @@ class SystemCommand(object):
         self._reg_command = UARTRegister(const.COMMAND)
         self._reg_command.initialize_map([0,0,0])
 
-    def get_command_msg(self, cmd):
+    def _get_command_msg(self, cmd):
         if type(cmd) != const.SystemCmd:
             raise TypeError("Command %s is not a SystemCommand"%cmd)
         self._reg_command.fields.system_cmd = cmd.value
         cmd_msg = self._reg_command.get_write_cmd_msg(eom=True)[2]
         return cmd_msg
 
-    def command(self, cmd):
-        cmd_msg = self.get_command_msg(cmd)
+    def _command(self, cmd):
+        cmd_msg = self._get_command_msg(cmd)
         response = self._txrx.send_recv_message(cmd_msg)
         return response
 
     def cmd_no_operation(self):
-        result = self.command(const.SystemCmd.no_operation)
+        result = self._command(const.SystemCmd.no_operation)
         return result
 
     def send_command(self, cmd):
         self.cmd_no_operation()
-        self.command(cmd)
+        self._command(cmd)
 

@@ -12,6 +12,7 @@ from percival.log import log
 
 from percival.carrier.registers import UARTRegister, BoardValueRegisters, generate_register_maps
 
+
 class BoardValues:
     def __init__(self, txrx, board):
         self.log = logging.getLogger(self.__class__.__name__)
@@ -20,7 +21,6 @@ class BoardValues:
         self._value_block = BoardValueRegisters[board]
         self._reg_monitoring_values = UARTRegister(self._value_block)
         self._cmd_msg = self._reg_monitoring_values.get_read_cmd_msg()
-
 
     def read_values(self):
         """Read all carrier monitor channels with one READ VALUES shortcut command
@@ -32,6 +32,4 @@ class BoardValues:
         :rtype: list
         """
         response = self._txrx.send_recv_message(self._cmd_msg)
-        read_maps = generate_register_maps(response)
-        #result = dict(zip(self._channel_data.keys(), read_maps))
         return response

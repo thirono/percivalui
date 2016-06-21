@@ -182,6 +182,7 @@ class MonitoringChannel(Channel):
             # Although this is a readout of the echo word, for monitors it provides
             # status as though it was a read value
             result = generate_register_maps(echo)
+            self._log.debug("New sample_number %s", result[0].sample_number)
             if result[0].i2c_communication_error:
                 raise IOError("I2C communication error when writing to %s", self._channel_ini.Channel_name)
             if result[0].sample_number != sample_number:
