@@ -119,9 +119,65 @@ DeviceFamilyFeatures = {
     }
 
 
-class MAX31730(object):
-    def __init__(self, channel):
+class AD5242(object):
+    def __init__(self, name, channel):
+        self._name = name
         self._channel = channel
+        self._device = DeviceFamily.AD5242
+
+    def set_value(self, value, timeout=0.1):
+        self._channel.set_value(value, timeout)
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def device(self):
+        return self._device.name
+
+
+class AD5263(object):
+    def __init__(self, name, channel):
+        self._name = name
+        self._channel = channel
+        self._device = DeviceFamily.AD5263
+
+    def set_value(self, value, timeout=0.1):
+        self._channel.set_value(value, timeout)
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def device(self):
+        return self._device.name
+
+
+class AD5669(object):
+    def __init__(self, name, channel):
+        self._name = name
+        self._channel = channel
+        self._device = DeviceFamily.AD5669
+
+    def set_value(self, value, timeout=0.1):
+        self._channel.set_value(value, timeout)
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def device(self):
+        return self._device.name
+
+
+class MAX31730(object):
+    def __init__(self, name, channel):
+        self._name = name
+        self._channel = channel
+        self._device = DeviceFamily.MAX31730
         self._temperature = 0.0
         self._low_threshold = 0
         self._extreme_low_threshold = 0
@@ -131,6 +187,7 @@ class MAX31730(object):
         self._i2c_comms_error = 0
         self._offset = float(self._channel._channel_ini.Offset)
         self._divider = float(self._channel._channel_ini.Divider)
+        self._multiplier = float(self._channel._channel_ini.Multiplier)
         self._unit = self._channel._channel_ini.Unit
 
     def update(self, data=None):
@@ -147,7 +204,7 @@ class MAX31730(object):
             :type data:  :obj:`percival.carrier.registers.ReadValueMap`
         """
         self._i2c_comms_error = data.i2c_communication_error
-        self._temperature = (float(data.read_value) - self._offset) / self._divider
+        self._temperature = (float(data.read_value) - self._offset) / self._divider * self._multiplier
 
     def _update_status(self, data):
         """Internal update of status items
@@ -169,8 +226,17 @@ class MAX31730(object):
         return self._unit
 
     @property
-    def json(self):
+    def name(self):
+        return self._name
+
+    @property
+    def device(self):
+        return self._device.name
+
+    @property
+    def status(self):
         return {
+            "device":                 "MAX31730",
             "temperature":            self._temperature,
             "low_threshold":          self._low_threshold,
             "extreme_low_threshold":  self._extreme_low_threshold,
@@ -183,8 +249,10 @@ class MAX31730(object):
 
 
 class LTC2309:
-    def __init__(self, channel):
+    def __init__(self, name, channel):
+        self._name = name
         self._channel = channel
+        self._device = DeviceFamily.LTC2309
         self._voltage = 0.0
         self._low_threshold = 0
         self._extreme_low_threshold = 0
@@ -194,6 +262,7 @@ class LTC2309:
         self._i2c_comms_error = 0
         self._offset = float(self._channel._channel_ini.Offset)
         self._divider = float(self._channel._channel_ini.Divider)
+        self._multiplier = float(self._channel._channel_ini.Multiplier)
         self._unit = self._channel._channel_ini.Unit
 
     def update(self, data=None):
@@ -210,7 +279,7 @@ class LTC2309:
             :type data:  :obj:`percival.carrier.registers.ReadValueMap`
         """
         self._i2c_comms_error = data.i2c_communication_error
-        self._voltage = (float(data.read_value) - self._offset) / self._divider
+        self._voltage = (float(data.read_value) - self._offset) / self._divider * self._multiplier
 
     def _update_status(self, data):
         """Internal update of status items
@@ -232,8 +301,17 @@ class LTC2309:
         return self._unit
 
     @property
-    def json(self):
+    def name(self):
+        return self._name
+
+    @property
+    def device(self):
+        return self._device.name
+
+    @property
+    def status(self):
         return {
+            "device":                 "LTC2309",
             "voltage":                self._voltage,
             "low_threshold":          self._low_threshold,
             "extreme_low_threshold":  self._extreme_low_threshold,
@@ -246,7 +324,10 @@ class LTC2309:
 
 
 DeviceFactory = {
-    DeviceFamily.MAX31730:   ("Temperature sensor",  MAX31730),
-    DeviceFamily.LTC2309:    ("ADC",                 LTC2309)
+    DeviceFamily.AD5242:     ("Digital potentiometer", AD5242),
+    DeviceFamily.AD5263:     ("Digital potentiometer", AD5263),
+    DeviceFamily.AD5669:     ("DAC",                   AD5669),
+    DeviceFamily.MAX31730:   ("Temperature sensor",    MAX31730),
+    DeviceFamily.LTC2309:    ("ADC",                   LTC2309)
 }
 
