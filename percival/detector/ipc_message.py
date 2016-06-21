@@ -70,6 +70,16 @@ class IpcMessage(object):
 
         return self.attrs['timestamp']
 
+    def has_param(self, param_name, default_value=None):
+        return_val = True
+        try:
+            param_value = self.attrs['params'][param_name]
+
+        except KeyError, e:
+            return_val = False
+
+        return return_val
+
     def get_param(self, param_name, default_value=None):
 
         try:
@@ -112,7 +122,7 @@ class IpcMessage(object):
 
     def __str__(self):
 
-        return json.dumps(self.attrs)
+        return json.dumps(self.attrs, sort_keys=True, indent=4, separators=(',', ': '))
 
     def _get_attr(self, attr_name, default_value=None):
 
