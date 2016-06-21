@@ -143,6 +143,13 @@ class MapField(object):
         s = "<%s=%s>"%(self._name, str(self._value))
         return s
 
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__)
+            and self.__dict__ == other.__dict__)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 
 class HeaderInfoMap(RegisterMap):
     """Represent the Header Info register bank"""
@@ -341,22 +348,24 @@ BoardValueRegisters = {
 
 # Each entry is a tuple of:     (description,                 read_addr, entries, words, RegisterMap subclass)
 CarrierUARTRegisters = {
-    const.HEADER_SETTINGS_LEFT:        ("Header settings left",        const.READBACK_HEADER_SETTINGS_LEFT,         HeaderInfoMap),
-    const.CONTROL_SETTINGS_LEFT:       ("Control settings left",       const.READBACK_CONTROL_SETTINGS_LEFT,        ControlChannelMap),
-    const.MONITORING_SETTINGS_LEFT:    ("Monitoring settings left",    const.READBACK_MONITORING_SETTINGS_LEFT,     MonitoringChannelMap),
-    const.HEADER_SETTINGS_BOTTOM:      ("Header settings bottom",      const.READBACK_HEADER_SETTINGS_BOTTOM,       HeaderInfoMap),
-    const.CONTROL_SETTINGS_BOTTOM:     ("Control settings bottom",     const.READBACK_CONTROL_SETTINGS_BOTTOM,      ControlChannelMap),
-    const.MONITORING_SETTINGS_BOTTOM:  ("Monitoring settings bottom",  const.READBACK_MONITORING_SETTINGS_BOTTOM,   MonitoringChannelMap),
-    const.HEADER_SETTINGS_CARRIER:     ("Header settings carrier",     const.READBACK_HEADER_SETTINGS_BOTTOM,       HeaderInfoMap),
-    const.CONTROL_SETTINGS_CARRIER:    ("Control settings carrier",    const.READBACK_CONTROL_SETTINGS_CARRIER,     ControlChannelMap),
-    const.MONITORING_SETTINGS_CARRIER: ("Monitoring settings carrier", const.READBACK_MONITORING_SETTINGS_CARRIER,  MonitoringChannelMap),
-    const.HEADER_SETTINGS_PLUGIN:      ("Header settings plugin",      const.READBACK_HEADER_SETTINGS_PLUGIN,       HeaderInfoMap),
-    const.CONTROL_SETTINGS_PLUGIN:     ("Control settings plugin",     const.READBACK_CONTROL_SETTINGS_PLUGIN,      ControlChannelMap),
-    const.MONITORING_SETTINGS_PLUGIN:  ("Monitoring settings plugin",  const.READBACK_MONITORING_SETTINGS_PLUGIN,   MonitoringChannelMap),
-    const.READ_VALUES_CARRIER:         ("Read monitor values carrier", const.READBACK_READ_VALUES_CARRIER,          ReadValueMap),
-
-    const.COMMAND:                     ("CommandMap",                  None,                                        CommandMap),
-    const.READ_ECHO_WORD:              ("Read Echo Word",              const.READBACK_READ_ECHO_WORD,               EchoWordMap),
+    const.HEADER_SETTINGS_LEFT:         ("Header settings left",        const.READBACK_HEADER_SETTINGS_LEFT,         HeaderInfoMap),
+    const.CONTROL_SETTINGS_LEFT:        ("Control settings left",       const.READBACK_CONTROL_SETTINGS_LEFT,        ControlChannelMap),
+    const.MONITORING_SETTINGS_LEFT:     ("Monitoring settings left",    const.READBACK_MONITORING_SETTINGS_LEFT,     MonitoringChannelMap),
+    const.READ_VALUES_PERIPHERY_LEFT:   ("Read monitor values left",    const.READBACK_READ_VALUES_PERIPHERY_LEFT,   ReadValueMap),
+    const.HEADER_SETTINGS_BOTTOM:       ("Header settings bottom",      const.READBACK_HEADER_SETTINGS_BOTTOM,       HeaderInfoMap),
+    const.CONTROL_SETTINGS_BOTTOM:      ("Control settings bottom",     const.READBACK_CONTROL_SETTINGS_BOTTOM,      ControlChannelMap),
+    const.MONITORING_SETTINGS_BOTTOM:   ("Monitoring settings bottom",  const.READBACK_MONITORING_SETTINGS_BOTTOM,   MonitoringChannelMap),
+    const.READ_VALUES_PERIPHERY_BOTTOM: ("Read monitor values bottom",  const.READBACK_READ_VALUES_PERIPHERY_BOTTOM, ReadValueMap),
+    const.HEADER_SETTINGS_CARRIER:      ("Header settings carrier",     const.READBACK_HEADER_SETTINGS_BOTTOM,       HeaderInfoMap),
+    const.CONTROL_SETTINGS_CARRIER:     ("Control settings carrier",    const.READBACK_CONTROL_SETTINGS_CARRIER,     ControlChannelMap),
+    const.MONITORING_SETTINGS_CARRIER:  ("Monitoring settings carrier", const.READBACK_MONITORING_SETTINGS_CARRIER,  MonitoringChannelMap),
+    const.READ_VALUES_CARRIER:          ("Read monitor values carrier", const.READBACK_READ_VALUES_CARRIER,          ReadValueMap),
+    const.HEADER_SETTINGS_PLUGIN:       ("Header settings plugin",      const.READBACK_HEADER_SETTINGS_PLUGIN,       HeaderInfoMap),
+    const.CONTROL_SETTINGS_PLUGIN:      ("Control settings plugin",     const.READBACK_CONTROL_SETTINGS_PLUGIN,      ControlChannelMap),
+    const.MONITORING_SETTINGS_PLUGIN:   ("Monitoring settings plugin",  const.READBACK_MONITORING_SETTINGS_PLUGIN,   MonitoringChannelMap),
+    const.READ_VALUES_PLUGIN:           ("Read monitor values plugin",  const.READBACK_READ_VALUES_PLUGIN,           ReadValueMap),
+    const.COMMAND:                      ("CommandMap",                  None,                                        CommandMap),
+    const.READ_ECHO_WORD:               ("Read Echo Word",              const.READBACK_READ_ECHO_WORD,               EchoWordMap),
 }
 """Look-up table of UART addresses and the corresponding details
 
