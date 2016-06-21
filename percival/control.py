@@ -9,7 +9,7 @@ from future.utils import raise_with_traceback
 import logging
 
 from percival.carrier import const
-from percival.carrier.channels import MonitoringChannel
+from percival.carrier.channels import ControlChannel, MonitoringChannel
 from percival.carrier.devices import DeviceFactory
 from percival.carrier.registers import generate_register_maps, BoardValueRegisters
 from percival.carrier.settings import BoardSettings
@@ -70,6 +70,10 @@ class PercivalParameters(object):
     def monitoring_channels(self):
         return self._channel_params.monitoring_channels
 
+    @property
+    def control_channels(self):
+        return self._channel_params.control_channels
+
 
 class PercivalBoard(object):
     def __init__(self, txrx):
@@ -83,6 +87,7 @@ class PercivalBoard(object):
         self._board_settings = {}
         self._board_values ={}
         self._monitors = {}
+        self._controls = {}
         self._board_settings[const.BoardTypes.left] = BoardSettings(txrx, const.BoardTypes.left)
         self._board_settings[const.BoardTypes.bottom] = BoardSettings(txrx, const.BoardTypes.bottom)
         self._board_settings[const.BoardTypes.carrier] = BoardSettings(txrx, const.BoardTypes.carrier)
@@ -106,6 +111,7 @@ class PercivalBoard(object):
                 self._log.warning("no response (message: %s", cmd_msg)
 
     def load_channels(self):
+        # Readback the monitoring settings
         self._board_settings[const.BoardTypes.left].readback_monitoring_settings()
         self._board_settings[const.BoardTypes.bottom].readback_monitoring_settings()
         self._board_settings[const.BoardTypes.carrier].readback_monitoring_settings()
@@ -118,9 +124,26 @@ class PercivalBoard(object):
             if bt != const.BoardTypes.prototype:
                 settings = self._board_settings[bt].device_monitoring_settings(monitor.UART_address)
                 mc = MonitoringChannel(self._txrx, monitor, settings)
-                self._log.info("Adding %s [%s] to monitor set", (const.DeviceFamily(mc._channel_ini.Component_family_ID)).name, mc._channel_ini.Channel_name)
+                self._log.critical("Adding %s [%s] to monitor set", (const.DeviceFamily(mc._channel_ini.Component_family_ID)).name, mc._channel_ini.Channel_name)
                 description, device = DeviceFactory[const.DeviceFamily(mc._channel_ini.Component_family_ID)]
-                self._monitors[mc._channel_ini.Channel_name] = device(mc)
+                self._monitors[mc._channel_ini.Channel_name] = device(mc._channel_ini.Channel_name, mc)
+
+        # Readback the control settings
+        self._board_settings[const.BoardTypes.left].readback_control_settings()
+        self._board_settings[const.BoardTypes.bottom].readback_control_settings()
+        self._board_settings[const.BoardTypes.carrier].readback_control_settings()
+        self._board_settings[const.BoardTypes.plugin].readback_control_settings()
+        # Get the list of control names
+        controls = self._percival_params.control_channels
+        for control in controls:
+            # Check for the board type
+            bt = const.BoardTypes(control.Board_type)
+            if bt != const.BoardTypes.prototype:
+                settings = self._board_settings[bt].device_control_settings(control.UART_address)
+                cc = ControlChannel(self._txrx, control, settings)
+                self._log.critical("Adding %s [%s] to control set", (const.DeviceFamily(cc._channel_ini.Component_family_ID)).name, cc._channel_ini.Channel_name)
+                description, device = DeviceFactory[const.DeviceFamily(cc._channel_ini.Component_family_ID)]
+                self._controls[cc._channel_ini.Channel_name] = device(cc._channel_ini.Channel_name, cc)
 
     def setup_control_channel(self, endpoint):
         self._ctrl_channel = IpcChannel(IpcChannel.CHANNEL_TYPE_PAIR)
@@ -154,10 +177,36 @@ class PercivalBoard(object):
 
     def configure(self, msg):
         self._log.critical("Received message on configuration channel: %s", msg)
-        if msg.get_param("status_loop") == "run":
-            self.set_global_monitoring(True)
-        if msg.get_param("status_loop") == "stop":
-            self.set_global_monitoring(False)
+        if msg.get_msg_type() == IpcMessage.MSG_TYPE_CMD and msg.get_msg_val() == IpcMessage.MSG_VAL_CMD_CONFIGURE:
+            if msg.has_param("status_loop"):
+                if msg.get_param("status_loop") == "run":
+                    self.set_global_monitoring(True)
+                if msg.get_param("status_loop") == "stop":
+                    self.set_global_monitoring(False)
+
+            if msg.has_param("list"):
+                # What are we listing
+                list = msg.get_param("list")
+                self._log.critical("Requested list of %s", list)
+                if list == "controls":
+                    reply = {}
+                    for control in self._controls:
+                        reply[control] = self._controls[control].device
+                    # Reply with the list of control devices
+                    reply_msg = IpcMessage(IpcMessage.MSG_TYPE_ACK, IpcMessage.MSG_VAL_CMD_CONFIGURE)
+                    reply_msg.set_param("controls", reply)
+                    self._log.critical("Reply with list of controls: %s", reply_msg.encode())
+                    self._ctrl_channel.send(reply_msg.encode())
+
+                if list == "monitors":
+                    reply = {}
+                    for monitor in self._monitors:
+                        reply[monitor] = self._monitors[monitor].device
+                    # Reply with the list of monitor devices
+                    reply_msg = IpcMessage(IpcMessage.MSG_TYPE_ACK, IpcMessage.MSG_VAL_CMD_CONFIGURE)
+                    reply_msg.set_param("monitors", reply)
+                    self._log.critical("Reply with list of monitors: %s", reply_msg.encode())
+                    self._ctrl_channel.send(reply_msg.encode())
 
     def timer(self):
         self._log.debug("Timer called back")
@@ -178,7 +227,7 @@ class PercivalBoard(object):
                 name = self._percival_params.monitoring_channel_name_by_index_and_board_type(offset, const.BoardTypes.carrier)
                 if self._monitors.has_key(name):
                     self._monitors[name].update(read_maps[offset])
-                    status_msg.set_param(name, self._monitors[name].json)
+                    status_msg.set_param(name, self._monitors[name].status)
 
             self._log.debug("Publishing: %s", status_msg.encode())
             self._status_channel.send(status_msg.encode())
