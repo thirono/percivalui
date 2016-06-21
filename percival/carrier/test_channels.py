@@ -88,6 +88,17 @@ class TestChannels(unittest.TestCase):
         self.assertEqual(calls[4], call(
             TxMessage(bytes("\x01\x51\x00\x00\x00\x00", encoding="latin-1"), expect_eom=False)))
 
+    def TestAD5242ControlChannel(self):
+        self.txrx.send_recv_message = MagicMock(return_value=[(0x0139, 0x00000019)])
+        self.channel_ini.Component_family_ID = const.DeviceFamily.AD5242
+        self.channel_ini._channel_number = 5
+        self.channel_ini.UART_address = 19
+        self.channel_ini.Board_type = const.BoardTypes.carrier
+        ctrlChannel = ControlChannel(self.txrx, self.channel_ini, self.settings)
+        ctrlChannel.cmd_control_set_value(10)
+        # Verify the txrx mock had send_rcv_message called
+        self.txrx.send_recv_message.assert_called_with(
+            TxMessage(bytes("\x00\x16\x00\x01\x00\x0A", encoding="latin-1"), expect_eom=True))
 
     def TestMonitoringChannel(self):
         self.txrx.send_recv_message = MagicMock(return_value=[(0x0139, 0x01000023)])
@@ -111,4 +122,15 @@ class TestChannels(unittest.TestCase):
             TxMessage(bytes("\x00\xF8\x50\x80\x00\x12", encoding="latin-1"), expect_eom=True)))
         self.assertEqual(calls[3], call(
             TxMessage(bytes("\x01\x51\x00\x00\x00\x00", encoding="latin-1"), expect_eom=False)))
+
+        # Setup the mock with different sample numbers
+        self.txrx.send_recv_message = MagicMock() #return_value=[(0x0139, 0x01000023), (0x0139, 0x02000023)])
+        self.txrx.send_recv_message.side_effect = [[(0x0139, 0x01000012)],
+                                                   [(0x0139, 0xABBABAC1)],
+                                                   [(0x0139, 0xABBABAC1)],
+                                                   [(0x0139, 0x02000013)]]
+        mntrChannel = MonitoringChannel(self.txrx, self.channel_ini, self.settings)
+        self.txrx.send_recv_message.reset_mock()
+        value = mntrChannel.get_value()
+        self.assertEquals(value.read_value, 19)
 
