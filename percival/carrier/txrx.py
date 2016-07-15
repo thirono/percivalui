@@ -154,7 +154,7 @@ class TxRx(object):
             if expected_bytes:
                 block_read_bytes = expected_bytes-len(msg)
             chunk = self.sock.recv(block_read_bytes)
-            chunk = bytes(str(chunk), encoding = DATA_ENCODING)
+            chunk = bytes(chunk, encoding = DATA_ENCODING)
             if len(chunk) == 0:
                 raise RuntimeError("socket connection broken (expected a multiple of 6 bytes)")
             msg = msg + chunk
