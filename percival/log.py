@@ -30,6 +30,16 @@ percival_log_config = {
             'level': 'INFO',
             'propagate': False,
         },
+        'percival.carrier.buffer': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'percival.carrier.buffer.BufferCommand': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
         'percival.carrier.channels': {
             'handlers': ['console'],
             'level': 'ERROR',

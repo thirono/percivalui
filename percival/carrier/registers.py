@@ -235,8 +235,10 @@ class CommandMap(RegisterMap):
                          #"eeprom_target":                MapField("eeprom_target",                0,  3, 25),
                          "device_index":                 MapField("device_index",                 0, 16,  0),
 
-                         "sensor_cmd":                   MapField("sensor_cmd",                   1, 16, 16),
-                         "sensor_cmd_data":              MapField("sensor_cmd_data",              1, 16,  0),
+                         "buffer_cmd_destination":       MapField("buffer_cmd_destination",       1,  4, 28),
+                         "buffer_cmd":                   MapField("buffer_cmd",                   1,  4, 24),
+                         "buffer_cmd_words":             MapField("buffer_cmd_words",             1,  8, 16),
+                         "buffer_cmd_address":           MapField("buffer_cmd_address",           1, 16,  0),
 
                          "system_cmd":                   MapField("system_cmd",                   2, 16, 16),
                          "system_cmd_data":              MapField("system_cmd_data",              2, 16,  0),
