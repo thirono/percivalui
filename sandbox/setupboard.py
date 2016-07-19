@@ -6,10 +6,8 @@ Created on 20 May 2016
 from __future__ import print_function
 from future.utils import raise_with_traceback
 
-import os, time
 import argparse
 
-import logging
 from percival.log import log
 
 import os
@@ -18,7 +16,7 @@ from percival.carrier.encoding import (encode_message, decode_message)
 from percival.carrier import const
 from percival.carrier.settings import BoardSettings
 from percival.carrier.txrx import TxRxContext
-from percival.control import PercivalBoard, PercivalParameters
+from percival.control import PercivalParameters
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
 
@@ -35,12 +33,6 @@ def main():
     log.info (args)
 
     with TxRxContext(board_ip_address) as trx:
-
-        if args.write == "True":
-            percival = PercivalBoard(trx)
-            percival.initialise_board()
-
-        ## Now read back and check we are matching
         percival_params = PercivalParameters()
         percival_params.load_ini()
 
@@ -53,19 +45,26 @@ def main():
         bs = BoardSettings(trx, const.BoardTypes.plugin)
         cmd_msg += bs.initialise_board(percival_params)
 
+        # We've been asked to download the settings to the board
+        if args.write.upper() == "TRUE":
+            for msg in cmd_msg:
+                try:
+                    trx.send_recv_message(msg)
+                except:
+                    log.warning("no response (message: %s", cmd_msg)
+
+        ## Now read back and check we are matching
         scanrange = range(0x013A, 0x0145 + 1, 1)
         expected_bytes = None
         for addr in scanrange:
             msg = encode_message(addr, 0x00000000)
 
-            #log.debug("Qurying address: %X ...", addr)
             try:
                 resp = trx.send_recv(msg, expected_bytes)
             except:
                 log.warning("no response (addr: %X", addr)
                 continue
             data = decode_message(resp)
-            #log.info("Got from addr: 0x%04X bytes: %d  words: %d", addr, len(resp), len(data))
             for (a, w) in data:
                 test_data = decode_message(cmd_msg[a].message)
                 ta, tw = test_data[0]
