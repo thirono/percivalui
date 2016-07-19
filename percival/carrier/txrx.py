@@ -7,7 +7,8 @@ from builtins import bytes
 import logging
 import binascii
 import socket
-from contextlib import contextmanager 
+from contextlib import contextmanager
+from multiprocessing import Lock
 
 from percival.carrier.encoding import DATA_ENCODING, NUM_BYTES_PER_MSG, END_OF_MESSAGE
 from percival.carrier.encoding import (encode_message, encode_multi_message, decode_message)
@@ -107,7 +108,7 @@ class TxRx(object):
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         
         self._fpga_addr = (fpga_addr, port)
-        
+        self._mutex = Lock()
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.settimeout(timeout)
         self.log.debug("connecting to FPGA: %s", str(self._fpga_addr))
@@ -167,9 +168,10 @@ class TxRx(object):
         :type  msg: bytearray
         :returns:   Response from UART
         :rtype:     bytearray
-        """ 
-        self.tx_msg(msg)
-        resp = self.rx_msg(expected_bytes)
+        """
+        with self._mutex:
+            self.tx_msg(msg)
+            resp = self.rx_msg(expected_bytes)
         return resp
     
     def send_recv_message(self, message):
@@ -183,9 +185,10 @@ class TxRx(object):
         self.log.debug("Sending:   %s"%message)
         if not isinstance(message, TxMessage):
             raise TypeError("message must be of type TxMessage, not %s"%str(type(message)))
-        
-        self.tx_msg(message.message)
-        resp = self.rx_msg(message.expected_bytes)
+
+        with self._mutex:
+            self.tx_msg(message.message)
+            resp = self.rx_msg(message.expected_bytes)
         result = decode_message(resp)
 
         self.log.debug(" response: %s"%hexify(result))

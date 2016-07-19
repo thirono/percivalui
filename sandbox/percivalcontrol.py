@@ -9,12 +9,7 @@ from future.utils import raise_with_traceback
 import argparse
 
 from percival.log import log
-
-import os
-from percival.carrier.txrx import TxRxContext
 from percival.control import PercivalBoard
-
-board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
 
 
 def options():
@@ -28,24 +23,15 @@ def main():
     args = options()
     log.info (args)
 
-    with TxRxContext(board_ip_address) as trx:
+    percival = PercivalBoard()
+    if args.write == "True":
+        percival.initialise_board()
 
-        percival = PercivalBoard(trx)
-        if args.write == "True":
-            percival.initialise_board()
+    # Load channels
+    percival.load_channels()
 
-        # Load channels
-        percival.load_channels()
-
-        # Turn on global monitoring
-        percival.set_global_monitoring(True)
-
-        # Setup the status publishing channel
-        percival.setup_status_channel("tcp://127.0.0.1:8889")
-
-        # Startup the control channel and IpcReactor
-        percival.setup_control_channel("tcp://127.0.0.1:8888")
-        percival.start_reactor()
+    # Startup the IpcReactor
+    percival.start_reactor()
 
 
 if __name__ == '__main__':

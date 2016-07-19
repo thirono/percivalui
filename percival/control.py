@@ -14,8 +14,9 @@ from percival.carrier.devices import DeviceFactory
 from percival.carrier.registers import generate_register_maps, BoardValueRegisters
 from percival.carrier.settings import BoardSettings
 from percival.carrier.system import SystemCommand
+from percival.carrier.txrx import TxRx
 from percival.carrier.values import BoardValues
-from percival.configuration import ChannelParameters, BoardParameters
+from percival.configuration import ChannelParameters, BoardParameters, ControlParameters
 
 from percival.detector.ipc_channel import IpcChannel
 from percival.detector.ipc_message import IpcMessage
@@ -25,6 +26,7 @@ from percival.detector.ipc_reactor import IpcReactor
 class PercivalParameters(object):
     def __init__(self):
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+        self._control_params = ControlParameters("config/percival.ini")
         self._board_params = {
             const.BoardTypes.left: BoardParameters("config/Board LEFT.ini"),
             const.BoardTypes.bottom: BoardParameters("config/Board BOTTOM.ini"),
@@ -34,12 +36,25 @@ class PercivalParameters(object):
         self._channel_params = ChannelParameters("config/Channel parameters.ini")
 
     def load_ini(self):
+        self._control_params.load_ini()
         self._board_params[const.BoardTypes.left].load_ini()
         self._board_params[const.BoardTypes.bottom].load_ini()
         self._board_params[const.BoardTypes.carrier].load_ini()
         self._board_params[const.BoardTypes.plugin].load_ini()
         self._channel_params.load_ini()
         self._log.info(self._channel_params.control_channels)
+
+    @property
+    def carrier_ip(self):
+        return self._control_params.carrier_ip
+
+    @property
+    def status_endpoint(self):
+        return self._control_params.status_endpoint
+
+    @property
+    def control_endpoint(self):
+        return self._control_params.control_endpoint
 
     def board_name(self, type):
         return self._board_params[type].board_name
@@ -76,9 +91,9 @@ class PercivalParameters(object):
 
 
 class PercivalBoard(object):
-    def __init__(self, txrx):
+    def __init__(self):
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
-        self._txrx = txrx
+        self._txrx = None
         self._global_monitoring = False
         self._ctrl_channel = None
         self._status_channel = None
@@ -88,16 +103,24 @@ class PercivalBoard(object):
         self._board_values ={}
         self._monitors = {}
         self._controls = {}
-        self._board_settings[const.BoardTypes.left] = BoardSettings(txrx, const.BoardTypes.left)
-        self._board_settings[const.BoardTypes.bottom] = BoardSettings(txrx, const.BoardTypes.bottom)
-        self._board_settings[const.BoardTypes.carrier] = BoardSettings(txrx, const.BoardTypes.carrier)
-        self._board_settings[const.BoardTypes.plugin] = BoardSettings(txrx, const.BoardTypes.plugin)
-        self._board_values[const.BoardTypes.carrier] = BoardValues(txrx, const.BoardTypes.carrier)
-        self._sys_cmd = SystemCommand(txrx)
+        self._sys_cmd = None
         self.load_ini()
+        self.setup_control()
 
     def load_ini(self):
         self._percival_params.load_ini()
+
+    def setup_control(self):
+        self._log.critical("Carrier IP set as: %s", self._percival_params.carrier_ip)
+        self._txrx = TxRx(self._percival_params.carrier_ip)
+        self._board_settings[const.BoardTypes.left] = BoardSettings(self._txrx, const.BoardTypes.left)
+        self._board_settings[const.BoardTypes.bottom] = BoardSettings(self._txrx, const.BoardTypes.bottom)
+        self._board_settings[const.BoardTypes.carrier] = BoardSettings(self._txrx, const.BoardTypes.carrier)
+        self._board_settings[const.BoardTypes.plugin] = BoardSettings(self._txrx, const.BoardTypes.plugin)
+        self._board_values[const.BoardTypes.carrier] = BoardValues(self._txrx, const.BoardTypes.carrier)
+        self._sys_cmd = SystemCommand(self._txrx)
+        self.setup_status_channel(self._percival_params.status_endpoint)
+        self.setup_control_channel(self._percival_params.control_endpoint)
 
     def initialise_board(self):
         cmd_msgs = self._board_settings[const.BoardTypes.left].initialise_board(self._percival_params)
@@ -155,7 +178,7 @@ class PercivalBoard(object):
         self._status_channel.bind(endpoint)
 
     def start_reactor(self):
-        self._reactor.register_timer(1000, 0, self.update_status)
+        self._reactor.register_timer(100, 0, self.update_status)
         self._reactor.run()
 
     def set_global_monitoring(self, state=True):
@@ -206,6 +229,38 @@ class PercivalBoard(object):
                     reply_msg = IpcMessage(IpcMessage.MSG_TYPE_ACK, IpcMessage.MSG_VAL_CMD_CONFIGURE)
                     reply_msg.set_param("monitors", reply)
                     self._log.critical("Reply with list of monitors: %s", reply_msg.encode())
+                    self._ctrl_channel.send(reply_msg.encode())
+
+                if list == "device":
+                    reply = {
+                        const.BoardTypes.carrier.name: {
+                            "name":           self._percival_params.board_name(const.BoardTypes.carrier),
+                            "type":           self._percival_params.board_type(const.BoardTypes.carrier).name,
+                            "controls_count": self._percival_params.control_channels_count(const.BoardTypes.carrier),
+                            "monitors_count": self._percival_params.monitoring_channels_count(const.BoardTypes.carrier)
+                        },
+                        const.BoardTypes.left.name: {
+                            "name": self._percival_params.board_name(const.BoardTypes.left),
+                            "type": self._percival_params.board_type(const.BoardTypes.left).name,
+                            "controls_count": self._percival_params.control_channels_count(const.BoardTypes.left),
+                            "monitors_count": self._percival_params.monitoring_channels_count(const.BoardTypes.left)
+                        },
+                        const.BoardTypes.bottom.name: {
+                            "name": self._percival_params.board_name(const.BoardTypes.bottom),
+                            "type": self._percival_params.board_type(const.BoardTypes.bottom).name,
+                            "controls_count": self._percival_params.control_channels_count(const.BoardTypes.bottom),
+                            "monitors_count": self._percival_params.monitoring_channels_count(const.BoardTypes.bottom)
+                        },
+                        const.BoardTypes.plugin.name: {
+                            "name": self._percival_params.board_name(const.BoardTypes.plugin),
+                            "type": self._percival_params.board_type(const.BoardTypes.plugin).name,
+                            "controls_count": self._percival_params.control_channels_count(const.BoardTypes.plugin),
+                            "monitors_count": self._percival_params.monitoring_channels_count(const.BoardTypes.plugin)
+                        },
+                    }
+                    reply_msg = IpcMessage(IpcMessage.MSG_TYPE_ACK, IpcMessage.MSG_VAL_CMD_CONFIGURE)
+                    reply_msg.set_param("boards", reply)
+                    self._log.critical("Reply with list of device parameters: %s", reply_msg.encode())
                     self._ctrl_channel.send(reply_msg.encode())
 
     def timer(self):

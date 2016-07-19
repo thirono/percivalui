@@ -391,3 +391,41 @@ class BoardParameters(object):
         if "Entry_counts" not in self.conf.sections():
             raise_with_traceback(RuntimeError("Entry_counts section not found in ini file %s" % str(self._ini_filename)))
         return self.conf.getint("Entry_counts", "Monitoring_channels_count")
+
+
+class ControlParameters(object):
+    """
+    Loads control parameter from an INI file.
+    """
+    def __init__(self, ini_file):
+        self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+        self.log.setLevel(logging.DEBUG)
+        self._ini_filename = find_file(ini_file)
+        self.conf = None
+
+    def load_ini(self):
+        """
+        Loads and parses the data from INI file. The data is stored internally in the object and can be retrieved
+        through the property methods
+        """
+        self.conf = SafeConfigParser(dict_type=OrderedDict)
+        self.conf.read(self._ini_filename)
+
+    @property
+    def carrier_ip(self):
+        if "Control" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Control section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.get("Control", "carrier_ip").strip("\"")
+
+    @property
+    def status_endpoint(self):
+        if "Control" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Control section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.get("Control", "status_endpoint").strip("\"")
+
+    @property
+    def control_endpoint(self):
+        if "Control" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Control section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.get("Control", "control_endpoint").strip("\"")
+
