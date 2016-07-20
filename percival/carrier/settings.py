@@ -1,8 +1,8 @@
-'''
+"""
 Created on 10 June 2016
 
-@author: gnx91527
-'''
+:author: Alan Greer
+"""
 from __future__ import print_function
 
 import logging
@@ -11,7 +11,19 @@ from percival.carrier.registers import UARTRegister, BoardRegisters
 
 
 class BoardSettings:
+    """
+    Class to represent the settings of a Percival board.  This class can be used to
+    initialise a board from an ini file, or to read back settings from the board.
+    """
     def __init__(self, txrx, board):
+        """
+        Constructor.
+
+        :param txrx: Percival communication context
+        :type  txrx: TxRx
+        :param board: Which board to initialise/read
+        :type  board: BoardTypes
+        """
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self.txrx = txrx
         self.board = board
@@ -26,6 +38,11 @@ class BoardSettings:
         self._monitoring_settings = None
 
     def initialise_board(self, ini):
+        """
+        Initialise the hardware from the settings provided by the ini object.
+
+        :param ini: The initialisation object to use for sending messages to the hardware
+        """
         # Create the settings message
         self._reg_header_settings.fields.eeprom_address = 0x50
         self._reg_header_settings.fields.monitoring_channels_count = ini.monitoring_channels_count(self.board)
@@ -93,15 +110,33 @@ class BoardSettings:
         return cmd_msg
 
     def _readback_settings(self, uart_register):
+        """
+        Generate the command message for reading the settings, send it and
+        return the response.
+
+        :param uart_register: UART register to construct read command message
+        :type  uart_register: UARTRegister
+        :returns: list of (address, dataword) tuples
+        """
         cmd_msg = uart_register.get_read_cmd_msg()
         response = self.txrx.send_recv_message(cmd_msg)
         return response
 
     def readback_control_settings(self):
+        """
+        Generate the command message for reading the control settings, send it and
+        store the response
+        """
         self.log.debug("Readback Board Control Settings")
         self._control_settings = self._readback_settings(self._reg_control_settings)
 
     def device_control_settings(self, device_addr):
+        """
+        Return the device control settings for the specified device address.
+
+        :param device_addr: Address of device
+        :returns: settings of the device
+        """
         offset = device_addr - self._control_block.start_address
         if not self._control_block.is_address_valid(device_addr):
             raise IndexError("Device address 0x%X not in range of block 0x%X" %
@@ -110,6 +145,12 @@ class BoardSettings:
         return result
 
     def device_monitoring_settings(self, device_addr):
+        """
+        Return the device monitoring settings for the specified device address.
+
+        :param device_addr: Address of device
+        :returns: settings of the device
+        """
         offset = device_addr - self._monitoring_block.start_address
         if not self._monitoring_block.is_address_valid(device_addr):
             raise IndexError("Device address 0x%X not in range of block 0x%X" %
@@ -118,6 +159,10 @@ class BoardSettings:
         return result
 
     def readback_monitoring_settings(self):
+        """
+        Generate the command message for reading the monitoring settings, send it and
+        store the response
+        """
         self.log.debug("Readback Board Monitoring Settings")
         self._monitoring_settings = self._readback_settings(self._reg_monitoring_settings)
 

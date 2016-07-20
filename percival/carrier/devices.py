@@ -120,12 +120,21 @@ DeviceFamilyFeatures = {
 
 
 class AD5242(object):
+    """
+    Representation of the AD5242 digital potentiometer device.
+    """
     def __init__(self, name, channel):
         self._name = name
         self._channel = channel
         self._device = DeviceFamily.AD5242
 
     def set_value(self, value, timeout=0.1):
+        """
+        Set the value of the device.
+
+        :param value: the value to set
+        :param timeout: timeout for the set to complete
+        """
         self._channel.set_value(value, timeout)
 
     @property
@@ -138,12 +147,21 @@ class AD5242(object):
 
 
 class AD5263(object):
+    """
+    Representation of the AD5263 digital potentiometer device.
+    """
     def __init__(self, name, channel):
         self._name = name
         self._channel = channel
         self._device = DeviceFamily.AD5263
 
     def set_value(self, value, timeout=0.1):
+        """
+        Set the value of the device.
+
+        :param value: the value to set
+        :param timeout: timeout for the set to complete
+        """
         self._channel.set_value(value, timeout)
 
     @property
@@ -156,12 +174,21 @@ class AD5263(object):
 
 
 class AD5669(object):
+    """
+    Representation of the AD5669 DAC device
+    """
     def __init__(self, name, channel):
         self._name = name
         self._channel = channel
         self._device = DeviceFamily.AD5669
 
     def set_value(self, value, timeout=0.1):
+        """
+        Set the value of the device.
+
+        :param value: the value to set
+        :param timeout: timeout for the set to complete
+        """
         self._channel.set_value(value, timeout)
 
     @property
@@ -174,6 +201,9 @@ class AD5669(object):
 
 
 class MAX31730(object):
+    """
+    Representation of the MAX31730 temperature device
+    """
     def __init__(self, name, channel):
         self._name = name
         self._channel = channel
@@ -191,6 +221,14 @@ class MAX31730(object):
         self._unit = self._channel._channel_ini.Unit
 
     def update(self, data=None):
+        """
+        Update the device status.  If data is provided (from reading a shortcut) then
+        the device will update its fields accordingly.  If no data is provided then
+        the device will request its current value from the hardware and update its own
+        value accordingly.
+
+        :param data: the data object for the device (or None)
+        """
         if data != None:
             self._update_status(data)
         else:
@@ -249,6 +287,9 @@ class MAX31730(object):
 
 
 class LTC2309:
+    """
+    Representation of the LTC2309 ADC device
+    """
     def __init__(self, name, channel):
         self._name = name
         self._channel = channel
@@ -266,6 +307,14 @@ class LTC2309:
         self._unit = self._channel._channel_ini.Unit
 
     def update(self, data=None):
+        """
+        Update the device status.  If data is provided (from reading a shortcut) then
+        the device will update its fields accordingly.  If no data is provided then
+        the device will request its current value from the hardware and update its own
+        value accordingly.
+
+        :param data: the data object for the device (or None)
+        """
         if data != None:
             self._update_status(data)
         else:
