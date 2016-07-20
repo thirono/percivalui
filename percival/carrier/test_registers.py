@@ -50,9 +50,9 @@ class TestHeaderInfoMap(unittest.TestCase):
         with self.assertRaises(AttributeError):
             self.dut.no_parameter_with_this_name
         self.assertTrue(hasattr(self.dut, "num_words"))
-        self.assertEquals(self.dut.map_fields, ["control_channels_count",
-                                                "monitoring_channels_count",
-                                                "eeprom_address"])
+        self.assertEquals(list(self.dut.map_fields).sort(), ["control_channels_count",
+                                                             "monitoring_channels_count",
+                                                             "eeprom_address"].sort())
 
     def testParseValidMap(self):
         self.dut.parse_map([0xA1234567])
