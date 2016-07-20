@@ -18,7 +18,7 @@ from __future__ import unicode_literals, absolute_import
 
 from enum import Enum, unique
 
-FIRMWARE_VERSION = "2016.04.20"
+FIRMWARE_VERSION = "2016.06.30"
 """Elettra Firmware version is based on date"""
 
 
@@ -121,6 +121,17 @@ class SystemCmd(Enum):
 
 @unique
 class BoardTypes(Enum):
+    """Enumeration of the board types"
+
+    Current list of board types:
+
+    * `prototype`
+    * `left`
+    * `bottom`
+    * `carrier`
+    * `plugin`
+    * `other`
+    """
     prototype = 0
     left = 1
     bottom = 2

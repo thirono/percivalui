@@ -1,8 +1,13 @@
-'''
+"""
 Created on 16 May 2016
 
-@author: gnx91527
-'''
+:author: gnx91527
+
+A class representation for a Percival channel.  The channel ini settings
+are stored within this class.  There are two subclasses available, the
+ControlChannel and the MonitoringChannel.  It is possible to set the value
+of a ControlChannel and to get the value of a MonitoringChannel.
+"""
 from __future__ import print_function
 
 import os, time
@@ -29,7 +34,7 @@ class Channel(object):
         :param txrx: Percival communication context
         :type  txrx: TxRx
         :param channel_ini: Channel configuration parameters from INI file
-        :type channel_ini: ControlChannelIniParameters
+        :type  channel_ini: ControlChannelIniParameters
         """
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._txrx = txrx
@@ -56,12 +61,26 @@ class Channel(object):
             BoardRegisters[const.BoardTypes(channel_ini.Board_type)]
 
     def read_echo_word(self):
+        """
+        Read the echo word by sending the appropriate message.
+        """
         self._log.debug("READ ECHO WORD")
         echo_cmd_msg = self._reg_echo.get_read_cmd_msg()
         response = self._txrx.send_recv_message(echo_cmd_msg)
         return response
 
     def get_command_msg(self, cmd):
+        """
+        Method to construct a command message object (TxMessage).
+
+        The returned object contains the correct address and word for executing the
+        specified command and can be sent through the txrx object to the Percival
+        hardware.
+
+        :param cmd: command to encode
+        :type  cmd: DeviceCmd
+        :returns: percival.carrier.txrx.TxMessage
+        """
         if not self._device_family_features.supports_cmd(cmd):
             raise TypeError("Device family does not support command %s"%cmd)
         self._reg_command.fields.device_cmd = cmd.value
@@ -70,6 +89,17 @@ class Channel(object):
         return cmd_msg
 
     def command(self, cmd):
+        """
+        Method to construct and send a command.
+
+        This method gets the TxMessage object representation of the command and
+        sends it through the txrx object to the Percival hardware, returning any
+        response.
+
+        :param cmd: command to encode
+        :type  cmd: DeviceCmd
+        :returns: list of (address, dataword) tuples
+        """
         self._log.debug("Device CommandMap: %s", cmd)
         cmd_msg = self.get_command_msg(cmd)
         self._log.debug("Device CommandMsg: %s", cmd_msg)
@@ -77,32 +107,51 @@ class Channel(object):
         return response
 
     def cmd_no_operation(self):
+        """
+        Method to send a no_operation device command.
+
+        :returns: list of (address, dataword) tuples
+        """
         result = self.command(DeviceCmd.no_operation)
         return result
 
     def cmd_set_and_get_value(self):
+        """
+        Method to send a set_and_get_value device command.
+
+        :returns: list of (address, dataword) tuples
+        """
         result = self.command(DeviceCmd.set_and_get_value)
         return result
 
     def cmd_initialize(self):
+        """
+        Method to send an initialize command.
+
+        :returns: list of (address, dataword) tuples
+        """
         result = self.command(DeviceCmd.initialize)
         return result
 
 
 class ControlChannel(Channel):
-    """ ControlChannel constructor. Create a control channel
-
-    Keeps a reference to the txrx communication object and initialises itself based on the parameters in channel_ini.
-    Provides the set_value method in addition to the general channel methods
-
-    :param txrx: Percival communication context
-    :type  txrx: TxRx
-    :param channel_ini: Channel configuration parameters from INI file
-    :type channel_ini: ControlChannelIniParameters
-    :param settings: List of values used to initialise UARTRegister
-    :type settings: List
     """
+    Represent a specific control device channel on any of the control boards.
+    """
+
     def __init__(self, txrx, channel_ini, settings):
+        """ ControlChannel constructor. Create a control channel
+
+        Keeps a reference to the txrx communication object and initialises itself based on the parameters in channel_ini.
+        Provides the set_value method in addition to the general channel methods
+
+        :param txrx: Percival communication context
+        :type  txrx: TxRx
+        :param channel_ini: Channel configuration parameters from INI file
+        :type channel_ini: ControlChannelIniParameters
+        :param settings: List of values used to initialise UARTRegister
+        :type settings: List
+        """
         super(ControlChannel, self).__init__(txrx, channel_ini, settings)
 
         # Setup this control channels UART register
@@ -118,6 +167,11 @@ class ControlChannel(Channel):
             self.cmd_initialize()
 
     def cmd_control_set_value(self, value):
+        """
+        Method to send the set value command for a control channel.
+
+        :param value: new value to set
+        """
         self._log.debug("Device Control Settings write:")
         self._reg_control_settings.fields.value = value
         # Check if the control device is a potentiometer
@@ -133,6 +187,17 @@ class ControlChannel(Channel):
         return response
 
     def set_value(self, value, timeout=0.1):
+        """
+        Method to set the value of a control channel.  Sends the following commands:
+
+        * cmd_no_operation
+        * cmd_control_set_value
+        * cmd_no_operation
+        * cmd_set_and_get_value
+
+        :param value: new value to set
+        :param timeout: timeout for acknowledgement
+        """
         self._log.debug("set_value=%s (\"%s\")", value, self._channel_ini.Channel_name)
         self.cmd_no_operation()
         self.cmd_control_set_value(value)
@@ -150,17 +215,29 @@ class ControlChannel(Channel):
             if time.time() > (start_time + timeout):
                 raise RuntimeError("Timeout when reading back value from ECHO word")
 
-            # skip the retry!
-            # TODO: fix the retry feature - it doesn't work properly and always times out
-            #break
-
             time.sleep(0.1)
             self._log.debug("####### Retrying reading ECHO word. Got: %s", result)
         return result[0]
 
 
 class MonitoringChannel(Channel):
+    """
+    Represent a specific monitoring channel on any of the control boards.
+    """
+
     def __init__(self, txrx, channel_ini, settings):
+        """ MonitoringChannel constructor. Create a monitoring channel
+
+        Keeps a reference to the txrx communication object and initialises itself based on the parameters in channel_ini.
+        Provides the get_value method in addition to the general channel methods
+
+        :param txrx: Percival communication context
+        :type  txrx: TxRx
+        :param channel_ini: Channel configuration parameters from INI file
+        :type channel_ini: ControlChannelIniParameters
+        :param settings: List of values used to initialise UARTRegister
+        :type settings: List
+        """
         super(MonitoringChannel, self).__init__(txrx, channel_ini, settings)
 
         self._reg_monitor_settings = UARTRegister(self._addr_settings_monitoring)
@@ -168,6 +245,18 @@ class MonitoringChannel(Channel):
         self._log.debug("Monitor Settings Map: %s", self._reg_monitor_settings.fields)
 
     def get_value(self, timeout=0.1):
+        """
+        Method to get the value of a monitoring channel.  Sends the following commands:
+
+        * cmd_no_operation
+        * cmd_set_and_get_value
+
+        This method will inspect the sample_number of the returned value and only complete
+        once the sample_number has incremented (or it times out).  This ensures that the
+        value returned is the latest value requested and not an old value.
+
+        :param timeout: timeout for reading the value
+        """
         self._log.debug("get_value (\"%s\")", self._channel_ini.Channel_name)
         # We need to store the sample number from the last write
         echo = self.read_echo_word()
@@ -190,10 +279,6 @@ class MonitoringChannel(Channel):
                 break
             if time.time() > (start_time + timeout):
                 raise RuntimeError("Timeout when reading back value from ECHO word")
-
-            # skip the retry!
-            # TODO: fix the retry feature - it doesn't work properly and always times out
-            #break
 
             time.sleep(0.1)
             self._log.debug("####### Retrying reading ECHO word. Got: %s", result)

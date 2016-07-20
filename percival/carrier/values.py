@@ -1,8 +1,14 @@
-'''
+"""
 Created on 10 June 2016
 
-@author: gnx91527
-'''
+:author: Alan Greer
+
+A class representation for a Percival command to read the values shortcut.
+
+An instance is initialised with a percival.carrier.txrx.TxRx object and
+also the target board (const.BoardTypes).  The class can then be used to
+read the values from the hardware.
+"""
 from __future__ import print_function
 
 import os, time
@@ -14,7 +20,19 @@ from percival.carrier.registers import UARTRegister, BoardValueRegisters, genera
 
 
 class BoardValues:
+    """
+    Represent a command to read a Percival board values shortcut.
+
+    """
     def __init__(self, txrx, board):
+        """
+        Constructor
+
+        :param txrx: Percival communication context
+        :type  txrx: TxRx
+        :param board: which board to read the value shortcut from
+        :type  board: BoardTypes
+        """
         self.log = logging.getLogger(self.__class__.__name__)
         self._txrx = txrx
         self._board = board
