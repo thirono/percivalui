@@ -54,7 +54,7 @@ def main():
                     log.warning("no response (message: %s", cmd_msg)
 
         ## Now read back and check we are matching
-        scanrange = range(0x01B3, 0x01BE + 1, 1)
+        scanrange = range(0x013A, 0x0145 + 1, 1)
         expected_bytes = None
         for addr in scanrange:
             msg = encode_message(addr, 0x00000000)

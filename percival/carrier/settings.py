@@ -84,8 +84,8 @@ class BoardSettings:
             channel_address = self._reg_monitoring_settings._uart_address + (address * self._reg_monitoring_settings.words_per_item)
             channel = ini.monitoring_channel_by_address(channel_address)
             #self.log.info(channel_address)
-            # self.log.info("Uart address %02X", self._reg_control_settings._uart_address + (address * self._reg_control_settings.words_per_item))
-            # self.log.info(channel.Channel_ID)
+            #self.log.info("Uart address %02X", self._reg_monitoring_settings._uart_address + (address * self._reg_monitoring_settings.words_per_item))
+            #self.log.info(channel.Channel_ID)
 
             self._monitoring_settings[address] = UARTRegister(self._monitoring_block, channel_address)
 
