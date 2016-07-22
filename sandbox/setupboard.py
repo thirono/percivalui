@@ -54,7 +54,7 @@ def main():
                     log.warning("no response (message: %s", cmd_msg)
 
         ## Now read back and check we are matching
-        scanrange = range(0x013A, 0x0145 + 1, 1)
+        scanrange = range(0x01B3, 0x01BE + 1, 1)
         expected_bytes = None
         for addr in scanrange:
             msg = encode_message(addr, 0x00000000)
@@ -69,7 +69,7 @@ def main():
                 test_data = decode_message(cmd_msg[a].message)
                 ta, tw = test_data[0]
                 if w == tw:
-                    log.info("Match address 0X%02X [0X%08X] == [0X%08X]", a, w, tw)
+                    log.info("Match address 0X%04X [0X%08X] == [0X%08X]", a, w, tw)
                 else:
                     log.info("Mismatch!!")
 
