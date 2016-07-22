@@ -4,7 +4,6 @@ Communications module for the Percival Carrier Board XPort interface.
 from __future__ import unicode_literals, absolute_import
 from builtins import bytes
 
-import sys
 import logging
 import binascii
 import socket
@@ -156,7 +155,7 @@ class TxRx(object):
             if expected_bytes:
                 block_read_bytes = expected_bytes-len(msg)
             chunk = self.sock.recv(block_read_bytes)
-            if sys.version[0] == 2:
+            if isinstance(chunk, str):
                 chunk = bytes(chunk, encoding = DATA_ENCODING)
             if len(chunk) == 0:
                 raise RuntimeError("socket connection broken (expected a multiple of 6 bytes)")
