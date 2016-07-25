@@ -35,7 +35,7 @@ class ShortcutRegister(object):
 
 def main():
     registers = np.zeros(0x0152, dtype=np.uint32)
-    eoms = range(0x0000, 0x00FA)
+    eoms = range(0x0000, 0x00FB)
     shortcuts = {0x013A: ShortcutRegister(0x0000, 1 * 1),
                  0x013B: ShortcutRegister(0x0001, 1 * 4),
                  0x013C: ShortcutRegister(0x0005, 1 * 4),
