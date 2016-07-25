@@ -9,5 +9,5 @@ sphinx
 mock<=1.0
 npyscreen>=4.10.0
 #pyzmq>=14.0.0 --install-option='--zmq=bundled'
--e git+git://github.com/percival-detector/odin.git#egg=odin&subdirectory=server
+-e git+git://github.com/ajgdls/odin.git#egg=odin&subdirectory=server
 
