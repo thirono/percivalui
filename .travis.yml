@@ -16,8 +16,6 @@ addons:
       - libhdf5-serial-dev
  
 install:
-  - "pip install --upgrade pip"
-  - pip --version
   - "pip install -r requirements.txt"
   - pip install coveralls
   - python setup.py install
