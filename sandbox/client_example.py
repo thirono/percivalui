@@ -61,9 +61,10 @@ class PercivalClientApp(npyscreen.NPSAppManaged):
 
     def read_status_message(self, timeout):
         pollevts = self._status_channel.poll(timeout)
-        if pollevts == zmq.POLLIN:
+        while pollevts == zmq.POLLIN:
             reply = IpcMessage(from_str=self._status_channel.recv())
             self._current_value = str(reply)
+            pollevts = self._status_channel.poll(timeout)
 
 
 # This form class defines the display that will be presented to the user.
@@ -111,7 +112,7 @@ class MainMenu(npyscreen.FormBaseNew):
             msg = IpcMessage(IpcMessage.MSG_TYPE_CMD, IpcMessage.MSG_VAL_CMD_CONFIGURE)
             msg.set_param("list", "device")
             self.parentApp.send_message(msg)
-            self.parentApp._boards = self.parentApp._reply.get_param("boards")
+            self.parentApp._boards = self.parentApp._reply.get_param("device")
         if selected == 1:
             msg = IpcMessage(IpcMessage.MSG_TYPE_CMD, IpcMessage.MSG_VAL_CMD_CONFIGURE)
             msg.set_param("status_loop", "run")
@@ -136,7 +137,7 @@ class MainMenu(npyscreen.FormBaseNew):
 
     def while_waiting(self):
         if self.status_loop == True:
-            self.parentApp.read_status_message(0.1)
+            self.parentApp.read_status_message(0.05)
         if self.parentApp._current_value != self.parentApp._prev_value:
             self.t3.values = self.parentApp._current_value.split("\n")
             self.t3.display()

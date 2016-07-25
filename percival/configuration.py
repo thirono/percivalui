@@ -416,16 +416,3 @@ class ControlParameters(object):
         if "Control" not in self.conf.sections():
             raise_with_traceback(RuntimeError("Control section not found in ini file %s" % str(self._ini_filename)))
         return self.conf.get("Control", "carrier_ip").strip("\"")
-
-    @property
-    def status_endpoint(self):
-        if "Control" not in self.conf.sections():
-            raise_with_traceback(RuntimeError("Control section not found in ini file %s" % str(self._ini_filename)))
-        return self.conf.get("Control", "status_endpoint").strip("\"")
-
-    @property
-    def control_endpoint(self):
-        if "Control" not in self.conf.sections():
-            raise_with_traceback(RuntimeError("Control section not found in ini file %s" % str(self._ini_filename)))
-        return self.conf.get("Control", "control_endpoint").strip("\"")
-
