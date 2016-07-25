@@ -66,3 +66,6 @@ class PercivalStandalone(object):
                 reply_msg.set_param(list, reply)
                 self._log.critical("Reply with list: %s", reply_msg.encode())
                 self._ctrl_channel.send(reply_msg.encode())
+
+            if msg.has_param("system_command"):
+                self._detector.system_command(msg.get_param("system_command"))

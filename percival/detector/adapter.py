@@ -49,7 +49,7 @@ class PercivalAdapter(ApiAdapter):
         if options[0] == "list":
             response = self.detector.list(options[1])
             status_code = 200
-        if options[0] == "status":
+        elif options[0] == "status":
             response = self.detector.update_status()
             status_code = 200
         else:

@@ -42,6 +42,7 @@ class PercivalClientApp(npyscreen.NPSAppManaged):
         self.keypress_timeout_default = 1
         self.registerForm("MAIN", IntroForm())
         self.registerForm("MAIN_MENU", MainMenu())
+        self.registerForm("SYS_CMD", SendSystemCommand())
 
     def send_message(self, ipc_message):
         self._ctrl_channel.send(ipc_message.encode())
@@ -123,14 +124,10 @@ class MainMenu(npyscreen.FormBaseNew):
             msg.set_param("status_loop", "stop")
             self.parentApp.send_message(msg)
             self.status_loop = False
-#            self.parentApp.setNextForm("SETUP_PROCESS")
-#            self.editing = False
-#            self.parentApp.switchFormNow()
-#        if selected == 3:
-#            self.parentApp.setNextForm("SETUP_FILE")
-#            self.editing = False
-#            self.parentApp.switchFormNow()
-#        if selected == 4:
+        if selected == 4:
+            self.parentApp.setNextForm("SYS_CMD")
+            self.editing = False
+            self.parentApp.switchFormNow()
         if selected == 5:
             self.parentApp.setNextForm(None)
             self.parentApp.switchFormNow()
@@ -145,6 +142,53 @@ class MainMenu(npyscreen.FormBaseNew):
         self.t2.entry_widget.value = None
         self.t2.entry_widget._old_value = None
         self.t2.display()
+
+
+class SendSystemCommand(npyscreen.FormBaseNew):
+    def create(self):
+        self.keypress_timeout = 1
+        self.name = "Percival Carrier Board Client"
+        self.t2 = self.add(npyscreen.BoxTitle, name="Select system command to send:")
+
+        self.t2.values = ["enable_global_monitoring",
+                          "disable_global_monitoring",
+                          "enable_device_level_safety_controls",
+                          "disable_device_level_safety_controls",
+                          "enable_system_level_safety_controls",
+                          "disable_system_level_safety_controls",
+                          "enable_experimental_level_safety_controls",
+                          "disable_experimental_level_safety_controls",
+                          "enable_safety_actions",
+                          "disable_safety_actions",
+                          "start_acquisition",
+                          "stop_acquisition",
+                          "fast_sensor_powerup",
+                          "fast_sensor_powerdown",
+                          "switch_on_mgt_of_mezzanine_board_a",
+                          "switch_off_mgt_of_mezzanine_board_a",
+                          "switch_on_mgt_of_mezzanine_board_b",
+                          "switch_off_mgt_of_mezzanine_board_b",
+                          "switch_on_phy_of_mezzanine_board_a",
+                          "switch_off_phy_of_mezzanine_board_a",
+                          "Exit"]
+        self.t2.when_value_edited = self.button
+
+    def button(self):
+        selected = self.t2.entry_widget.value
+        if selected is not None:
+            self.t2.entry_widget.value = None
+            self.t2.entry_widget._old_value = None
+            if selected == 20:
+                self.parentApp.setNextForm("MAIN_MENU")
+                self.editing = False
+                self.parentApp.switchFormNow()
+            else:
+                msg = IpcMessage(IpcMessage.MSG_TYPE_CMD, IpcMessage.MSG_VAL_CMD_CONFIGURE)
+                msg.set_param("system_command", self.t2.values[selected])
+                self.parentApp.send_message(msg)
+                self.parentApp.setNextForm("MAIN_MENU")
+                self.editing = False
+                self.parentApp.switchFormNow()
 
 
 def options():

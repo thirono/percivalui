@@ -169,6 +169,13 @@ class PercivalDetector(object):
             self._sys_cmd.send_command(const.SystemCmd.disable_global_monitoring)
             self._sys_cmd.send_command(const.SystemCmd.disable_device_level_safety_controls)
 
+    def system_command(self, cmd):
+        self._sys_cmd.send_command(const.SystemCmd[cmd])
+
+    def set_value(self, device, value, timeout=0.1):
+        if device in self._controls:
+            self._controls[device].set_value(value, timeout)
+
     def update(self, name):
         self._temperatures[name].update()
 
