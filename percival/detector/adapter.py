@@ -32,8 +32,6 @@ class PercivalAdapter(ApiAdapter):
         super(PercivalAdapter, self).__init__(**kwargs)
 
         self._detector = PercivalDetector()
-        self._detector.initialise_board()
-        self._detector.load_channels()
         self._detector.set_global_monitoring(True)
         self.status_update(0.1)
 

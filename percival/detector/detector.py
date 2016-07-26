@@ -87,7 +87,7 @@ class PercivalParameters(object):
 
 
 class PercivalDetector(object):
-    def __init__(self):
+    def __init__(self, initialise_hardware=True):
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._txrx = None
         self._global_monitoring = False
@@ -99,6 +99,9 @@ class PercivalDetector(object):
         self._sys_cmd = None
         self.load_ini()
         self.setup_control()
+        if initialise_hardware:
+            self.initialise_board()
+        self.load_channels()
 
     def load_ini(self):
         self._percival_params.load_ini()
@@ -114,6 +117,7 @@ class PercivalDetector(object):
         self._sys_cmd = SystemCommand(self._txrx)
 
     def initialise_board(self):
+        self._log.critical("Initialise board")
         cmd_msgs = self._board_settings[const.BoardTypes.left].initialise_board(self._percival_params)
         cmd_msgs += self._board_settings[const.BoardTypes.bottom].initialise_board(self._percival_params)
         cmd_msgs += self._board_settings[const.BoardTypes.carrier].initialise_board(self._percival_params)

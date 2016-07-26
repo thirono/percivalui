@@ -25,15 +25,13 @@ def main():
     args = options()
     log.info(args)
 
-    # Create the stand alone device
-    percival = PercivalStandalone()
-
     # Check if we need to initialise the hardware
+    init = False
     if args.write.upper() == "TRUE":
-        percival.initialise_board()
+        init = True
 
-    # Load channels
-    percival.load_channels()
+    # Create the stand alone device
+    percival = PercivalStandalone(init)
 
     # Initialise the control endpoint
     percival.setup_control_channel(args.control)

@@ -15,18 +15,12 @@ from percival.detector.ipc_reactor import IpcReactor
 
 
 class PercivalStandalone(object):
-    def __init__(self):
+    def __init__(self, initialise_hardware=True):
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
-        self._detector = PercivalDetector()
+        self._detector = PercivalDetector(initialise_hardware)
         self._ctrl_channel = None
         self._status_channel = None
         self._reactor = IpcReactor()
-
-    def initialise_board(self):
-        self._detector.initialise_board()
-
-    def load_channels(self):
-        self._detector.load_channels()
 
     def setup_control_channel(self, endpoint):
         self._ctrl_channel = IpcChannel(IpcChannel.CHANNEL_TYPE_PAIR)
