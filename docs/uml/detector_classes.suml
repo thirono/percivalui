@@ -1,0 +1,32 @@
+// UML example using suml from scruffy: https://github.com/aivarsk/scruffy
+// Generate UML class diagram image with the following command:
+// suml --svg --font-family "Humor Sans" --scruffy -i classes.suml -o classes.svg
+
+[PercivalParameters| +load_ini(); +carrier_ip(); +board_name(); +board_type(); +control_channels_count(); +monitoring_channels_count(); +control_channel_by_address(); +monitoring_channel_by_address(); +monitoring_channel_name_by_index_and_board_type(); +monitoring_channel_by_name(); +monitoring_channels(); +control_channels(); | -_control_params; -_board_params; -_channel_params]
+[PercivalDetector| +load_ini(); +setup_control(); +initialise_board(); +load_channels(); +set_global_monitoring(); +system_command(); +set_value(); +read(); +update_status();]
+[SystemCmd| +cmd_no_operation(); +send_cmd();]
+[TxRx| +fpga_addr; +timeout; +send_recv_message(); +clean();| -tx_msg(); -rx_msg(); -send_resv()]
+[BoardParameters| +load_ini(); +board_name; +board_type; +board_revision; +control_channels_count; +monitoring_channels_count;]
+[ControlParameters| +load_ini(); +carrier_ip]
+[ChannelParameters| +load_ini(); +monitoring_channel_name_by_index(); +monitoring_channel_name_by_id_and_board_type(); +control_channel_name_by_index(); +monitoring_channel_name(); +control_channel_name(); +control_channel_by_address(); +monitoring_channel_by_address(); +control_channels_by_name(); +monitoring_channels_by_name();],
+[AD5242],[AD5263],[AD5669],[MAX31730],[LTC2309],
+[ControlChannel],[MonitoringChannel],
+[AD5242]1->1[ControlChannel],
+[AD5263]1->1[ControlChannel],
+[AD5669]1->1[ControlChannel],
+[MAX31730]1->1[MonitoringChannel],
+[LTC2309]1->1[MonitoringChannel],
+[ControlChannel]1->1[TxRx],
+[MonitoringChannel]1->1[TxRx],
+[SystemCmd]1->1[TxRx],
+[PercivalDetector]1->1[PercivalParameters]
+[PercivalDetector]1->0..n[AD5242]
+[PercivalDetector]1->0..n[AD5263]
+[PercivalDetector]1->0..n[AD5669]
+[PercivalDetector]1->0..n[MAX31730]
+[PercivalDetector]1->0..n[LTC2309]
+[PercivalDetector]1->1[SystemCmd]
+[PercivalDetector]1->1[TxRx]
+[PercivalParameters]1->1[ControlParameters]
+[PercivalParameters]1->4[BoardParameters]
+[PercivalParameters]1->1[ChannelParameters],
