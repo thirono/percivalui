@@ -39,13 +39,21 @@ python sandbox/simplesimulator.py
 ## Executing as an Adapter for Odin Server Instance
 
 It is possible to load and execute the detector as a plugin of an Odin server instance.  First, some additional setup is required:
-- Open the requirements.txt file for the percivalui project and uncomment the line 
-```#-e git+git://github.com/percival-detector/odin.git#egg=odin&subdirectory=server```
-- Install the Odin server with the pip command
-```pip install -r requirements.txt```
+
+Open the requirements.txt file for the percivalui project and uncomment the line 
+```
+#-e git+git://github.com/percival-detector/odin.git#egg=odin&subdirectory=server
+```
+
+Install the Odin server with the pip command
+```
+pip install -r requirements.txt
+```
 
 Once the Odin application has been installed into the current development environment then it can be started with a configuration file that loads the Percival detector class.
-```odin_server --config percival_test.cfg```
+```
+odin_server --config percival_test.cfg
+```
 
 To verify that the Odin instance is executing correctly you can open a browser and navigate to localhost:8888
 
@@ -131,7 +139,9 @@ The following sections provide some details on the current design of the detecto
 
 ### PercivalParameters
 
-```percival/detector/detector.py```
+```
+percival/detector/detector.py
+```
 
 The PercivalParameters class manages the initialisation files for the Percival control application.  There are currently four BoardParameters instances, one ControlParameters instance and one ChannelParameters instance maintained by this class.  A set of methods are present to provide access to the parameters that are managed by these classes.
 The load_ini method will load the specified files into the corresponding instances (currently all ini files are hardcoded, but perhaps the main percival.ini file should in fact contain the others?).
@@ -139,7 +149,9 @@ A series of access methods and properties provide easy access to the parameters.
 
 ### PercivalDetector
 
-```percival/detector/detector.py```
+```
+percival/detector/detector.py
+```
 
 This is the main detector class, with responsibility for creating the TCP connection to the hardware control port.  This class owns a PercivalParameters instance and will download the configuration to the hardware by default on creation.  Once the configuration has been downloaded (this can be skipped if required) then the hardware is re-read and coupled with the ini file information a set of control devices and monitoring devices are created.  These devices contain the methods and channel data specific to the type of device but present a consistent interface to provide access from external sources.  The monitor device status can be updated by reading the relevant shortcut from the hardware and populating the fields accordingly; a method has been made available to perform this task.
 The detector class can send any system command; it manages a SystemCmd object to perform this action.  There is also a method to turn on or off global monitoring (including device level safety controls).  It should be easy to implement further system commands within methods as required to fulfill any required interface (for example start/stop acquisition etc).
