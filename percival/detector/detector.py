@@ -44,14 +44,6 @@ class PercivalParameters(object):
     def carrier_ip(self):
         return self._control_params.carrier_ip
 
-    @property
-    def status_endpoint(self):
-        return self._control_params.status_endpoint
-
-    @property
-    def control_endpoint(self):
-        return self._control_params.control_endpoint
-
     def board_name(self, type):
         return self._board_params[type].board_name
 
@@ -179,13 +171,6 @@ class PercivalDetector(object):
     def set_value(self, device, value, timeout=0.1):
         if device in self._controls:
             self._controls[device].set_value(value, timeout)
-
-    def update(self, name):
-        self._temperatures[name].update()
-
-    def temperature(self, name):
-        if self._temperatures.has_key(name):
-            return self._temperatures[name].temperature
 
     def read(self, parameter):
         self._log.critical("Reading data %s", parameter)
