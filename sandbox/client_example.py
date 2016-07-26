@@ -102,7 +102,8 @@ class MainMenu(npyscreen.FormBaseNew):
         self.t2.values = ["Read Board Parameters",
                           "Start Status Loop",
                           "Stop Status Loop",
-                          "Monitor Device Setup",
+                          "List Control Devices",
+                          "List Monitor Devices",
                           "Send System Command",
                           "Exit"]
         self.t2.when_value_edited = self.button
@@ -124,11 +125,19 @@ class MainMenu(npyscreen.FormBaseNew):
             msg.set_param("status_loop", "stop")
             self.parentApp.send_message(msg)
             self.status_loop = False
+        if selected == 3:
+            msg = IpcMessage(IpcMessage.MSG_TYPE_CMD, IpcMessage.MSG_VAL_CMD_CONFIGURE)
+            msg.set_param("list", "controls")
+            self.parentApp.send_message(msg)
         if selected == 4:
+            msg = IpcMessage(IpcMessage.MSG_TYPE_CMD, IpcMessage.MSG_VAL_CMD_CONFIGURE)
+            msg.set_param("list", "monitors")
+            self.parentApp.send_message(msg)
+        if selected == 5:
             self.parentApp.setNextForm("SYS_CMD")
             self.editing = False
             self.parentApp.switchFormNow()
-        if selected == 5:
+        if selected == 6:
             self.parentApp.setNextForm(None)
             self.parentApp.switchFormNow()
 

@@ -63,13 +63,17 @@ class MainMenu(npyscreen.FormBaseNew):
 
         self.t2.values = ["Read Board Parameters",
                           "Read Board Status",
+                          "Read Monitor List",
+                          "Read Control List",
+                          "Read VCH0",
+                          "Read Temperature1",
                           "Exit"]
         self.t2.when_value_edited = self.button
 
     def button(self):
         selected = self.t2.entry_widget.value
         if selected == 0:
-            reply = self.parentApp.send_message("percival/list/device")
+            reply = self.parentApp.send_message("percival/device")
             self.t3.values = json.dumps(reply, sort_keys=True, indent=4, separators=(',', ': ')).split("\n")
             self.t3.display()
         if selected == 1:
@@ -77,6 +81,22 @@ class MainMenu(npyscreen.FormBaseNew):
             self.t3.values = json.dumps(reply, sort_keys=True, indent=4, separators=(',', ': ')).split("\n")
             self.t3.display()
         if selected == 2:
+            reply = self.parentApp.send_message("percival/monitors")
+            self.t3.values = json.dumps(reply, sort_keys=True, indent=4, separators=(',', ': ')).split("\n")
+            self.t3.display()
+        if selected == 3:
+            reply = self.parentApp.send_message("percival/controls")
+            self.t3.values = json.dumps(reply, sort_keys=True, indent=4, separators=(',', ': ')).split("\n")
+            self.t3.display()
+        if selected == 4:
+            reply = self.parentApp.send_message("percival/VCH0")
+            self.t3.values = json.dumps(reply, sort_keys=True, indent=4, separators=(',', ': ')).split("\n")
+            self.t3.display()
+        if selected == 5:
+            reply = self.parentApp.send_message("percival/Temperature1")
+            self.t3.values = json.dumps(reply, sort_keys=True, indent=4, separators=(',', ': ')).split("\n")
+            self.t3.display()
+        if selected == 6:
             self.parentApp.setNextForm(None)
             self.parentApp.switchFormNow()
 

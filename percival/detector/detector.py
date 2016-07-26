@@ -183,19 +183,21 @@ class PercivalDetector(object):
         if self._temperatures.has_key(name):
             return self._temperatures[name].temperature
 
-    def list(self, type):
-        self._log.critical("Requested list of %s", type)
-        if type == "controls":
+    def read(self, parameter):
+        self._log.critical("Reading data %s", parameter)
+
+        # First check to see if parameter is a keyword
+        if parameter == "controls":
             reply = {}
             for control in self._controls:
                 reply[control] = self._controls[control].device
 
-        if type == "monitors":
+        elif parameter == "monitors":
             reply = {}
             for monitor in self._monitors:
                 reply[monitor] = self._monitors[monitor].device
 
-        if type == "device":
+        elif parameter == "device":
             reply = {
                 const.BoardTypes.carrier.name: {
                     "name":           self._percival_params.board_name(const.BoardTypes.carrier),
@@ -222,6 +224,19 @@ class PercivalDetector(object):
                     "monitors_count": self._percival_params.monitoring_channels_count(const.BoardTypes.plugin)
                 },
             }
+
+        elif parameter == "status":
+            reply = {}
+            for monitor in self._monitors:
+                self._log.critical("Monitor: %s", monitor)
+                reply[monitor] = self._monitors[monitor].status
+
+        # Check to see if the parameter is a monitoring device that we own
+        elif parameter in self._monitors:
+            reply = { parameter: self._monitors[parameter].status }
+
+        else:
+            reply = { "error": "Parameter not found" }
 
         return reply
 

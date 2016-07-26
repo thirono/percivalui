@@ -60,7 +60,7 @@ class PercivalStandalone(object):
                 # What are we listing
                 list = msg.get_param("list")
                 self._log.critical("Requested list of %s", list)
-                reply = self._detector.list(list)
+                reply = self._detector.read(list)
                 # Reply with the list of control devices
                 reply_msg = IpcMessage(IpcMessage.MSG_TYPE_ACK, IpcMessage.MSG_VAL_CMD_CONFIGURE)
                 reply_msg.set_param(list, reply)
