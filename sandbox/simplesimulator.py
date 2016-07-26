@@ -89,7 +89,7 @@ def main():
 #                 0x01CA: ShortcutRegister(0x01B2, 1*1)}
 
     server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_sock.settimeout(10000.0)
+    server_sock.settimeout(None)
     server_sock.bind(('', board_ip_port))
     server_sock.listen(5)
 
