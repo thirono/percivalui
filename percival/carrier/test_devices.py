@@ -9,7 +9,7 @@ import unittest
 from mock import MagicMock, call
 
 import percival.carrier.const as const
-from percival.carrier.devices import DeviceFamilyFeatures, MAX31730, LTC2309
+from percival.carrier.devices import DeviceFamily, DeviceFamilyFeatures, AD5263, MAX31730, LTC2309
 
         
 class TestDeviceFamilyEnum(unittest.TestCase):
@@ -55,6 +55,18 @@ class TestDeviceFamilyEnum(unittest.TestCase):
         self.assertIs(dev.supports_cmd(const.DeviceCmd.initialize),          False)
         self.assertIs(dev.supports_cmd(const.DeviceCmd.set_and_get_value),   True)
         self.assertIs(dev.supports_cmd(const.DeviceCmd.set_word_value),      False)
+
+    def TestDeviceAD5263(self):
+        channel = MagicMock()
+        ad5263 = AD5263("test1", channel)
+        # Check the name is correct
+        self.assertEqual(ad5263.name, "test1")
+        # Check the device is correct
+        self.assertEqual(ad5263.device, DeviceFamily.AD5263.name)
+        # Issue a set
+        ad5263.set_value(10, 0.2)
+        # Verify the mock was called with the correct statement
+        channel.set_value.assert_called_with(10, 0.2)
 
     def TestDeviceMAX31730(self):
         channel = MagicMock()

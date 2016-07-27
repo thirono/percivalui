@@ -31,6 +31,8 @@ class TestTxRxClasses(unittest.TestCase):
         self.assertEquals(msg.validate_eom(bytes('\x00\x00\x00\x00\x00\x00', encoding="latin-1")), False)
         msg = TxMessage(bytes("\x01\x4D\x00\x00\x00\x00", encoding="latin-1"), num_response_msg=19, expect_eom=False)
         self.assertEquals(msg.validate_eom(None), True)
+        msg2 = TxMessage(bytes("\x00\x00\x00\x00\x00\x00", encoding="latin-1"), num_response_msg=19, expect_eom=False)
+        self.assertNotEqual(msg, msg2)
 
     def TestTxRx(self):
         # Open a dummy socket for our txrx object to connect to

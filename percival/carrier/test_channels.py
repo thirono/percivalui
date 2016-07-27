@@ -71,7 +71,6 @@ class TestChannels(unittest.TestCase):
         self.txrx.send_recv_message.assert_called_with(
             TxMessage(bytes("\x00\x16\x00\x00\x00\x14", encoding="latin-1"), expect_eom=True))
 
-
         # Set the value to 25 from the control point
         self.txrx.send_recv_message.reset_mock()
         ctrlChannel.set_value(25)
@@ -87,6 +86,20 @@ class TestChannels(unittest.TestCase):
             TxMessage(bytes("\x00\xF8\x50\x00\x00\x05", encoding="latin-1"), expect_eom=True)))
         self.assertEqual(calls[4], call(
             TxMessage(bytes("\x01\x51\x00\x00\x00\x00", encoding="latin-1"), expect_eom=False)))
+
+        # Set the value to 26 from the control point
+        self.txrx.send_recv_message.reset_mock()
+        # Verify this times out and raises a runtime error
+        with self.assertRaises(RuntimeError):
+            ctrlChannel.set_value(26, 0.01)
+
+        # Set the value to 25 from the control point
+        self.txrx.send_recv_message.reset_mock()
+        # Set the mock to return an i2c error
+        self.txrx.send_recv_message.return_value = [(0x0139, 0x00010019)]
+        # Verify this raises an IO error
+        with self.assertRaises(IOError):
+            ctrlChannel.set_value(25)
 
     def TestAD5242ControlChannel(self):
         self.txrx.send_recv_message = MagicMock(return_value=[(0x0139, 0x00000019)])
@@ -133,4 +146,14 @@ class TestChannels(unittest.TestCase):
         self.txrx.send_recv_message.reset_mock()
         value = mntrChannel.get_value()
         self.assertEquals(value.read_value, 19)
+
+        # Setup the mock to return i2c error
+        self.txrx.send_recv_message = MagicMock() #return_value=[(0x0139, 0x01000023), (0x0139, 0x02000023)])
+        self.txrx.send_recv_message.side_effect = [[(0x0139, 0x01010012)],
+                                                   [(0x0139, 0xABBABAC1)],
+                                                   [(0x0139, 0xABBABAC1)],
+                                                   [(0x0139, 0x02010013)]]
+        # Verify this raises an IO error
+        with self.assertRaises(IOError):
+            value = mntrChannel.get_value()
 

@@ -1,6 +1,6 @@
 import unittest
 import os
-from percival.configuration import find_file, ChannelParameters, BoardParameters
+from percival.configuration import find_file, ChannelParameters, BoardParameters, ControlParameters
 from percival.carrier.const import BoardTypes
 
 
@@ -150,8 +150,8 @@ Monitoring_channels_count = 19\n\
 Total_channels_count = 33\n\
 \n\
 ")
-    f = open("/tmp/BoardNONE.ini", "w+")
-    f.write("")
+        f = open("/tmp/BoardNONE.ini", "w+")
+        f.write("")
 
     def test_board_parameters(self):
         bp = BoardParameters("/tmp/BoardCARRIER.ini")
@@ -175,6 +175,29 @@ Total_channels_count = 33\n\
             self.assertEquals(bp.control_channels_count, 14)
         with self.assertRaises(RuntimeError):
             self.assertEquals(bp.monitoring_channels_count, 19)
+
+
+class TestBoardParameters(unittest.TestCase):
+    def setUp(self):
+        f = open("/tmp/Percival.ini", "w+")
+        f.write("\
+[Control]\n\
+carrier_ip = \"127.0.0.1\"\n\
+\n\
+")
+        f = open("/tmp/PercivalNONE.ini", "w+")
+        f.write("")
+
+    def test_board_parameters(self):
+        pp = ControlParameters("/tmp/Percival.ini")
+        pp.load_ini()
+        self.assertEquals(pp.carrier_ip, '127.0.0.1')
+
+    def test_board_exceptions(self):
+        pp = ControlParameters("/tmp/PercivalNONE.ini")
+        pp.load_ini()
+        with self.assertRaises(RuntimeError):
+            self.assertEquals(pp.carrier_ip, '127.0.0.1')
 
 
 if __name__ == '__main__':
