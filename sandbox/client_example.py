@@ -19,6 +19,7 @@ import npyscreen
 from percival.detector.ipc_reactor import IpcReactor
 from percival.detector.ipc_channel import IpcChannel
 from percival.detector.ipc_message import IpcMessage
+from percival.carrier import const
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
 
@@ -172,27 +173,8 @@ class SendSystemCommand(npyscreen.FormBaseNew):
         self.name = "Percival Carrier Board Client"
         self.t2 = self.add(npyscreen.BoxTitle, name="Select system command to send:")
 
-        self.t2.values = ["enable_global_monitoring",
-                          "disable_global_monitoring",
-                          "enable_device_level_safety_controls",
-                          "disable_device_level_safety_controls",
-                          "enable_system_level_safety_controls",
-                          "disable_system_level_safety_controls",
-                          "enable_experimental_level_safety_controls",
-                          "disable_experimental_level_safety_controls",
-                          "enable_safety_actions",
-                          "disable_safety_actions",
-                          "start_acquisition",
-                          "stop_acquisition",
-                          "fast_sensor_powerup",
-                          "fast_sensor_powerdown",
-                          "switch_on_mgt_of_mezzanine_board_a",
-                          "switch_off_mgt_of_mezzanine_board_a",
-                          "switch_on_mgt_of_mezzanine_board_b",
-                          "switch_off_mgt_of_mezzanine_board_b",
-                          "switch_on_phy_of_mezzanine_board_a",
-                          "switch_off_phy_of_mezzanine_board_a",
-                          "Exit"]
+        # Add all available system commands to the select list - and an exit (no-op) option at the end
+        self.t2.values = [cmd.name for cmd in const.SystemCmd] + ["Exit"]
         self.t2.when_value_edited = self.button
 
     def button(self):
@@ -200,7 +182,7 @@ class SendSystemCommand(npyscreen.FormBaseNew):
         if selected is not None:
             self.t2.entry_widget.value = None
             self.t2.entry_widget._old_value = None
-            if selected == 20:
+            if self.t2.values[selected] == "Exit":
                 self.parentApp.setNextForm("MAIN_MENU")
                 self.editing = False
                 self.parentApp.switchFormNow()
