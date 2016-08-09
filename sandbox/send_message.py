@@ -6,13 +6,10 @@ Created on 20 May 2016
 from __future__ import print_function
 from future.utils import raise_with_traceback
 
-import os, time
+import os
 import argparse
 
-import logging
 from percival.log import log
-
-import os
 from percival.detector.ipc_channel import IpcChannel
 from percival.detector.ipc_message import IpcMessage
 

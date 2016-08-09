@@ -15,17 +15,19 @@ class DeviceFeatures(object):
     
     This represent the documented table "Supported DEVICE_CMD vs device family"
     """
-    def __init__(self, device_family_id, function, description="", commands=[]):
+    def __init__(self, device_family_id, function, description=u"", commands=None):
         """
             :param device_family_id: The component family ID
             :type  device_family_id: :obj:`percival.carrier.const.DeviceFamily`
             :param function:         The enumerated functionality of the device
             :type  function:         :obj:`percival.carrier.const.DeviceFunction`
             :param description:      Human readable description of the device
-            :type  description:      str
+            :type  description:      unicode
             :param commands:         Supported commands for this device
             :type  commands:         `list` of :obj:`percival.carrier.const.DeviceCmd`
         """
+        if commands is None:
+            commands = []
         self._device_family_id = device_family_id
         self._function = function
         self._description = description
@@ -63,14 +65,14 @@ DeviceFamilyFeatures = {
                                            DeviceCmd.get_value,
                                            DeviceCmd.set_and_get_value,
                                            DeviceCmd.set_value_on,
-                                           DeviceCmd.set_value_off] ),
+                                           DeviceCmd.set_value_off]),
     DeviceFamily.AD5263:   DeviceFeatures(DeviceFamily.AD5263, DeviceFunction.control,
                                           "Digital potentiometer",
                                           [DeviceCmd.no_operation,
                                            DeviceCmd.reset,
                                            DeviceCmd.set_value,
                                            DeviceCmd.get_value,
-                                           DeviceCmd.set_and_get_value] ),
+                                           DeviceCmd.set_and_get_value]),
     DeviceFamily.AD5629:   DeviceFeatures(DeviceFamily.AD5629, DeviceFunction.control,
                                           "DAC for control",
                                           [DeviceCmd.no_operation,
@@ -80,7 +82,7 @@ DeviceFamilyFeatures = {
                                            DeviceCmd.get_value,
                                            DeviceCmd.set_and_get_value,
                                            DeviceCmd.enable_standby_mode,
-                                           DeviceCmd.disable_standby_mode] ),
+                                           DeviceCmd.disable_standby_mode]),
     DeviceFamily.AD5669:   DeviceFeatures(DeviceFamily.AD5669, DeviceFunction.control,
                                           "DAC for control",
                                           [DeviceCmd.no_operation,
@@ -90,7 +92,7 @@ DeviceFamilyFeatures = {
                                            DeviceCmd.get_value,
                                            DeviceCmd.set_and_get_value,
                                            DeviceCmd.enable_standby_mode,
-                                           DeviceCmd.disable_standby_mode] ),
+                                           DeviceCmd.disable_standby_mode]),
     DeviceFamily.LTC2309:  DeviceFeatures(DeviceFamily.LTC2309, DeviceFunction.monitoring,
                                           "ADC for monitoring",
                                           [DeviceCmd.no_operation,

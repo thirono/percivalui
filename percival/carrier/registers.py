@@ -380,8 +380,8 @@ CarrierUARTRegisters = {
 
 
 class UARTRegister(object):
-    ''' Represent a specific UART register on the Percival Carrier Board
-    '''
+    """ Represent a specific UART register on the Percival Carrier Board
+    """
     UART_ADDR_WIDTH = 16
     UART_WORD_WIDTH = 32
 
@@ -409,15 +409,15 @@ class UARTRegister(object):
             self._uart_address = uart_device
             self.log.debug("UARTRegister updated _uart_address: %02X", self._uart_address)
             if uart_device.bit_length() > self.UART_ADDR_WIDTH:
-                raise_with_traceback(ValueError("UART device address value 0x%H is greater than 16 bits" %
+                raise_with_traceback(ValueError("UART device address value 0x%X is greater than 16 bits" %
                                                 uart_device))
 
         if uart_block.start_address.bit_length() > self.UART_ADDR_WIDTH:
-            raise_with_traceback(ValueError("UART block address value 0x%H is greater than 16 bits" %
+            raise_with_traceback(ValueError("UART block address value 0x%X is greater than 16 bits" %
                                             uart_block.start_address))
         if self._readback_addr:
             if self._readback_addr.start_address.bit_length() > self.UART_ADDR_WIDTH:
-                raise_with_traceback(ValueError("readback_addr value 0x%H is greater than 16 bits" %
+                raise_with_traceback(ValueError("readback_addr value 0x%X is greater than 16 bits" %
                                                 self._readback_addr.start_address))
 
     @property

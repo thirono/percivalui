@@ -1,5 +1,6 @@
 import json
 import datetime
+from future.utils import raise_with_traceback
 
 
 class IpcMessageException(Exception):
@@ -41,7 +42,7 @@ class IpcMessage(object):
             try:
                 self.attrs = json.loads(from_str)
 
-            except ValueError, e:
+            except ValueError as e:
                 raise IpcMessageException("Illegal message JSON format: " + str(e))
 
     def is_valid(self):
@@ -53,7 +54,7 @@ class IpcMessage(object):
             is_valid = is_valid & (self._get_attr("msg_val") != None)
             is_valid = is_valid & (self._get_attr("timestamp") != None)
 
-        except IpcMessageException, e:
+        except IpcMessageException as e:
             is_valid = False
 
         return is_valid
@@ -75,7 +76,7 @@ class IpcMessage(object):
         try:
             param_value = self.attrs['params'][param_name]
 
-        except KeyError, e:
+        except KeyError as e:
             return_val = False
 
         return return_val
@@ -85,9 +86,9 @@ class IpcMessage(object):
         try:
             param_value = self.attrs['params'][param_name]
 
-        except KeyError, e:
-            if default_value == None:
-                raise IpcMessageException("Missing parameter " + param_name)
+        except KeyError as e:
+            if default_value is None:
+                raise_with_traceback(IpcMessageException("Missing parameter " + param_name))
             else:
                 param_value = default_value
 
@@ -129,9 +130,9 @@ class IpcMessage(object):
         try:
             attr_value = self.attrs[attr_name]
 
-        except KeyError, e:
-            if default_value == None:
-                raise IpcMessageException("Missing attribute " + attr_name)
+        except KeyError as e:
+            if default_value is None:
+                raise_with_traceback(IpcMessageException("Missing attribute " + attr_name))
             else:
                 attr_value = default_value
 

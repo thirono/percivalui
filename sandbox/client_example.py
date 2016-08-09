@@ -6,17 +6,14 @@ Created on 20 May 2016
 from __future__ import print_function
 from future.utils import raise_with_traceback
 
-import os, time, traceback
+import os
+import traceback
 import argparse
 import zmq
-import json
 
-import logging
 from percival.log import get_exclusive_file_logger
 
-import os
 import npyscreen
-from percival.detector.ipc_reactor import IpcReactor
 from percival.detector.ipc_channel import IpcChannel
 from percival.detector.ipc_message import IpcMessage
 from percival.carrier import const
