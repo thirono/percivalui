@@ -56,6 +56,9 @@ class PercivalClientApp(npyscreen.NPSAppManaged):
             if reply:
                 self._reply = reply
                 self._current_value = str(reply)
+        elif pollevts == 0:
+            log.error("poll timeout without reply")
+            self._current_value = "ERROR: poll timeout without reply"
 
     def read_message(self, timeout):
         pollevts = self._ctrl_channel.poll(timeout)
