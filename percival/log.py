@@ -104,7 +104,7 @@ percival_log_config = {
 }
 
 
-#logging.config.dictConfig(percival_log_config)
+# logging.config.dictConfig(percival_log_config)
 
 import logging
 import logging.config
@@ -114,3 +114,27 @@ log = logging.getLogger("percival")
 
 def logger(name):
     return logging.getLogger(name)
+
+
+def get_exclusive_file_logger(filename):
+    """Return a percival logger with a file handler
+
+    Creates a file handler and removes the existing console handler from the standard percival logger instance. This can
+    be used in console-gui applications where writing log messages to stdout/stderr would corrupt the display.
+
+        :param filename: Name of file to write log messages to
+        :type filename:  str
+        :returns: A logger object with an attached file handler
+        :rtype logging.logger:
+    """
+    ch = logging.FileHandler(str(filename), )
+    ch.setLevel(log.getEffectiveLevel())
+    fmt = logging.Formatter(percival_log_config['formatters']['verbose']['format'])
+    ch.setFormatter(fmt)
+    log.addHandler(ch)
+
+    # Remove console handlers
+    console_handlers = [hndlr for hndlr in log.handlers if hndlr.name == 'console']
+    for hndlr in console_handlers:
+        log.removeHandler(hndlr)
+    return log

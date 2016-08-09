@@ -6,13 +6,13 @@ Created on 20 May 2016
 from __future__ import print_function
 from future.utils import raise_with_traceback
 
-import os, time
+import os, time, traceback
 import argparse
 import zmq
 import json
 
 import logging
-from percival.log import log
+from percival.log import get_exclusive_file_logger
 
 import os
 import npyscreen
@@ -45,10 +45,13 @@ class PercivalClientApp(npyscreen.NPSAppManaged):
         self.registerForm("SYS_CMD", SendSystemCommand())
 
     def send_message(self, ipc_message):
+        log.debug("sending message: %s", ipc_message)
         self._ctrl_channel.send(ipc_message.encode())
         pollevts = self._ctrl_channel.poll(1000)
+        log.debug("poll event: %s", pollevts)
         if pollevts == zmq.POLLIN:
             reply = IpcMessage(from_str=self._ctrl_channel.recv())
+            log.debug("Message reply: %s", reply)
             if reply:
                 self._reply = reply
                 self._current_value = str(reply)
@@ -82,12 +85,17 @@ class IntroForm(npyscreen.Form):
         self.stat.value = self.parentApp._status_endpoint
 
     def afterEditing(self):
+        log.debug("Connecting to IPC channel (status): %s", self.stat.value)
         self.parentApp._status_channel = IpcChannel(IpcChannel.CHANNEL_TYPE_SUB)
         self.parentApp._status_channel.connect(self.stat.value)
         self.parentApp._status_channel.subscribe("")
+        log.debug("Connected (status): %s", self.parentApp._status_channel)
         self.parentApp._poller.register(self.parentApp._status_channel.socket, zmq.POLLIN)
+
+        log.debug("Connecting to IPC channel (control): %s", self.ctrl.value)
         self.parentApp._ctrl_channel = IpcChannel(IpcChannel.CHANNEL_TYPE_PAIR)
         self.parentApp._ctrl_channel.connect(self.ctrl.value)
+        log.debug("Connected (control): %s", self.parentApp._ctrl_channel)
         self.parentApp.setNextForm("MAIN_MENU")
 
 
@@ -110,36 +118,41 @@ class MainMenu(npyscreen.FormBaseNew):
 
     def button(self):
         selected = self.t2.entry_widget.value
-        if selected == 0:
-            msg = IpcMessage(IpcMessage.MSG_TYPE_CMD, IpcMessage.MSG_VAL_CMD_CONFIGURE)
-            msg.set_param("list", "device")
-            self.parentApp.send_message(msg)
-            self.parentApp._boards = self.parentApp._reply.get_param("device")
-        if selected == 1:
-            msg = IpcMessage(IpcMessage.MSG_TYPE_CMD, IpcMessage.MSG_VAL_CMD_CONFIGURE)
-            msg.set_param("status_loop", "run")
-            self.parentApp.send_message(msg)
-            self.status_loop = True
-        if selected == 2:
-            msg = IpcMessage(IpcMessage.MSG_TYPE_CMD, IpcMessage.MSG_VAL_CMD_CONFIGURE)
-            msg.set_param("status_loop", "stop")
-            self.parentApp.send_message(msg)
-            self.status_loop = False
-        if selected == 3:
-            msg = IpcMessage(IpcMessage.MSG_TYPE_CMD, IpcMessage.MSG_VAL_CMD_CONFIGURE)
-            msg.set_param("list", "controls")
-            self.parentApp.send_message(msg)
-        if selected == 4:
-            msg = IpcMessage(IpcMessage.MSG_TYPE_CMD, IpcMessage.MSG_VAL_CMD_CONFIGURE)
-            msg.set_param("list", "monitors")
-            self.parentApp.send_message(msg)
-        if selected == 5:
-            self.parentApp.setNextForm("SYS_CMD")
-            self.editing = False
-            self.parentApp.switchFormNow()
-        if selected == 6:
-            self.parentApp.setNextForm(None)
-            self.parentApp.switchFormNow()
+        try:
+            if selected == 0:
+                msg = IpcMessage(IpcMessage.MSG_TYPE_CMD, IpcMessage.MSG_VAL_CMD_CONFIGURE)
+                msg.set_param("list", "device")
+                self.parentApp.send_message(msg)
+                self.parentApp._boards = self.parentApp._reply.get_param("device")
+            if selected == 1:
+                msg = IpcMessage(IpcMessage.MSG_TYPE_CMD, IpcMessage.MSG_VAL_CMD_CONFIGURE)
+                msg.set_param("status_loop", "run")
+                self.parentApp.send_message(msg)
+                self.status_loop = True
+            if selected == 2:
+                msg = IpcMessage(IpcMessage.MSG_TYPE_CMD, IpcMessage.MSG_VAL_CMD_CONFIGURE)
+                msg.set_param("status_loop", "stop")
+                self.parentApp.send_message(msg)
+                self.status_loop = False
+            if selected == 3:
+                msg = IpcMessage(IpcMessage.MSG_TYPE_CMD, IpcMessage.MSG_VAL_CMD_CONFIGURE)
+                msg.set_param("list", "controls")
+                self.parentApp.send_message(msg)
+            if selected == 4:
+                msg = IpcMessage(IpcMessage.MSG_TYPE_CMD, IpcMessage.MSG_VAL_CMD_CONFIGURE)
+                msg.set_param("list", "monitors")
+                self.parentApp.send_message(msg)
+            if selected == 5:
+                self.parentApp.setNextForm("SYS_CMD")
+                self.editing = False
+                self.parentApp.switchFormNow()
+            if selected == 6:
+                self.parentApp.setNextForm(None)
+                self.parentApp.switchFormNow()
+        except Exception as e:
+            log.exception(e)
+            tb = traceback.format_exc()
+            self.parentApp._current_value = "ERROR:\n------------------------\n" + tb
 
     def while_waiting(self):
         if self.status_loop == True:
@@ -209,6 +222,9 @@ def options():
 
 
 def main():
+    global log
+    log = get_exclusive_file_logger("client_example.log")
+
     args = options()
     log.info(args)
 

@@ -5,7 +5,7 @@ import json
 import npyscreen
 import requests
 
-from percival.log import log
+from percival.log import get_exclusive_file_logger
 
 
 class OdinClientApp(npyscreen.NPSAppManaged):
@@ -23,8 +23,10 @@ class OdinClientApp(npyscreen.NPSAppManaged):
         return self._url + "/api/" + self._api + "/"
 
     def send_message(self, msg):
+        full_msg = self.build_url() + msg
+        log.debug("Sending msg: %s", full_msg)
         try:
-            result = requests.get(self.build_url() + msg,
+            result = requests.get(full_msg,
                                   headers={
                                       'Content-Type': 'application/json',
                                       'Accept': 'application/json'
@@ -33,7 +35,7 @@ class OdinClientApp(npyscreen.NPSAppManaged):
             result = {
                 "error": "Exception during HTTP request, check address and Odin server instance"
             }
-
+            log.exception(result['error'])
         return result
 
 
@@ -115,6 +117,8 @@ def options():
 
 
 def main():
+    global log
+    log = get_exclusive_file_logger("odin_client.log")
     args = options()
     log.info(args)
 
