@@ -110,9 +110,8 @@ class IpcReactor:
                     if self._timers[timer].has_expired():
                         self._timers.pop(timer)
 
-            except Exception, e:
-                self._log.debug("Exception raised")
-                self._log.debug(e)
+            except Exception as e:
+                self._log.exception(e)
                 break
 
         return rc

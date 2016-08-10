@@ -19,6 +19,7 @@ def threadsafe( lockname ):
     Use this to provide thread safe implementation of methods. It is not necessarily
     the most efficient use of locking, but for simple cases it does the job in an
     unintrusive fashion.
+    :param lockname:
     """
     def _synched(func):
         @wraps(func)

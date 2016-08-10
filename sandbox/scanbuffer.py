@@ -1,16 +1,15 @@
-'''
+"""
 Created on 15 July 2016
 
 @author: Alan Greer
-'''
+"""
 
 from __future__ import print_function
-from builtins import range
 import os
 
 from percival.log import log
-from percival.carrier.txrx import TxRx, TxRxContext
-from percival.carrier.encoding import (encode_message, encode_multi_message, decode_message)
+from percival.carrier.txrx import TxRxContext
+from percival.carrier.encoding import (encode_message, decode_message)
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
 
@@ -27,8 +26,8 @@ def main():
         log.debug("Querying address: %X ...", addr)
         try:
             resp = trx.send_recv(msg, expected_bytes)
-        except:
-            log.warning("no response (addr: %X", addr)
+        except RuntimeError:
+            log.exception("Error sending msg: %s", msg)
 
         data = decode_message(resp)
         log.info("Got from addr: 0x%04X bytes: %d  words: %d", addr, len(resp), len(data))

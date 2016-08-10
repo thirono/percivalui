@@ -2,9 +2,9 @@
 Encode and decode Carrier Board Xport messages
 """
 from __future__ import unicode_literals, absolute_import
-from builtins import bytes
+from builtins import bytes  # pylint: disable=W0622
 try:
-    import itertools.izip as zip
+    import itertools.izip as zip  # pylint: disable=W0622
 except ImportError:
     pass
 
@@ -32,14 +32,14 @@ def encode_message(addr, word):
     :param word: data word (32bit integer)
     :returns: bytearray
     """
-    logger.debug("%s"%([addr, word]))
+    logger.debug("%s", ([addr, word]))
     encoded_msg = msg_packer.pack(addr, word)
     # Python 2 -> 3 compatibility workaround:
     # In python2 struct.pack() returns a string which we then
     # need to convert to a 'bytes' object.
     if isinstance(encoded_msg, str):
-        encoded_msg = bytes( encoded_msg, encoding=DATA_ENCODING)
-    logger.debug("encode_message returning: %s"%[encoded_msg])
+        encoded_msg = bytes(encoded_msg, encoding=DATA_ENCODING)
+    logger.debug("encode_message returning: %s", [encoded_msg])
     return encoded_msg
 
 
@@ -51,13 +51,13 @@ def encode_multi_message(start_addr, words):
     :param words:      A list of 32bit integer words to be encoded
     :returns: list
     """ 
-    logger.debug("%s"%([start_addr, words]))
+    logger.debug("%s", ([start_addr, words]))
     addresses = range(start_addr, start_addr + len(words))
     encoded_msg = []
     assert len(addresses) == len(words)
     for addr, word in zip(*[addresses, words]):
         encoded_msg.append(encode_message(addr, word))
-    logger.debug("encode_multi_message returning: %s"%encoded_msg)
+    logger.debug("encode_multi_message returning: %s", encoded_msg)
     return encoded_msg
 
 
@@ -72,8 +72,8 @@ def decode_message(msg):
     """
     logger.debug(msg)
     extra_bytes = len(msg)%NUM_BYTES_PER_MSG
-    if (extra_bytes > 0):
-        logger.warning("Too many (%d) bytes in message"%extra_bytes)
+    if extra_bytes > 0:
+        logger.warning("Too many (%d) bytes in message", extra_bytes)
         msg = msg[:-extra_bytes] # WARNING: we are chopping away some bytes here...
     num_words =  len(msg)//NUM_BYTES_PER_MSG
     fmt = b"!"
@@ -85,6 +85,6 @@ def decode_message(msg):
     # reshape the linear list of (addr, word, addr, word, addr, word...) into a 
     # neat [(addr,word), (addr, word) ... ] list
     addr_word_sets = [ aw_set for aw_set in zip(*[iter(addr_word_list)]*2) ]
-    logger.debug("Returning: %s"%str(addr_word_sets))
+    logger.debug("Returning: %s", str(addr_word_sets))
     return addr_word_sets
 

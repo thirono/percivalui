@@ -1,20 +1,21 @@
-'''
+"""
 Created on 15 July 2016
 
 @author: Alan Greer
-'''
+"""
 
 from __future__ import print_function
-from builtins import range
+from builtins import range  # pylint: disable=W0622
 import os
 
 import argparse
 
 from percival.log import log
-from percival.carrier.txrx import TxRx, TxRxContext
+from percival.carrier.txrx import TxRxContext
 from percival.carrier.encoding import (encode_message, encode_multi_message, decode_message)
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
+
 
 def options():
     parser = argparse.ArgumentParser()
@@ -37,16 +38,19 @@ def main():
 
         values = []
         if args.type == "constant":
+            # TODO: refactor slightly clunky loop
             for n in range(0, args.number):
                 values.append(int(args.value))
 
         if args.type == "increase":
+            # TODO: refactor slightly clunky loop
             nval = int(args.value)
             for n in range(0, args.number):
                 values.append(nval)
                 nval += 1
 
         if args.type == "decrease":
+            # TODO: refactor slightly clunky loop
             nval = int(args.value)
             for n in range(0, args.number):
                 values.append(nval)
@@ -61,8 +65,8 @@ def main():
         try:
             for m in msg:
                 resp = trx.send_recv(m, expected_bytes)
-        except:
-            log.warning("no response (addr: %X)", addr)
+        except RuntimeError:
+            log.exception("no response (addr: %X)", addr)
 
         addr = 0x014A
         expected_bytes = None
@@ -71,8 +75,8 @@ def main():
         log.debug("Querying address: %X ...", addr)
         try:
             resp = trx.send_recv(msg, expected_bytes)
-        except:
-            log.warning("no response (addr: %X", addr)
+        except RuntimeError:
+            log.exception("no response (addr: %X", addr)
 
         data = decode_message(resp)
         log.info("Got from addr: 0x%04X bytes: %d  words: %d", addr, len(resp), len(data))

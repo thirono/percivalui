@@ -32,7 +32,7 @@ class IpcMessage(object):
 
         self.attrs = {}
 
-        if from_str == None:
+        if from_str is None:
             self.attrs['msg_type'] = msg_type
             self.attrs['msg_val']  = msg_val
             self.attrs['timestamp'] = datetime.datetime.now().isoformat()
@@ -50,11 +50,11 @@ class IpcMessage(object):
         is_valid = True
 
         try:
-            is_valid = is_valid & (self._get_attr('msg_type') != None)
-            is_valid = is_valid & (self._get_attr("msg_val") != None)
-            is_valid = is_valid & (self._get_attr("timestamp") != None)
+            is_valid = is_valid & (self._get_attr('msg_type') is not None)
+            is_valid = is_valid & (self._get_attr("msg_val") is not None)
+            is_valid = is_valid & (self._get_attr("timestamp") is not None)
 
-        except IpcMessageException as e:
+        except IpcMessageException:
             is_valid = False
 
         return is_valid
@@ -73,12 +73,10 @@ class IpcMessage(object):
 
     def has_param(self, param_name, default_value=None):
         return_val = True
-        try:
-            param_value = self.attrs['params'][param_name]
-
-        except KeyError as e:
+        if 'params' not in self.attrs:
             return_val = False
-
+        elif param_name not in self.attrs['params']:
+            return_val = False
         return return_val
 
     def get_param(self, param_name, default_value=None):
@@ -86,7 +84,7 @@ class IpcMessage(object):
         try:
             param_value = self.attrs['params'][param_name]
 
-        except KeyError as e:
+        except KeyError:
             if default_value is None:
                 raise_with_traceback(IpcMessageException("Missing parameter " + param_name))
             else:
@@ -104,7 +102,7 @@ class IpcMessage(object):
 
     def set_param(self, param_name, param_value):
 
-        if not 'params' in self.attrs:
+        if 'params' not in self.attrs:
             self.attrs['params'] = {}
 
         self.attrs['params'][param_name] = param_value

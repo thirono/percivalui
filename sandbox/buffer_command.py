@@ -5,17 +5,16 @@ Created on 15 July 2016
 '''
 
 from __future__ import print_function
-from builtins import range
 import os
 
 import argparse
 
 from percival.log import log
-from percival.carrier.txrx import TxRx, TxRxContext
+from percival.carrier.txrx import TxRxContext
 from percival.carrier.registers import UARTRegister
 from percival.carrier import const
-from percival.carrier.encoding import (encode_message, encode_multi_message, decode_message)
-from percival.carrier.buffer import BufferCommand
+#from percival.carrier.encoding import encode_message
+#from percival.carrier.buffer import BufferCommand
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
 
@@ -57,7 +56,7 @@ def main():
     if args.board.upper() == "SENSOR":
         board = 5
 
-    cmd = cmd_type << 7 + board << 6 + int(args.number) << 4 + int(args.address)
+    #cmd = cmd_type << 7 + board << 6 + int(args.number) << 4 + int(args.address)
 
     with TxRxContext(board_ip_address) as trx:
         trx.timeout = 10.0
@@ -67,8 +66,8 @@ def main():
 
         addr = 0x00F9
 
-        expected_bytes = None
-        msg = encode_message(addr, cmd)
+        #expected_bytes = None
+        #msg = encode_message(addr, cmd)
 
         reg_command = UARTRegister(const.COMMAND)
         reg_command.initialize_map([0,0,0])
@@ -79,9 +78,10 @@ def main():
         log.debug("Sending message: %s", cmd_msg)
         try:
             resp = trx.send_recv_message(cmd_msg)
-        except:
-            log.warning("no response (addr: %X)", addr)
-        log.debug("Response: %s", resp)
+        except RuntimeError:
+            log.exception("no response (addr: %X)", addr)
+        else:
+            log.debug("Response: %s", resp)
 
         reg_command.fields.buffer_cmd_destination = board
         reg_command.fields.buffer_cmd = cmd_type
@@ -97,8 +97,8 @@ def main():
         try:
             resp = trx.send_recv_message(cmd_msg)
 #            resp = trx.send_recv(msg, expected_bytes)
-        except:
-            log.warning("no response (addr: %X)", addr)
+        except RuntimeError:
+            log.exception("no response (addr: %X)", addr)
 
         log.debug("Response: %s", resp)
         #for data in resp:

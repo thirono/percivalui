@@ -1,11 +1,9 @@
-'''
+"""
 Created on 20 May 2016
 
 @author: Alan Greer
-'''
+"""
 from __future__ import print_function
-from future.utils import raise_with_traceback
-
 import logging
 
 from percival.carrier import const
@@ -66,49 +64,49 @@ class PercivalParameters(object):
         """
         return self._control_params.carrier_ip
 
-    def board_name(self, type):
+    def board_name(self, board):
         """
         Return the name of the specified board type
 
-        :param type: Which board to return the name
-        :type type: const.BoardTypes
+        :param board: Which board to return the name
+        :type board: const.BoardTypes
         :returns: Name of the specified board
         :rtype: str
         """
-        return self._board_params[type].board_name
+        return self._board_params[board].board_name
 
-    def board_type(self, type):
+    def board_type(self, board):
         """
         Return the type of the specified board
 
-        :param type: Which board to return the type
-        :type type: const.BoardTypes
+        :param board: Which board to return the type
+        :type board: const.BoardTypes
         :returns: Type of the specified board
         :rtype: str
         """
-        return self._board_params[type].board_type
+        return self._board_params[board].board_type
 
-    def control_channels_count(self, type):
+    def control_channels_count(self, board):
         """
         Return the number of control channels of the specified board
 
-        :param type: Which board to return the number of control channels
-        :type type: const.BoardTypes
+        :param board: Which board to return the number of control channels
+        :type board: const.BoardTypes
         :returns: Number of control channels
         :rtype: int
         """
-        return self._board_params[type].control_channels_count
+        return self._board_params[board].control_channels_count
 
-    def monitoring_channels_count(self, type):
+    def monitoring_channels_count(self, board):
         """
         Return the number of monitor channels of the specified board
 
-        :param type: Which board to return the number of monitor channels
-        :type type: const.BoardTypes
+        :param board: Which board to return the number of monitor channels
+        :type board: const.BoardTypes
         :returns: Number of monitor channels
         :rtype: int
         """
-        return self._board_params[type].monitoring_channels_count
+        return self._board_params[board].monitoring_channels_count
 
     def control_channel_by_address(self, uart_address):
         """
@@ -132,18 +130,18 @@ class PercivalParameters(object):
         """
         return self._channel_params.monitoring_channel_by_address(uart_address)
 
-    def monitoring_channel_name_by_index_and_board_type(self, index, type):
+    def monitoring_channel_name_by_index_and_board_type(self, index, board):
         """
         Search for the monitor channel name by its ini file index and the board type
 
         :param index: Index of the channel
         :type index: int
-        :param index: Which board to search
-        :type index: const.BoardTypes
+        :param board: Which board to search
+        :type board: const.BoardTypes
         :returns: Monitor channel name
         :rtype: str
         """
-        return self._channel_params.monitoring_channel_name_by_id_and_board_type(index, type)
+        return self._channel_params.monitoring_channel_name_by_id_and_board_type(index, board)
 
     def monitoring_channel_by_name(self, channel_name):
         """
@@ -240,8 +238,9 @@ class PercivalDetector(object):
         for cmd_msg in cmd_msgs:
             try:
                 resp = self._txrx.send_recv_message(cmd_msg)
-            except:
-                self._log.warning("no response (message: %s", cmd_msg)
+            except RuntimeError:
+                self._log.exception("no response (message: %s)", cmd_msg)
+            # TODO: check response resp
 
     def load_channels(self):
         """
@@ -263,7 +262,9 @@ class PercivalDetector(object):
             if bt != const.BoardTypes.prototype:
                 settings = self._board_settings[bt].device_monitoring_settings(monitor.UART_address)
                 mc = MonitoringChannel(self._txrx, monitor, settings)
-                self._log.critical("Adding %s [%s] to monitor set", (const.DeviceFamily(mc._channel_ini.Component_family_ID)).name, mc._channel_ini.Channel_name)
+                self._log.critical("Adding %s [%s] to monitor set",
+                                   (const.DeviceFamily(mc._channel_ini.Component_family_ID)).name,
+                                   mc._channel_ini.Channel_name)
                 description, device = DeviceFactory[const.DeviceFamily(mc._channel_ini.Component_family_ID)]
                 self._monitors[mc._channel_ini.Channel_name] = device(mc._channel_ini.Channel_name, mc)
 
@@ -280,7 +281,9 @@ class PercivalDetector(object):
             if bt != const.BoardTypes.prototype:
                 settings = self._board_settings[bt].device_control_settings(control.UART_address)
                 cc = ControlChannel(self._txrx, control, settings)
-                self._log.critical("Adding %s [%s] to control set", (const.DeviceFamily(cc._channel_ini.Component_family_ID)).name, cc._channel_ini.Channel_name)
+                self._log.critical("Adding %s [%s] to control set",
+                                   (const.DeviceFamily(cc._channel_ini.Component_family_ID)).name,
+                                   cc._channel_ini.Channel_name)
                 description, device = DeviceFactory[const.DeviceFamily(cc._channel_ini.Component_family_ID)]
                 self._controls[cc._channel_ini.Channel_name] = device(cc._channel_ini.Channel_name, cc)
 
@@ -414,7 +417,7 @@ class PercivalDetector(object):
             for addr, value in response:
                 offset = addr - readback_block.start_address
                 name = self._percival_params.monitoring_channel_name_by_index_and_board_type(offset, const.BoardTypes.carrier)
-                if self._monitors.has_key(name):
+                if name in self._monitors:
                     self._monitors[name].update(read_maps[offset])
                     status_msg[name] = self._monitors[name].status
 

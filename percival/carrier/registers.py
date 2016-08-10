@@ -61,6 +61,10 @@ class RegisterMap(object):
     def map_fields(self):
         return self._mem_map.keys()
 
+    @property
+    def mem_map(self):
+        return self._mem_map
+
     def __str__(self):
         map_str = ""
         map_fields = [f for (k,f) in sorted(self._mem_map.items(),
@@ -156,7 +160,7 @@ class HeaderInfoMap(RegisterMap):
     num_words = 1
 
     def __init__(self):
-        object.__setattr__(self, '_mem_map', {}) # This prevents infinite recursion when setting attributes
+        object.__setattr__(self, '_mem_map', {})  # This prevents infinite recursion when setting attributes
         self._mem_map = {"eeprom_address":               MapField("eeprom_address",              0, 8, 16),
                          "monitoring_channels_count":    MapField("monitoring_channels_count",   0, 8,  8),
                          "control_channels_count":       MapField("control_channels_count",      0, 8,  0),
@@ -168,7 +172,7 @@ class ControlChannelMap(RegisterMap):
     num_words = 4
 
     def __init__(self):
-        object.__setattr__(self, '_mem_map', {}) # This prevents infinite recursion when setting attributes
+        object.__setattr__(self, '_mem_map', {})  # This prevents infinite recursion when setting attributes
         self._mem_map = {"channel_id":                   MapField("channel_id",                  0,  5, 27),
                          "board_type":                   MapField("board_type",                  0,  3, 24),
                          "component_family_id":          MapField("component_family_id",         0,  4, 20),
@@ -198,7 +202,7 @@ class MonitoringChannelMap(RegisterMap):
     num_words = 4
 
     def __init__(self):
-        object.__setattr__(self, '_mem_map', {}) # This prevents infinite recursion when setting attributes
+        object.__setattr__(self, '_mem_map', {})  # This prevents infinite recursion when setting attributes
         self._mem_map = {"channel_id":                   MapField("channel_id",                  0,  5, 27),
                          "board_type":                   MapField("board_type",                  0,  3, 24),
                          "component_family_id":          MapField("component_family_id",         0,  4, 20),
@@ -229,7 +233,7 @@ class CommandMap(RegisterMap):
     num_words = 3
 
     def __init__(self):
-        object.__setattr__(self, '_mem_map', {}) # This prevents infinite recursion when setting attributes
+        object.__setattr__(self, '_mem_map', {})  # This prevents infinite recursion when setting attributes
         self._mem_map = {"device_cmd":                   MapField("device_cmd",                   0,  3, 28),
                          "device_type":                  MapField("device_type",                  0,  2, 23),
                          #"eeprom_target":                MapField("eeprom_target",                0,  3, 25),
@@ -251,7 +255,7 @@ class EchoWordMap(RegisterMap):
     num_words = 1
 
     def __init__(self):
-        object.__setattr__(self, '_mem_map', {}) # This prevents infinite recursion when setting attributes
+        object.__setattr__(self, '_mem_map', {})  # This prevents infinite recursion when setting attributes
         self._mem_map = {"read_value":                   MapField("read_value",                   0,  16,  0),
                          "i2c_communication_error":      MapField("i2c_communication_error",      0,   1, 16),
                          "sample_number":                MapField("sample_number",                0,   8, 24),
@@ -264,7 +268,7 @@ class ReadValueMap(RegisterMap):
     num_words = 1
 
     def __init__(self):
-        object.__setattr__(self, '_mem_map', {}) # This prevents infinite recursion when setting attributes
+        object.__setattr__(self, '_mem_map', {})  # This prevents infinite recursion when setting attributes
         self._mem_map = {"read_value":                   MapField("read_value",                   0,  16,  0),
                          "i2c_communication_error":      MapField("i2c_communication_error",      0,   1, 16),
                          "safety_exception_detected":    MapField("safety_exception_detected",    0,   1, 17),

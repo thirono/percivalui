@@ -1,19 +1,16 @@
-'''
-Created on 20 May 2016
+"""
+Percival client example application with ncurses text-gui interface
 
-@author: Alan Greer
-'''
+"""
 from __future__ import print_function
-from future.utils import raise_with_traceback
 
 import os
 import traceback
 import argparse
 import zmq
+import npyscreen
 
 from percival.log import get_exclusive_file_logger
-
-import npyscreen
 from percival.detector.ipc_channel import IpcChannel
 from percival.detector.ipc_message import IpcMessage
 from percival.carrier import const
@@ -27,14 +24,14 @@ board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
 class PercivalClientApp(npyscreen.NPSAppManaged):
     def __init__(self, ctrl_endpoint, status_endpoint):
         super(PercivalClientApp, self).__init__()
-        self._ctrl_endpoint = ctrl_endpoint
-        self._status_endpoint = status_endpoint
-        self._poller = zmq.Poller()
-        self._ctrl_channel = None
-        self._status_channel = None
-        self._current_value = None
-        self._prev_value = None
-        self._reply = None
+        self.ctrl_endpoint = ctrl_endpoint
+        self.status_endpoint = status_endpoint
+        self.poller = zmq.Poller()
+        self.ctrl_channel = None
+        self.status_channel = None
+        self.current_value = None
+        self.prev_value = None
+        self.reply = None
 
     def onStart(self):
         self.keypress_timeout_default = 1
@@ -44,36 +41,35 @@ class PercivalClientApp(npyscreen.NPSAppManaged):
 
     def send_message(self, ipc_message):
         log.debug("sending message: %s", ipc_message)
-        self._ctrl_channel.send(ipc_message.encode())
-        pollevts = self._ctrl_channel.poll(1000)
+        self.ctrl_channel.send(ipc_message.encode())
+        pollevts = self.ctrl_channel.poll(1000)
         log.debug("poll event: %s", pollevts)
         if pollevts == zmq.POLLIN:
-            reply = IpcMessage(from_str=self._ctrl_channel.recv())
+            reply = IpcMessage(from_str=self.ctrl_channel.recv())
             log.debug("Message reply: %s", reply)
             if reply:
-                self._reply = reply
-                self._current_value = str(reply)
+                self.reply = reply
+                self.current_value = str(reply)
         elif pollevts == 0:
             log.error("poll timeout without reply")
-            self._current_value = "ERROR: poll timeout without reply"
+            self.current_value = "ERROR: poll timeout without reply"
 
     def read_message(self, timeout):
-        pollevts = self._ctrl_channel.poll(timeout)
+        pollevts = self.ctrl_channel.poll(timeout)
         if pollevts == zmq.POLLIN:
-            reply = IpcMessage(from_str=self._ctrl_channel.recv())
+            reply = IpcMessage(from_str=self.ctrl_channel.recv())
             return reply
         return None
 
     def read_status_message(self, timeout):
-        pollevts = self._status_channel.poll(timeout)
+        pollevts = self.status_channel.poll(timeout)
         while pollevts == zmq.POLLIN:
-            reply = IpcMessage(from_str=self._status_channel.recv())
-            self._current_value = str(reply)
-            pollevts = self._status_channel.poll(timeout)
+            reply = IpcMessage(from_str=self.status_channel.recv())
+            self.current_value = str(reply)
+            pollevts = self.status_channel.poll(timeout)
 
 
 # This form class defines the display that will be presented to the user.
-
 class IntroForm(npyscreen.Form):
     def create(self):
         self.name = "Percival Carrier Board Client"
@@ -82,21 +78,21 @@ class IntroForm(npyscreen.Form):
         self.stat = self.add(npyscreen.TitleText, name="Status Endpoint: ", value="")
 
     def beforeEditing(self):
-        self.ctrl.value = self.parentApp._ctrl_endpoint
-        self.stat.value = self.parentApp._status_endpoint
+        self.ctrl.value = self.parentApp.ctrl_endpoint
+        self.stat.value = self.parentApp.status_endpoint
 
     def afterEditing(self):
         log.debug("Connecting to IPC channel (status): %s", self.stat.value)
-        self.parentApp._status_channel = IpcChannel(IpcChannel.CHANNEL_TYPE_SUB)
-        self.parentApp._status_channel.connect(self.stat.value)
-        self.parentApp._status_channel.subscribe("")
-        log.debug("Connected (status): %s", self.parentApp._status_channel)
-        self.parentApp._poller.register(self.parentApp._status_channel.socket, zmq.POLLIN)
+        self.parentApp.status_channel = IpcChannel(IpcChannel.CHANNEL_TYPE_SUB)
+        self.parentApp.status_channel.connect(self.stat.value)
+        self.parentApp.status_channel.subscribe("")
+        log.debug("Connected (status): %s", self.parentApp.status_channel)
+        self.parentApp.poller.register(self.parentApp.status_channel.socket, zmq.POLLIN)
 
         log.debug("Connecting to IPC channel (control): %s", self.ctrl.value)
-        self.parentApp._ctrl_channel = IpcChannel(IpcChannel.CHANNEL_TYPE_PAIR)
-        self.parentApp._ctrl_channel.connect(self.ctrl.value)
-        log.debug("Connected (control): %s", self.parentApp._ctrl_channel)
+        self.parentApp.ctrl_channel = IpcChannel(IpcChannel.CHANNEL_TYPE_PAIR)
+        self.parentApp.ctrl_channel.connect(self.ctrl.value)
+        log.debug("Connected (control): %s", self.parentApp.ctrl_channel)
         self.parentApp.setNextForm("MAIN_MENU")
 
 
@@ -124,7 +120,7 @@ class MainMenu(npyscreen.FormBaseNew):
                 msg = IpcMessage(IpcMessage.MSG_TYPE_CMD, IpcMessage.MSG_VAL_CMD_CONFIGURE)
                 msg.set_param("list", "device")
                 self.parentApp.send_message(msg)
-                self.parentApp._boards = self.parentApp._reply.get_param("device")
+                self.parentApp.boards = self.parentApp.reply.get_param("device")
             if selected == 1:
                 msg = IpcMessage(IpcMessage.MSG_TYPE_CMD, IpcMessage.MSG_VAL_CMD_CONFIGURE)
                 msg.set_param("status_loop", "run")
@@ -153,15 +149,15 @@ class MainMenu(npyscreen.FormBaseNew):
         except Exception as e:
             log.exception(e)
             tb = traceback.format_exc()
-            self.parentApp._current_value = "ERROR:\n------------------------\n" + tb
+            self.parentApp.current_value = "ERROR:\n------------------------\n" + tb
 
     def while_waiting(self):
         if self.status_loop == True:
             self.parentApp.read_status_message(0.05)
-        if self.parentApp._current_value != self.parentApp._prev_value:
-            self.t3.values = self.parentApp._current_value.split("\n")
+        if self.parentApp.current_value != self.parentApp.prev_value:
+            self.t3.values = self.parentApp.current_value.split("\n")
             self.t3.display()
-            self.parentApp._prev_value = self.parentApp._current_value
+            self.parentApp.prev_value = self.parentApp.current_value
         self.t2.entry_widget.value = None
         self.t2.entry_widget._old_value = None
         self.t2.display()

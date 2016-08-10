@@ -10,15 +10,12 @@ of a ControlChannel and to get the value of a MonitoringChannel.
 """
 from __future__ import print_function
 
-import os, time
-
+import time
 import logging
 
 from percival.carrier import const
 from percival.carrier.registers import UARTRegister, BoardRegisters, generate_register_maps
 from percival.carrier.devices import DeviceCmd, DeviceFamilyFeatures, DeviceFamily
-from percival.carrier.txrx import TxRx
-from percival.configuration import ControlChannelIniParameters
 
 
 class Channel(object):
@@ -34,7 +31,7 @@ class Channel(object):
         :param txrx: Percival communication context
         :type  txrx: TxRx
         :param channel_ini: Channel configuration parameters from INI file
-        :type  channel_ini: ControlChannelIniParameters
+        :type  channel_ini: percival.configuration.ControlChannelIniParameters
         """
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._txrx = txrx
