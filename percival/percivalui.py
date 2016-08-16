@@ -29,7 +29,7 @@ class PercivalSimulator:
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self.data = None
         self.file = None
-        
+
     def create_data(self, dims, dtype=np.uint16):
         self.log.debug("creating some data with dtype: %s", dtype)
         rand = np.random.random(dims)
@@ -41,7 +41,7 @@ class PercivalSimulator:
             raise TypeError
         self.data = np.array(factor * rand, dtype=dtype)
         self.log.debug("Created data: %s", self.data)
-        
+
     def store_data(self, file_name, dataset_name):
         self.log.debug("file_name = %s, dataset_name = %s", file_name, dataset_name)
         self.log.debug("Data: %s", str(self.data))
@@ -50,8 +50,8 @@ class PercivalSimulator:
             f.create_dataset(dataset_name, data=self.data)
         finally:
             f.close()
-        
-        
+
+
 #class DACs:
 #    some_gain = detector.parameter.Observable('some_gain')
 
@@ -65,18 +65,18 @@ class CarrierBoard(object):
     def start_acquisition(self, exposure, nframes):
         #raise NotImplementedError
         pass
-    
+
     def stop_acquisition(self):
         #raise NotImplementedError
         pass
-    
+
     def get_nframes(self):
         #raise NotImplementedError
         return 42
 
     def powerup_sequence(self):
         raise NotImplementedError
-    #### End IControl interface implementation ####        
+    #### End IControl interface implementation ####
 
     def initialise_fpga(self):
         raise NotImplementedError
@@ -86,7 +86,7 @@ class MezzanineBoard(interface.IData):
     """Model the hardware Mezzanine Board"""
     def __init__(self):
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
-        
+
     ### Implemetation of the IData interface ###
     _filename = ""
     def get_filename(self):
@@ -94,7 +94,7 @@ class MezzanineBoard(interface.IData):
     def set_filename(self, fname):
         self._filename = fname
     filename = property(get_filename, set_filename)
-    
+
     _datasetname = ""
     def get_datasetname(self):
         return self._datasetname
@@ -112,7 +112,7 @@ class MezzanineBoard(interface.IData):
         self.filename = filename
         self.datasetname = 'data'
         sim.store_data(self.filename, self.datasetname)
-    
+
     def wait_complete(self, timeout):
         """
         Implements interface: :func:`detector.interface.IData.wait_complete()`
@@ -120,7 +120,7 @@ class MezzanineBoard(interface.IData):
         # TODO: implement proper wait for file saving complete. For the moment we just sleep
         sleepfor = 1.0 if timeout is None else timeout
         time.sleep(sleepfor)
-        
+
 ### End of implemetation of the IData interface ###
 
 
@@ -135,7 +135,7 @@ class PercivalUI(object):
 
     def __init__(self):
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
-        
+
     def acquire(self, exposure, nframes=1, wait=True):
         """Start the detector acquiring data
         """

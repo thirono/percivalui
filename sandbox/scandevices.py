@@ -1,8 +1,8 @@
-'''
+"""
 Created on 19 May 2015
 
 @author: Ulrik Pedersen
-'''
+"""
 from __future__ import print_function
 
 import os, time
@@ -11,16 +11,13 @@ import numpy as np
 import h5py
 from collections import OrderedDict
 
-import logging
 from percival.log import log
-
 from percival.carrier import const
-from percival.carrier.registers import UARTRegister, BoardRegisters, generate_register_maps
-from percival.carrier.devices import DeviceFunction, DeviceCmd, DeviceFamilyFeatures, DeviceFamily
+from percival.carrier.registers import UARTRegister, generate_register_maps
 from percival.carrier.settings import BoardSettings
-from percival.carrier.txrx import TxRx, TxRxContext, hexify
+from percival.carrier.txrx import TxRxContext, hexify
 from percival.carrier.channels import ControlChannel
-from percival.configuration import ChannelParameters, ControlChannelIniParameters
+from percival.configuration import ChannelParameters
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
 
@@ -126,7 +123,7 @@ def options():
 
 def main():
     args = options()
-    log.info (args)
+    log.info(args)
 
     with TxRxContext(board_ip_address) as trx:
         ini_params = ChannelParameters("config/Channel parameters.ini")
@@ -167,6 +164,7 @@ def main():
             log.info("Read carrier monitoring channels: %s", adcs.keys())
 
         # check if we need to execute one more iteration
+        new_value = 0
         if (args.range[2] > 0 and new_value < args.range[1]) or (args.range[2] < 0 and new_value > args.range[1]):
             new_value = args.range[1]
             # Execute one last time to include the maximum value
@@ -182,7 +180,6 @@ def main():
             tstamp = time.time()
             adcs = readmon.read_carrier_monitors()
             log.info("Read carrier monitoring channels: %s", adcs.keys())
-
 
         log.info(readmon.channel_data)
     if args.output:

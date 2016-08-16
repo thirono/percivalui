@@ -1,22 +1,19 @@
-'''
+"""
 Created on 20 May 2016
 
 @author: Alan Greer
-'''
+"""
 from __future__ import print_function
-from future.utils import raise_with_traceback
 
 import argparse
+import os
 
 from percival.log import log
-
-import os
 from percival.carrier.encoding import (encode_message, decode_message)
-
 from percival.carrier import const
 from percival.carrier.settings import BoardSettings
 from percival.carrier.txrx import TxRxContext
-from percival.control import PercivalParameters
+from percival.detector.detector import PercivalParameters
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
 
@@ -30,7 +27,7 @@ def options():
 
 def main():
     args = options()
-    log.info (args)
+    log.info(args)
 
     with TxRxContext(board_ip_address) as trx:
         percival_params = PercivalParameters()
@@ -50,10 +47,10 @@ def main():
             for msg in cmd_msg:
                 try:
                     trx.send_recv_message(msg)
-                except:
-                    log.warning("no response (message: %s", cmd_msg)
+                except RuntimeError:
+                    log.exception("no response (message: %s)", cmd_msg)
 
-        ## Now read back and check we are matching
+        # Now read back and check we are matching
         scanrange = range(0x013A, 0x0145 + 1, 1)
         expected_bytes = None
         for addr in scanrange:
@@ -61,7 +58,7 @@ def main():
 
             try:
                 resp = trx.send_recv(msg, expected_bytes)
-            except:
+            except RuntimeError:
                 log.warning("no response (addr: %X", addr)
                 continue
             data = decode_message(resp)
