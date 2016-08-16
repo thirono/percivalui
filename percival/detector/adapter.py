@@ -67,7 +67,7 @@ class PercivalAdapter(ApiAdapter):
 
     @request_types('application/json')
     @response_types('application/json', default='application/json')
-    def put(self, path, request):
+    def put(self, path, request):  # pylint: disable=W0613
 
         """
         Implementation of the HTTP PUT verb for ExcaliburAdapter
@@ -84,10 +84,9 @@ class PercivalAdapter(ApiAdapter):
 
         return ApiAdapterResponse(response, status_code=status_code)
 
-
     @request_types('application/json')
     @response_types('application/json', default='application/json')
-    def delete(self, path, request):
+    def delete(self, path, request):  # pylint: disable=W0613
         """
         Implementation of the HTTP DELETE verb for ExcaliburAdapter
 

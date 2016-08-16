@@ -29,15 +29,12 @@ positive_configuration = ["true", "yes", "on", "enable", "enabled"]
 negative_configuration = ["false", "no", "off", "disable", "disabled"]
 
 
-def find_file(filename, env=None):
+def find_file(filename):
     """Search for a file and return the full path if it can be found.
 
     Raises IOError if a file of the given name cannot be found.
 
     :param filename: The filename to search for. Can be relative or full path.
-    :param env: The name of an environment variable which can contain a list of
-                colon-separated directories. These directories (if any) will be
-                searched for the :param:`filename` if it cannot be found.
     :returns: An absolute path to the file of the same name.
     """
     # Check if the filename exist as a relative or absolute path

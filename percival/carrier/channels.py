@@ -23,7 +23,7 @@ class Channel(object):
     Represent a specific device channel on any of the control boards.
     """
 
-    def __init__(self, txrx, channel_ini, settings):
+    def __init__(self, txrx, channel_ini):
         """ Channel constructor. Call this from derived classes
 
         Keeps a reference to the txrx communication object and initialises itself based on the parameters in channel_ini.
@@ -149,7 +149,7 @@ class ControlChannel(Channel):
         :param settings: List of values used to initialise UARTRegister
         :type settings: List
         """
-        super(ControlChannel, self).__init__(txrx, channel_ini, settings)
+        super(ControlChannel, self).__init__(txrx, channel_ini)
 
         # Setup this control channels UART register
         # _addr_settings_control is a UARTBlock obtained from BoardRegisters
@@ -235,7 +235,7 @@ class MonitoringChannel(Channel):
         :param settings: List of values used to initialise UARTRegister
         :type settings: List
         """
-        super(MonitoringChannel, self).__init__(txrx, channel_ini, settings)
+        super(MonitoringChannel, self).__init__(txrx, channel_ini)
 
         self._reg_monitor_settings = UARTRegister(self._addr_settings_monitoring)
         self._reg_monitor_settings.initialize_map(settings)

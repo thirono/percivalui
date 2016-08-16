@@ -59,19 +59,19 @@ class IpcMessage(object):
 
         return is_valid
 
-    def get_msg_type(self, default_value=None):
+    def get_msg_type(self):
 
         return self.attrs['msg_type']
 
-    def get_msg_val(self, default_value=None):
+    def get_msg_val(self):
 
         return self.attrs['msg_val']
 
-    def get_msg_timestamp(self, default_val=None):
+    def get_msg_timestamp(self):
 
         return self.attrs['timestamp']
 
-    def has_param(self, param_name, default_value=None):
+    def has_param(self, param_name):
         return_val = True
         if 'params' not in self.attrs:
             return_val = False
