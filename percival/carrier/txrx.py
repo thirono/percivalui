@@ -11,7 +11,7 @@ from contextlib import contextmanager
 from multiprocessing import Lock
 
 from percival.carrier.encoding import DATA_ENCODING, NUM_BYTES_PER_MSG, END_OF_MESSAGE
-from percival.carrier.encoding import (encode_message, decode_message)
+from percival.carrier.encoding import decode_message
 
 
 def hexify(registers):
@@ -184,7 +184,7 @@ class TxRx(object):
         :retuns: Response from UART as a list of tuples: [(address, data)...]
         :rtype:  list
         """
-        self.log.debug("Sending:   %s"%message)
+        self.log.debug("Sending:   %s", message)
         if not isinstance(message, TxMessage):
             raise TypeError("message must be of type TxMessage, not %s"%str(type(message)))
 
@@ -193,7 +193,7 @@ class TxRx(object):
             resp = self.rx_msg(message.expected_bytes)
         result = decode_message(resp)
 
-        self.log.debug(" response: %s"%hexify(result))
+        self.log.debug(" response: %s", hexify(result))
         # Check for expected response
         if not message.validate_eom(resp):
             raise RuntimeError("Expected EOM on TxMessage: %s - got %s"%(str(message), str(result)))

@@ -1,8 +1,8 @@
-'''
+"""
 Created on 8 May 2015
 
 @author: Ulrik Pedersen
-'''
+"""
 from __future__ import unicode_literals, absolute_import
 from percival.carrier.const import DeviceFamily, DeviceCmd, DeviceFunction
 
@@ -231,7 +231,7 @@ class MAX31730(object):
 
         :param data: the data object for the device (or None)
         """
-        if data != None:
+        if data is not None:
             self._update_status(data)
         else:
             data = self._channel.get_value()
@@ -317,7 +317,7 @@ class LTC2309:
 
         :param data: the data object for the device (or None)
         """
-        if data != None:
+        if data is not None:
             self._update_status(data)
         else:
             data = self._channel.get_value()

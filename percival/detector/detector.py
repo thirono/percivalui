@@ -414,7 +414,7 @@ class PercivalDetector(object):
             self._log.debug(read_maps)
 
             readback_block = BoardValueRegisters[const.BoardTypes.carrier]
-            for addr, value in response:
+            for addr, value in response:  # pylint: disable=W0612
                 offset = addr - readback_block.start_address
                 name = self._percival_params.monitoring_channel_name_by_index_and_board_type(offset, const.BoardTypes.carrier)
                 if name in self._monitors:

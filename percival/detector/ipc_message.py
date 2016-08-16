@@ -128,7 +128,7 @@ class IpcMessage(object):
         try:
             attr_value = self.attrs[attr_name]
 
-        except KeyError as e:
+        except KeyError:
             if default_value is None:
                 raise_with_traceback(IpcMessageException("Missing attribute " + attr_name))
             else:

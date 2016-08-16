@@ -1,14 +1,14 @@
-'''
+"""
 Created on 12 May 2016
 
 @author: gnx91527
-'''
+"""
 from __future__ import print_function
 
 import socket
 import numpy as np
 
-from builtins import bytes
+from builtins import bytes    # pylint: disable=W0622
 from percival.carrier.encoding import DATA_ENCODING, END_OF_MESSAGE
 from percival.carrier.encoding import (encode_message, decode_message)
 from percival.log import log
@@ -101,13 +101,13 @@ def main():
 
         msg = bytes()
         block_read_bytes = 6
-        expected_resp_len = 6
+        # expected_resp_len = 6
 
-        set_value = 0
+        # set_value = 0
         chunk = client_sock.recv(block_read_bytes)
         while len(chunk) > 0:
             if isinstance(chunk, str):
-                chunk = bytes(chunk, encoding = DATA_ENCODING)
+                chunk = bytes(chunk, encoding=DATA_ENCODING)
             data = decode_message(chunk)
             for (a, w) in data:
                 log.info("Message received: (0x%04X) 0x%08X", a, w)

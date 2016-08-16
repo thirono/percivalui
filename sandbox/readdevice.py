@@ -85,9 +85,9 @@ class ReadDevice:
 
             with h5py.File("readdevice.h5", "w") as f:
                 numbers = numpy.array(list(zip(*sample_data))[0], dtype=numpy.uint8)
-                dset_sample = f.create_dataset("sample", data=numbers)  # pylint: disable=W0612
+                f.create_dataset("sample", data=numbers)
                 data = numpy.array(list(zip(*sample_data))[1], dtype=numpy.uint16)
-                dset_data = f.create_dataset("data", data=data)  # pylint: disable=W0612
+                f.create_dataset("data", data=data)
 
             log.info("File written. Use one of the following commands to analyse:")
             log.info("  h5dump readdevice.h5")

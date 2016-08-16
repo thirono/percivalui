@@ -64,7 +64,7 @@ def main():
             data = decode_message(resp)
             for (a, w) in data:
                 test_data = decode_message(cmd_msg[a].message)
-                ta, tw = test_data[0]
+                _, tw = test_data[0]
                 if w == tw:
                     log.info("Match address 0X%04X [0X%08X] == [0X%08X]", a, w, tw)
                 else:

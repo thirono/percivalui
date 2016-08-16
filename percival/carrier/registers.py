@@ -28,7 +28,7 @@ class RegisterMap(object):
 
     def __setattr__(self, name, value):
         logger.debug(str(self._mem_map))
-        if not name in self._mem_map.keys():
+        if name not in self._mem_map.keys():
             return object.__setattr__(self, name, value)
         else:
             self._mem_map[name].value = value
@@ -39,8 +39,8 @@ class RegisterMap(object):
     def parse_map(self, words):
         if len(words) != self.num_words:
             raise_with_traceback(IndexError("Map must contain %d words. Got only %d" % (self.num_words, len(words))))
-        map_fields = [f for (k,f) in sorted(self._mem_map.items(),
-                                        key=lambda key_field: key_field[1].word_index, reverse=True)]
+        map_fields = [f for (k, f) in sorted(self._mem_map.items(),
+                      key=lambda key_field: key_field[1].word_index, reverse=True)]
         for map_field in map_fields:
             map_field.extract_field_value(words)
 
@@ -51,7 +51,7 @@ class RegisterMap(object):
     def generate_map(self):
         words = list(range(self.num_words))
         logger.debug("map: %s", str(self._mem_map))
-        for (key,field) in self._mem_map.items():
+        for (key, field) in self._mem_map.items():  # pylint: disable=W0612
             logger.debug("field: %s", str(field))
             field.insert_field_value(words)
             logger.debug("generate_map: words: %s", str(words))
@@ -67,8 +67,8 @@ class RegisterMap(object):
 
     def __str__(self):
         map_str = ""
-        map_fields = [f for (k,f) in sorted(self._mem_map.items(),
-                                        key=lambda key_field: key_field[1].word_index, reverse=True)]
+        map_fields = [f for (k, f) in sorted(self._mem_map.items(),
+                      key=lambda key_field: key_field[1].word_index, reverse=True)]
         for map_field in map_fields:
             map_str += str(map_field) + ", "
         s = "<%s: Fields = %s>"%(self.__class__.__name__, map_str)
@@ -131,7 +131,7 @@ class MapField(object):
     def insert_field_value(self, words):
         # Clear the relevant bits in the input word (AND with an inverted mask)
         # Then set the relevant bit values (value shifted up and OR'ed)
-        if self._value == None:
+        if self._value is None:
             raise_with_traceback(ValueError("No value initialised for field: \'%s\'"%self._name))
         words[self._word_index] = (words[self._word_index] & (self.mask ^ 2**32-1)) | (self._value << self._bit_offset)
 
@@ -390,15 +390,15 @@ class UARTRegister(object):
     UART_WORD_WIDTH = 32
 
     def __init__(self, uart_block, uart_device=None):
-        '''Constructor
-        
+        """Constructor
+
             :param uart_block: UART start address for a block of registers.
                 This is used as a look-up key to the functionality of that register in the CarrierUARTRegisters dictionary
             :type  uart_block: :obj:`percival.carrier.const.UARTBlock`
             :param uart_device: UART start address for a specific device within the register block. If defined
                 this will be used to generate write commands in get_write_cmd_msg().
             :type uart_device: int
-        '''
+        """
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         (self._name, self._readback_addr, DeviceClass) = CarrierUARTRegisters[uart_block]
         self._uart_block_address = uart_block
@@ -494,7 +494,7 @@ def generate_register_maps(registers):
     index = 0
     register_maps = []
     while index < len(registers):
-        addr, data = registers[index]
+        addr, data = registers[index]  # pylint: disable=W0612
         uart_block = get_register_block(addr)
         if not uart_block:
             logger.warning("Did not find UART block for address: 0x%X", addr)
@@ -504,7 +504,7 @@ def generate_register_maps(registers):
             logger.warning("UART address %s doesn't align with element boundary within the block %s.", addr, uart_block)
             index += 1
             continue
-        (name, readback_addr_block, RegisterMapClass) = CarrierUARTRegisters[uart_block]
+        (name, readback_addr_block, RegisterMapClass) = CarrierUARTRegisters[uart_block]  # pylint: disable=W0612
         block_map = RegisterMapClass()
         block_words = registers[index:index + block_map.num_words]
         try:

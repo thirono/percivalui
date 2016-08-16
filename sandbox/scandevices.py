@@ -41,7 +41,7 @@ class ReadMonitors(object):
     def _set_channel_names(self, ini_params):
         response = self._txrx.send_recv_message(self._cmd_msg)
         self._channel_names = []
-        for addr, value in response:
+        for addr, _ in response:
             index = addr - self._uart_block.start_address
             #      addr is just a READ VALUES register address - not the channels base address.
             name = ini_params.monitoring_channel_name_by_id_and_board_type(index, self._board_type)

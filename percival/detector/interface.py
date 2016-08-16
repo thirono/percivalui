@@ -20,40 +20,41 @@ from . import parameter
 
 logger = logging.getLogger(__name__)
 
+
 class IABCMeta(object):
-    '''
+    """
     Abstract Base Meta Class which implements checking for required methods and
     properties, even when the class is not directly subclassed.
     The Interface class which uses this metaclass will need to define a property
     called :py:attr:`_iface_requirements` which is a list of properties that must be implemented.
-    
+
     This class is intended to work together with the :py:class:`abc.ABCMeta` class:
     Subclass :class:`IABCMeta` into your own class and set the :py:const:`__metaclass__` = :py:class:`abc.ABCMeta`
     The :py:meth:`__subclasshook__` will automatically be called when a class
     interface need to be verified.
-    '''
+    """
     
     _iface_requirements = []
-    '''Interface requirements list. The memebers listed here must be implemented 
+    '''Interface requirements list. The members listed here must be implemented
        by subclasses'''
     
     @classmethod
     def __subclasshook__(cls, C):
-        '''Iterate through the :py:attr:`_iface_requirements` list of members and check
+        """Iterate through the :py:attr:`_iface_requirements` list of members and check
         whether they are implemented by the current class or parent.
-        
+
         For requirement functions:
         Check if the functions arguments match the required arguments
         of the interface function.
-        
+
         Rules for implementation of interface functions:
             1) Must have at least the main (non-defaulted) named args
             2) Can extend the list of arguments
-            
+
         Default value arguments are discouraged in interfaces as the
         interface does not implement any functionality. Implementations
         can assign default values to the arguments if desired.
-        '''
+        """
         if not cls._iface_requirements:
             return NotImplemented
         
@@ -68,15 +69,16 @@ class IABCMeta(object):
                     impl_func_args = getargspec(getattr(C,req)).args
                     try:
                         result = interface_func_args == impl_func_args[:len(interface_func_args)]
-                    except:
+                    except IndexError:
                         result = False
             checks.append(result)
-        return not False in checks
+        return False not in checks
+
 
 class IDetector(with_metaclass(abc.ABCMeta, IABCMeta)):
-    '''
+    """
     Abstract Interface to a detector class
-    '''
+    """
     #__metaclass__ = abc.ABCMeta
     __iproperties__ = ['exposure']
     __imethods__ = ['acquire']
@@ -92,13 +94,14 @@ class IDetector(with_metaclass(abc.ABCMeta, IABCMeta)):
         Start the detector acquiring data
         '''
         raise NotImplementedError
-    
+
+
 class IParameter(with_metaclass(abc.ABCMeta, object)):
-    '''Base class interface to describe a detector parameter
-    
-    The :obj:`value` object is a :class:`detector.parameter.Observable` instance 
+    """Base class interface to describe a detector parameter
+
+    The :obj:`value` object is a :class:`detector.parameter.Observable` instance
     to which callbacks can be registerred to provide notification updates
-    '''
+    """
     #__metaclass__ = abc.ABCMeta
     value = parameter.Observable('value')
     
@@ -118,19 +121,22 @@ class IControl(with_metaclass(abc.ABCMeta, IABCMeta)):
     def get_nframes(self):
         raise NotImplementedError
 
+
 class IData(with_metaclass(abc.ABCMeta, IABCMeta)):
     #__metaclass__ = abc.ABCMeta
     
     def get_filename(self):
         return self.filename
+
     def set_filename(self, fname):
         self.filename = fname
     filename = abc.abstractproperty(get_filename, set_filename)
     
     def get_datasetname(self):
         return self.datasetname
-    def set_datasetname(self):
-        return self.datasetname
+
+    def set_datasetname(self, value):
+        self.datasetname = value
     datasetname = abc.abstractproperty(get_datasetname, set_datasetname)
     
     @abc.abstractmethod
@@ -145,12 +151,11 @@ class IData(with_metaclass(abc.ABCMeta, IABCMeta)):
     
     @abc.abstractmethod
     def wait_complete(self, timeout):
-        '''
+        """
         Wait and return once the current capture session has completed.
         This function will return when the required number of frames has been captured
         into the file - or throw Timeout exception after a timeout.
-        
+
         :param timeout: Number of seconds to block before timing out.
-        '''
+        """
         raise NotImplementedError
-    
