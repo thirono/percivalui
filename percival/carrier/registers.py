@@ -7,7 +7,7 @@ Update this whenever there are any firmware/documentation changes to register ma
 from __future__ import unicode_literals, absolute_import
 
 from future.utils import with_metaclass, raise_with_traceback
-from builtins import range
+from builtins import range  # pylint: disable=W0622
 import abc
 
 from percival.detector.interface import IABCMeta

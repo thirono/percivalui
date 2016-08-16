@@ -1,11 +1,9 @@
-'''
+"""
 Created on 20 May 2016
 
 @author: Alan Greer
-'''
+"""
 from __future__ import print_function
-from future.utils import raise_with_traceback
-
 import argparse
 
 from percival.log import log

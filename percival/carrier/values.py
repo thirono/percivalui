@@ -11,8 +11,7 @@ read the values from the hardware.
 """
 from __future__ import print_function
 
-from percival.log import log
-
+import logging
 from percival.carrier.registers import UARTRegister, BoardValueRegisters
 
 
@@ -30,7 +29,7 @@ class BoardValues:
         :param board: which board to read the value shortcut from
         :type  board: BoardTypes
         """
-        self.log = log.logger(self.__class__.__name__)
+        self.log = logging.getLogger(self.__class__.__name__)
         self._txrx = txrx
         self._board = board
         self._value_block = BoardValueRegisters[board]

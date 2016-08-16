@@ -2,7 +2,7 @@
 Communications module for the Percival Carrier Board XPort interface.
 """
 from __future__ import unicode_literals, absolute_import
-from builtins import bytes
+from builtins import bytes  # pylint: disable=W0622
 
 import logging
 import binascii
@@ -11,7 +11,7 @@ from contextlib import contextmanager
 from multiprocessing import Lock
 
 from percival.carrier.encoding import DATA_ENCODING, NUM_BYTES_PER_MSG, END_OF_MESSAGE
-from percival.carrier.encoding import (encode_message, encode_multi_message, decode_message)
+from percival.carrier.encoding import (encode_message, decode_message)
 
 
 def hexify(registers):
@@ -90,21 +90,22 @@ class TxMessage(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+
 class TxRx(object):
     """
     Transmit and receive data and commands to/from the Carrier Board through the XPort Ethernet
     """
 
     def __init__(self, fpga_addr, port = 10001, timeout = 2.0):
-        '''TxRx Constructor
-        
+        """TxRx Constructor
+
             :param fpga_addr: IP address or network name of the Carrier Board XPort device
             :type  fpga_addr: `str`
             :param port:      IP port number
             :type  port:      `int`
             :param timeout:   Socket communication timeout (seconds)
             :type  timeout:   `float`
-        '''
+        """
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         
         self._fpga_addr = (fpga_addr, port)
@@ -147,7 +148,7 @@ class TxRx(object):
         block_read_bytes = expected_bytes
         expected_resp_len = expected_bytes
         
-        if expected_bytes == None: 
+        if expected_bytes is None:
             expected_resp_len = NUM_BYTES_PER_MSG
             block_read_bytes = 1024
         
@@ -156,7 +157,7 @@ class TxRx(object):
                 block_read_bytes = expected_bytes-len(msg)
             chunk = self.sock.recv(block_read_bytes)
             if isinstance(chunk, str):
-                chunk = bytes(chunk, encoding = DATA_ENCODING)
+                chunk = bytes(chunk, encoding=DATA_ENCODING)
             if len(chunk) == 0:
                 raise RuntimeError("socket connection broken (expected a multiple of 6 bytes)")
             msg = msg + chunk
@@ -197,8 +198,7 @@ class TxRx(object):
         if not message.validate_eom(resp):
             raise RuntimeError("Expected EOM on TxMessage: %s - got %s"%(str(message), str(result)))
         return result
-        
-    
+
     def clean(self):
         """Shutdown and close the socket safely
             
@@ -230,4 +230,3 @@ def TxRxContext(*args, **kwargs):
     trx.clean()
     
        
-            

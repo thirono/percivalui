@@ -4,7 +4,6 @@ Created on 20 May 2016
 @author: Alan Greer
 '''
 from __future__ import print_function
-from future.utils import raise_with_traceback
 
 import os
 import argparse
@@ -15,6 +14,7 @@ from percival.detector.ipc_message import IpcMessage
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
 
+
 def options():
     parser = argparse.ArgumentParser()
     parser.add_argument("-w", "--write", default="False", help="Write the initialisation configuration to the board")
@@ -23,6 +23,7 @@ def options():
 #    parser.add_argument("channel", action='store', help="Control Channel to scan")
     args = parser.parse_args()
     return args
+
 
 def main():
     args = options()

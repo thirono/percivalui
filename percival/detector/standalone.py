@@ -1,14 +1,12 @@
-'''
+"""
 Created on 20 May 2016
 
 @author: Alan Greer
-'''
+"""
 from __future__ import print_function
-from future.utils import raise_with_traceback
 
 import logging
 from percival.detector.detector import PercivalDetector
-
 from percival.detector.ipc_channel import IpcChannel
 from percival.detector.ipc_message import IpcMessage
 from percival.detector.ipc_reactor import IpcReactor
@@ -52,12 +50,12 @@ class PercivalStandalone(object):
 
             if msg.has_param("list"):
                 # What are we listing
-                list = msg.get_param("list")
-                self._log.critical("Requested list of %s", list)
-                reply = self._detector.read(list)
+                _list = msg.get_param("list")
+                self._log.critical("Requested list of %s", _list)
+                reply = self._detector.read(_list)
                 # Reply with the list of control devices
                 reply_msg = IpcMessage(IpcMessage.MSG_TYPE_ACK, IpcMessage.MSG_VAL_CMD_CONFIGURE)
-                reply_msg.set_param(list, reply)
+                reply_msg.set_param(_list, reply)
                 self._log.critical("Reply with list: %s", reply_msg.encode())
                 self._ctrl_channel.send(reply_msg.encode())
 

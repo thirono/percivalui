@@ -1,16 +1,14 @@
-'''
+"""
 Created on 15 June 2016
 
 @author: Alan Greer
-'''
+"""
 from __future__ import print_function
-from future.utils import raise_with_traceback
 
 import argparse
+import os
 
 from percival.log import log
-
-import os
 from percival.detector.ipc_channel import IpcChannel
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")

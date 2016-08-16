@@ -1,8 +1,8 @@
-'''
+"""
 Configuration of the Percival Detector system can be loaded from various files.
 
 This module contain classes and functions to manage the loading of configurations.
-'''
+"""
 from __future__ import unicode_literals, absolute_import
 from future.utils import raise_with_traceback
 
@@ -30,16 +30,16 @@ negative_configuration = ["false", "no", "off", "disable", "disabled"]
 
 
 def find_file(filename, env=None):
-    '''Search for a file and return the full path if it can be found.
-    
+    """Search for a file and return the full path if it can be found.
+
     Raises IOError if a file of the given name cannot be found.
-    
+
     :param filename: The filename to search for. Can be relative or full path.
     :param env: The name of an environment variable which can contain a list of
                 colon-separated directories. These directories (if any) will be
                 searched for the :param:`filename` if it cannot be found.
     :returns: An absolute path to the file of the same name.
-    '''
+    """
     # Check if the filename exist as a relative or absolute path
     if os.path.isfile(filename):
         return os.path.abspath(filename)
@@ -207,15 +207,15 @@ class ChannelParameters(object):
         for ch in channels:
             if ch.channel_index == index:
                 name = ch.Channel_name
-                if name == None or len(name) == 0:
+                if name is None or len(name) == 0:
                     name = ch.ini_section
                 return name
 
-    def _get_channel_name_by_id_and_board_type(self, id, board_type, channels):
+    def _get_channel_name_by_id_and_board_type(self, channel_id, board_type, channels):
         for ch in channels:
-            if ch.Channel_ID == id and BoardTypes(ch.Board_type) == board_type:
+            if ch.Channel_ID == channel_id and BoardTypes(ch.Board_type) == board_type:
                 name = ch.Channel_name
-                if name == None or len(name) == 0:
+                if name is None or len(name) == 0:
                     name = ch.ini_section
                 return name
 
@@ -227,8 +227,8 @@ class ChannelParameters(object):
     def monitoring_channel_name_by_index(self, index):
         return self._get_channel_name_by_index(index, self.monitoring_channels)
 
-    def monitoring_channel_name_by_id_and_board_type(self, id, board_type):
-        return self._get_channel_name_by_id_and_board_type(id, board_type, self.monitoring_channels)
+    def monitoring_channel_name_by_id_and_board_type(self, channel_id, board_type):
+        return self._get_channel_name_by_id_and_board_type(channel_id, board_type, self.monitoring_channels)
 
     def control_channel_name_by_index(self, index):
         return self._get_channel_name_by_index(index, self.control_channels)
@@ -346,7 +346,6 @@ class BoardParameters(object):
         self._ini_filename = find_file(ini_file)
         self.conf = None
 
-
     def load_ini(self):
         """
         Loads and parses the data from INI file. The data is stored internally in the object and can be retrieved
@@ -384,7 +383,6 @@ class BoardParameters(object):
         if "Entry_counts" not in self.conf.sections():
             raise_with_traceback(RuntimeError("Entry_counts section not found in ini file %s" % str(self._ini_filename)))
         return self.conf.getint("Entry_counts", "Control_channels_count")
-
 
     @property
     def monitoring_channels_count(self):
