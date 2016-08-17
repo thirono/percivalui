@@ -14,8 +14,8 @@ percival_log_config = {
     'handlers': {
         'console':{
                    
-            'level':'DEBUG',
-            'class':'logging.StreamHandler',
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
     },
@@ -23,7 +23,7 @@ percival_log_config = {
         'percival': {
             'handlers':['console'],
             'propagate': False,
-            'level':'DEBUG',
+            'level': 'DEBUG',
         },
         'percival.carrier': {
             'handlers': ['console'],
@@ -88,6 +88,21 @@ percival_log_config = {
         'percival.detector.ipc_reactor.IpcReactor': {
             'handlers': ['console'],
             'level': 'ERROR',
+            'propagate': False,
+        },
+        'percival.detector.standalone.PercivalStandalone': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'percival.detector.detector.PercivalParameters': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'percival.detector.detector.PercivalDetector': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
             'propagate': False,
         },
         'BoardSettings': {

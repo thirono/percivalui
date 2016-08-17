@@ -36,11 +36,11 @@ class PercivalStandalone(object):
     def update_status(self):
         status_msg = IpcMessage(IpcMessage.MSG_TYPE_NOTIFY, IpcMessage.MSG_VAL_CMD_STATUS)
         status_msg.set_param("status", self._detector.update_status())
-        self._log.debug("Publishing: %s", status_msg.encode())
+        # self._log.debug("Publishing: %s", status_msg.encode())
         self._status_channel.send(status_msg.encode())
 
     def configure(self, msg):
-        self._log.critical("Received message on configuration channel: %s", msg)
+        self._log.debug("Received message on configuration channel: %s", msg)
         if msg.get_msg_type() == IpcMessage.MSG_TYPE_CMD and msg.get_msg_val() == IpcMessage.MSG_VAL_CMD_CONFIGURE:
             if msg.has_param("status_loop"):
                 if msg.get_param("status_loop") == "run":
@@ -51,12 +51,12 @@ class PercivalStandalone(object):
             if msg.has_param("list"):
                 # What are we listing
                 _list = msg.get_param("list")
-                self._log.critical("Requested list of %s", _list)
+                self._log.debug("Requested list of %s", _list)
                 reply = self._detector.read(_list)
                 # Reply with the list of control devices
                 reply_msg = IpcMessage(IpcMessage.MSG_TYPE_ACK, IpcMessage.MSG_VAL_CMD_CONFIGURE)
                 reply_msg.set_param(_list, reply)
-                self._log.critical("Reply with list: %s", reply_msg.encode())
+                self._log.debug("Reply with list: %s", reply_msg.encode())
                 self._ctrl_channel.send(reply_msg.encode())
 
             if msg.has_param("system_command"):

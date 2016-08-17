@@ -206,6 +206,7 @@ class PercivalDetector(object):
         """
         Load the initialisation files for the detector
         """
+        self._log.info("Loading detector ini files...")
         self._percival_params.load_ini()
 
     def setup_control(self):
@@ -217,7 +218,7 @@ class PercivalDetector(object):
         configurations from ini files or to read settings from the hardware.
         Creates a SystemCommand instance which can be used to send system commands to the hardware.
         """
-        self._log.critical("Carrier IP set as: %s", self._percival_params.carrier_ip)
+        self._log.info("Carrier IP set as: %s", self._percival_params.carrier_ip)
         self._txrx = TxRx(self._percival_params.carrier_ip)
         self._board_settings[const.BoardTypes.left] = BoardSettings(self._txrx, const.BoardTypes.left)
         self._board_settings[const.BoardTypes.bottom] = BoardSettings(self._txrx, const.BoardTypes.bottom)
@@ -230,7 +231,7 @@ class PercivalDetector(object):
         """
         Download the configuration from ini files to the hardware.
         """
-        self._log.critical("Initialise board")
+        self._log.info("Initialising board")
         cmd_msgs = self._board_settings[const.BoardTypes.left].initialise_board(self._percival_params)
         cmd_msgs += self._board_settings[const.BoardTypes.bottom].initialise_board(self._percival_params)
         cmd_msgs += self._board_settings[const.BoardTypes.carrier].initialise_board(self._percival_params)
@@ -262,7 +263,7 @@ class PercivalDetector(object):
             if bt != const.BoardTypes.prototype:
                 settings = self._board_settings[bt].device_monitoring_settings(monitor.UART_address)
                 mc = MonitoringChannel(self._txrx, monitor, settings)
-                self._log.critical("Adding %s [%s] to monitor set",
+                self._log.debug("Adding %s [%s] to monitor set",
                                    (const.DeviceFamily(mc._channel_ini.Component_family_ID)).name,
                                    mc._channel_ini.Channel_name)
                 description, device = DeviceFactory[const.DeviceFamily(mc._channel_ini.Component_family_ID)]
@@ -281,7 +282,7 @@ class PercivalDetector(object):
             if bt != const.BoardTypes.prototype:
                 settings = self._board_settings[bt].device_control_settings(control.UART_address)
                 cc = ControlChannel(self._txrx, control, settings)
-                self._log.critical("Adding %s [%s] to control set",
+                self._log.debug("Adding %s [%s] to control set",
                                    (const.DeviceFamily(cc._channel_ini.Component_family_ID)).name,
                                    cc._channel_ini.Channel_name)
                 description, device = DeviceFactory[const.DeviceFamily(cc._channel_ini.Component_family_ID)]
@@ -343,7 +344,7 @@ class PercivalDetector(object):
         :returns: Status report of the requested parameter
         :rtype: dict
         """
-        self._log.critical("Reading data %s", parameter)
+        self._log.debug("Reading data %s", parameter)
 
         # First check to see if parameter is a keyword
         if parameter == "controls":
@@ -387,7 +388,7 @@ class PercivalDetector(object):
         elif parameter == "status":
             reply = {}
             for monitor in self._monitors:
-                self._log.critical("Monitor: %s", monitor)
+                self._log.debug("Monitor: %s", monitor)
                 reply[monitor] = self._monitors[monitor].status
 
         # Check to see if the parameter is a monitoring device that we own
@@ -405,7 +406,7 @@ class PercivalDetector(object):
         The values shortcut is read out from the hardware and the status of all
         monitors is updated appropriately.
         """
-        self._log.info("Update status callback called")
+        #self._log.debug("Update status callback called")
         status_msg = {}
         if self._global_monitoring:
             response = self._board_values[const.BoardTypes.carrier].read_values()

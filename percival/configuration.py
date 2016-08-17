@@ -178,6 +178,8 @@ class ChannelParameters(object):
         self._monitoring_channels = None
         self.conf = SafeConfigParser(dict_type=OrderedDict)
         self.conf.read(self._ini_filename)
+        self.log.debug("Read Board Parameters INI file %s:", self._ini_filename)
+        self.log.debug("    sections: %s", self.conf.sections())
 
     @staticmethod
     def _get_channel_number(section_name):
@@ -345,16 +347,13 @@ class BoardParameters(object):
 
     def load_ini(self):
         """
-        Loads and parses the data from INI file. The data is stored internally in the object and can be retrieved
-        through the `self.control_channels` and `self.monitoring_channels` properties.
+        Loads and parses the data from INI file.
         """
-        self._control_channels = None
-        self._monitoring_channels = None
         self.conf = SafeConfigParser(dict_type=OrderedDict)
         self.conf.read(self._ini_filename)
 
-        #for section in self.conf.sections():
-        #    log.info(str(section))
+        self.log.debug("Read Board Parameters INI file %s:", self._ini_filename)
+        self.log.debug("    sections: %s", self.conf.sections())
 
     @property
     def board_name(self):
@@ -394,7 +393,6 @@ class ControlParameters(object):
     """
     def __init__(self, ini_file):
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
-        self.log.setLevel(logging.DEBUG)
         self._ini_filename = find_file(ini_file)
         self.conf = None
 
@@ -405,6 +403,8 @@ class ControlParameters(object):
         """
         self.conf = SafeConfigParser(dict_type=OrderedDict)
         self.conf.read(self._ini_filename)
+        self.log.debug("Read Board Parameters INI file %s:", self._ini_filename)
+        self.log.debug("    sections: %s", self.conf.sections())
 
     @property
     def carrier_ip(self):
