@@ -43,10 +43,19 @@ class PercivalStandalone(object):
         self._log.debug("Received message on configuration channel: %s", msg)
         if msg.get_msg_type() == IpcMessage.MSG_TYPE_CMD and msg.get_msg_val() == IpcMessage.MSG_VAL_CMD_CONFIGURE:
             if msg.has_param("status_loop"):
-                if msg.get_param("status_loop") == "run":
-                    self._detector.set_global_monitoring(True)
-                if msg.get_param("status_loop") == "stop":
-                    self._detector.set_global_monitoring(False)
+                reply_msg = IpcMessage(IpcMessage.MSG_TYPE_ACK, IpcMessage.MSG_VAL_CMD_CONFIGURE)
+                reply_msg.set_param("status_loop", msg.get_param("status_loop"))
+                try:
+                    if msg.get_param("status_loop") == "run":
+                        self._detector.set_global_monitoring(True)
+                    if msg.get_param("status_loop") == "stop":
+                        self._detector.set_global_monitoring(False)
+                except RuntimeError:
+                    self._log.exception("No reply from detector. CTRL reply: NACK")
+                    reply_msg.set_msg_type(IpcMessage.MSG_TYPE_NACK)
+                finally:
+                    self._log.debug("CTRL Reply: %s", reply_msg.encode())
+                    self._ctrl_channel.send(reply_msg.encode())
 
             if msg.has_param("list"):
                 # What are we listing
@@ -60,4 +69,13 @@ class PercivalStandalone(object):
                 self._ctrl_channel.send(reply_msg.encode())
 
             if msg.has_param("system_command"):
-                self._detector.system_command(msg.get_param("system_command"))
+                reply_msg = IpcMessage(IpcMessage.MSG_TYPE_ACK, IpcMessage.MSG_VAL_CMD_CONFIGURE)
+                reply_msg.set_param("system_command", msg.get_param("system_command"))
+                try:
+                    self._detector.system_command(msg.get_param("system_command"))
+                except RuntimeError:
+                    self._log.exception("No reply from detector. CTRL reply: NACK")
+                    reply_msg.set_msg_type(IpcMessage.MSG_TYPE_NACK)
+                finally:
+                    self._log.debug("CTRL Reply: %s", reply_msg.encode())
+                    self._ctrl_channel.send(reply_msg.encode())

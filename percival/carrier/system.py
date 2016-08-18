@@ -58,22 +58,23 @@ class SystemCommand(object):
         and sends it through the txrx object to the Percival hardware, returning any
         response.
 
+        Returns nothing as the lower level checks for expected response.
+        Can raise RuntimeError if the expected response is not received.
+
         :param cmd: command to encode
         :type  cmd: SystemCmd
-        :returns: list of (address, dataword) tuples
         """
         cmd_msg = self._get_command_msg(cmd)
-        response = self._txrx.send_recv_message(cmd_msg)
-        return response
+        self._txrx.send_recv_message(cmd_msg)
 
     def cmd_no_operation(self):
         """
         Method to send a no_operation system command.
 
-        :returns: list of (address, dataword) tuples
+        Returns nothing as the lower level checks for expected response.
+        Can raise RuntimeError if the expected response is not received.
         """
-        result = self._command(const.SystemCmd.no_operation)
-        return result
+        self._command(const.SystemCmd.no_operation)
 
     def send_command(self, cmd):
         """
