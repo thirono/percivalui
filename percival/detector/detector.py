@@ -14,7 +14,7 @@ from percival.carrier.settings import BoardSettings
 from percival.carrier.system import SystemCommand
 from percival.carrier.txrx import TxRx
 from percival.carrier.values import BoardValues
-from percival.configuration import ChannelParameters, BoardParameters, ControlParameters
+from percival.carrier.configuration import ChannelParameters, BoardParameters, ControlParameters
 
 
 class PercivalParameters(object):

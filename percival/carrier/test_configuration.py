@@ -1,6 +1,6 @@
 import unittest
 import os
-from percival.configuration import find_file, ChannelParameters, BoardParameters, ControlParameters
+from percival.carrier.configuration import find_file, ChannelParameters, BoardParameters, ControlParameters
 from percival.carrier.const import BoardTypes
 
 

@@ -11,7 +11,6 @@ commands can be sent using the send_command method.
 from __future__ import print_function
 
 import logging
-from percival.log import log
 from percival.carrier import const
 from percival.carrier.registers import UARTRegister
 

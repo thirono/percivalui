@@ -56,7 +56,7 @@ setup(
     packages=find_packages(exclude=['docs','sandbox', 'tests*']),
 
     # run-time dependencies here. These will be installed by pip when the project is installed.
-    install_requires=['numpy', 'h5py', 'future', 'enum34>=1.0'],
+    install_requires=['numpy', 'h5py', 'future', 'enum34>=1.0', 'npyscreen>=4.10.0'],
 
     # Additional groups of dependencies (e.g. development dependencies). 
     # You can install these using the following syntax, for example:
@@ -80,7 +80,9 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'percival=percivalui.control:main',
+            'percival-control=percival.percivalcontrol:main',
+            'percival-client=percival.client:main',
+            'percival-scan-devices=percival.scandevices:main',
         ],
     },
 )
