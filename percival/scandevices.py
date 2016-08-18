@@ -17,7 +17,7 @@ from percival.carrier.registers import UARTRegister, generate_register_maps
 from percival.carrier.settings import BoardSettings
 from percival.carrier.txrx import TxRxContext, hexify
 from percival.carrier.channels import ControlChannel
-from percival.configuration import ChannelParameters
+from percival.carrier.configuration import ChannelParameters
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
 

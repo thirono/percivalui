@@ -31,7 +31,7 @@ class Channel(object):
         :param txrx: Percival communication context
         :type  txrx: TxRx
         :param channel_ini: Channel configuration parameters from INI file
-        :type  channel_ini: percival.configuration.ControlChannelIniParameters
+        :type  channel_ini: percival.carrier.configuration.ControlChannelIniParameters
         """
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._txrx = txrx
