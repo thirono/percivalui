@@ -16,6 +16,7 @@ from percival.carrier.txrx import TxRxContext
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
 
+
 class ReadDevice:
     def __init__(self):
         self.keep_running = True

@@ -14,6 +14,7 @@ addons:
   apt:
     packages:
       - libhdf5-serial-dev
+      - libzmq3-dev
  
 install:
   - "pip install -r requirements.txt"
