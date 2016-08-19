@@ -5,7 +5,7 @@ percival_log_config = {
     'disable_existing_loggers': True,
     'formatters': {
         'verbose': {
-            'format': '%(name)26s [%(filename)18s:%(lineno)4d]  %(levelname)7s -  %(message)s'
+            'format': '%(name)48s [%(filename)22s:%(lineno)4d]  %(levelname)7s -  %(message)s'
         },
         'simple': {
             'format': '%(levelname)6s - %(message)s'
