@@ -9,6 +9,7 @@ from future.utils import raise_with_traceback
 import logging
 
 import os
+import errno
 import re
 from collections import OrderedDict
 from configparser import SafeConfigParser
@@ -51,7 +52,7 @@ def find_file(filename):
                 return fn
 
     # All other searches failed. We cant find this file. Raise exception.
-    raise IOError
+    raise_with_traceback(IOError(errno.ENOENT, "%s: %s" % (os.strerror(errno.ENOENT), filename)))
 
 
 class IniSectionParameters(object):
