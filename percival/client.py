@@ -4,7 +4,6 @@ Percival client example application with ncurses text-gui interface
 """
 from __future__ import print_function
 
-import os
 import traceback
 import argparse
 import zmq
@@ -15,13 +14,12 @@ from percival.detector.ipc_channel import IpcChannel
 from percival.detector.ipc_message import IpcMessage
 from percival.carrier import const
 
-board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
-
-
-# This application class serves as a wrapper for the initialization of curses
-# and also manages the actual forms of the application
 
 class PercivalClientApp(npyscreen.NPSAppManaged):
+    """
+    This application class serves as a wrapper for the initialization of curses
+    and also manages the actual forms of the application
+    """
     def __init__(self, ctrl_endpoint, status_endpoint):
         super(PercivalClientApp, self).__init__()
         self.ctrl_endpoint = ctrl_endpoint
@@ -193,8 +191,8 @@ class SendSystemCommand(npyscreen.FormBaseNew):
 
 def options():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--control", default="tcp://127.0.0.1:8888", help="Control endpoint")
-    parser.add_argument("-s", "--status", default="tcp://127.0.0.1:8889", help="Status endpoint")
+    parser.add_argument("-c", "--control", action="store", default="tcp://127.0.0.1:8888", help="ZeroMQ control endpoint")
+    parser.add_argument("-s", "--status",  action="store", default="tcp://127.0.0.1:8889", help="ZeroMQ status endpoint")
     args = parser.parse_args()
     return args
 

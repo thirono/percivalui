@@ -12,9 +12,9 @@ from percival.detector.standalone import PercivalStandalone
 
 def options():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-w", "--write", default="False", help="Write the initialisation configuration to the board")
-    parser.add_argument("-c", "--control", default="tcp://127.0.0.1:8888", help="ZeroMQ control endpoint")
-    parser.add_argument("-s", "--status", default="tcp://127.0.0.1:8889", help="ZeroMQ status endpoint")
+    parser.add_argument("-i", "--init", action="store_true", help="Write the initialisation configuration to the board")
+    parser.add_argument("-c", "--control", action="store", default="tcp://127.0.0.1:8888", help="ZeroMQ control endpoint")
+    parser.add_argument("-s", "--status",  action="store", default="tcp://127.0.0.1:8889", help="ZeroMQ status endpoint")
     args = parser.parse_args()
     return args
 
@@ -23,13 +23,8 @@ def main():
     args = options()
     log.info(args)
 
-    # Check if we need to initialise the hardware
-    init = False
-    if args.write.upper() == "TRUE":
-        init = True
-
     # Create the stand alone device
-    percival = PercivalStandalone(init)
+    percival = PercivalStandalone(args.init)
 
     # Initialise the control endpoint
     percival.setup_control_channel(args.control)

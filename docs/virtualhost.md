@@ -56,11 +56,12 @@ Run the following commands in the Terminal window:
 
 ```
 cd Percival/percivalui
+source venv27/bin/activate
+
 python setup.py develop --uninstall
 
 git pull origin master
 
-source venv27/bin/activate
 pip install -r requirements.txt --upgrade
 
 python setup.py develop
@@ -133,7 +134,7 @@ source venv27/bin/activate
 # Set an environment variable with the IP address of your Carrier Board Xport
 export PERCIVAL_CARRIER_IP=xxx.xxx.xxx.xxx
 
-percival-control -w 
+percival-control --init 
 ....
 .... lots of applications logs coming out here...
 

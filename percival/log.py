@@ -21,7 +21,7 @@ percival_log_config = {
     },
     'loggers': {
         'percival': {
-            'handlers':['console'],
+            'handlers': ['console'],
             'propagate': False,
             'level': 'DEBUG',
         },
