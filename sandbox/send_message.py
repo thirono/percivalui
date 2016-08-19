@@ -5,19 +5,17 @@ Created on 20 May 2016
 '''
 from __future__ import print_function
 
-import os
 import argparse
 
 from percival.log import log
 from percival.detector.ipc_channel import IpcChannel
 from percival.detector.ipc_message import IpcMessage
 
-board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
-
 
 def options():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-w", "--write", default="False", help="Write the initialisation configuration to the board")
+#    parser.add_argument("-w", "--write", action="store_true",
+#                        help="Write the initialisation configuration to the board")
 #    parser.add_argument("-o", "--output", action='store', help="Output HDF5 filename")
 #    parser.add_argument("-p", "--period", action='store', type=float, default=1.0, help="Control the loop period time")
 #    parser.add_argument("channel", action='store', help="Control Channel to scan")

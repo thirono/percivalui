@@ -1,8 +1,8 @@
-'''
+"""
 Created on 15 July 2016
 
 @author: Alan Greer
-'''
+"""
 
 from __future__ import print_function
 import os
@@ -18,12 +18,17 @@ from percival.carrier import const
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
 
+
 def options():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--command", default="write", help="Which command to submit (write|read|soft_reset)")
-    parser.add_argument("-b", "--board", default="A", help="(A|B|Both|Plugin|Sensor)")
-    parser.add_argument("-a", "--address", default=1, help="Starting address for operation (0 not valid, 1..n)")
-    parser.add_argument("-n", "--number", default=16, help="Number of words to read/write")
+    parser.add_argument("-c", "--command", action="store", default="write", choices=["write", "read", "soft_reset"],
+                        help="Which command to submit")
+    parser.add_argument("-b", "--board", action="store", default="A", choices=["A", "B", "both", "plugin", "sensor"],
+                        help="Board type")
+    parser.add_argument("-a", "--address", action="store", type=int, default=1,
+                        help="Starting address for operation (0 not valid, 1..n)")
+    parser.add_argument("-n", "--number", action="store", type=int, default=16,
+                        help="Number of words to read/write")
     args = parser.parse_args()
     return args
 

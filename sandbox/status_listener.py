@@ -6,17 +6,15 @@ Created on 15 June 2016
 from __future__ import print_function
 
 import argparse
-import os
 
 from percival.log import log
 from percival.detector.ipc_channel import IpcChannel
 
-board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
-
 
 def options():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-e", "--endpoint", default="tcp://127.0.0.1:8889", help="Subscribe to this endpoint")
+    parser.add_argument("-e", "--endpoint", action="store", default="tcp://127.0.0.1:8889",
+                        help="Subscribe to this ZeroMQ endpoint")
     args = parser.parse_args()
     return args
 

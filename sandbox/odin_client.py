@@ -110,8 +110,8 @@ class MainMenu(npyscreen.FormBaseNew):
 
 def options():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-u", "--url", default="http://127.0.0.1:8888", help="Address of Odin server")
-    parser.add_argument("-a", "--api", default="0.1", help="API version")
+    parser.add_argument("-u", "--url", action="store", default="http://127.0.0.1:8888", help="Address of Odin server")
+    parser.add_argument("-a", "--api", action="store", default="0.1", help="API version")
     args = parser.parse_args()
     return args
 
