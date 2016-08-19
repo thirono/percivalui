@@ -83,54 +83,6 @@ Once the URL and API have been confirmed you are presented with the main screen.
 
 Currently it is not possible to send any put or delete requests from this client.  The client can be exited by selecting the "Exit" option.  Note that exiting the client does not affect the Odin server instance.
 
-## Executing in Standalone Mode
-
-When executing the detector in standalone mode, the classes IpcMessage, IpcChannel and IpcReactor have been utilised to make interaction with the application simple and consistent.  The detector class is created within a PercivalStandalone class, along with a control and status IpcChannel.
-IpcMessage objects can be sent to the detector class through the control IpcChannel, and these are decoded by the standalone class before executing the appropriate detector methods.  A sandbox script has been developed to provide a quick method of executing the standalone application:
-
-```
-python ./sandbox/percivalcontrol.py --help
-usage: percivalcontrol.py [-h] [-w WRITE] [-c CONTROL] [-s STATUS]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -w WRITE, --write WRITE
-                        Write the initialisation configuration to the board
-  -c CONTROL, --control CONTROL
-                        ZeroMQ control endpoint
-  -s STATUS, --status STATUS
-                        ZeroMQ status endpoint
-```
-
-Upon executing the percivalcontrol.py file, an instance of PercivalStandalone is created which creates a PercivalDetector, two IpcChannels (one for control and one for status) and an IpcReactor.  If the -w command line parameter is specified then the standalone application calls the initialise_board method of the PercivalDetector which attempts to write the configuration data to the hardware.
-The control and monitoring channels are then loaded into the detector and the reactor loop is started.  The standalone application will now wait for control requests through the control channel, and if asked to execute the status loop then the status responses will be published on the status channel.
-
-A standalone client application has been developed to provide interaction with the detector when executing in standalone mode.  This client application is another sandbox script.
-
-```
-python ./sandbox/client_example.py --help
-usage: client_example.py [-h] [-c CONTROL] [-s STATUS]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -c CONTROL, --control CONTROL
-                        Control endpoint
-  -s STATUS, --status STATUS
-                        Status endpoint
-```
-
-Executing this script presents the client setup screen.  From this screen you can change the control and status endpoints before starting the client and connecting to the standalone application.
-
-![alt text](images/standalone_client_intro.png "Standalone Client Introduction")
-
-Once the control and status endpoints have been confirmed you are presented with the main screen.  From here it is possible to send IpcMessage objects and receive responses from the standalone application.  It is also possible to start and stop the status loop; starting it will result in the response box periodically updating with new status.
-
-![alt text](images/standalone_client_main1.png "Standalone Client Main")
-
-It is also possible to request execution of system commands from the client application.
-
-![alt text](images/standalone_client_main2.png "Standalone Client System Command")
-
 ## Design
 
 The following sections provide some details on the current design of the detector application.
