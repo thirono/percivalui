@@ -4,6 +4,7 @@ Created on 20 May 2016
 @author: Alan Greer
 """
 from __future__ import print_function
+import os
 import logging
 
 from percival.carrier import const
@@ -14,7 +15,7 @@ from percival.carrier.settings import BoardSettings
 from percival.carrier.system import SystemCommand
 from percival.carrier.txrx import TxRx
 from percival.carrier.values import BoardValues
-from percival.carrier.configuration import ChannelParameters, BoardParameters, ControlParameters
+from percival.carrier.configuration import ChannelParameters, BoardParameters, ControlParameters, env_carrier_ip
 
 
 class PercivalParameters(object):
@@ -57,12 +58,20 @@ class PercivalParameters(object):
     @property
     def carrier_ip(self):
         """
-        Return the IP address of the carrier board
+        Return the IP address of the carrier board.
+
+        The IP address configuration will be loaded from the percival.ini config file or overwritten by the user with
+        the environment variable PERCIVAL_CARRIER_IP. If no configurations can be found it will default to 192.168.0.2.
 
         :returns: IP address of the carrier board
         :rtype: str
         """
-        return self._control_params.carrier_ip
+        try:
+            default_carrier_ip = self._control_params.carrier_ip
+        except RuntimeError:
+            default_carrier_ip = "192.168.0.2"
+            self._log.warning("No carrier IP address found in configuration file")
+        return os.getenv(env_carrier_ip, default_carrier_ip)
 
     def board_name(self, board):
         """
@@ -406,7 +415,7 @@ class PercivalDetector(object):
         The values shortcut is read out from the hardware and the status of all
         monitors is updated appropriately.
         """
-        #self._log.debug("Update status callback called")
+        # self._log.debug("Update status callback called")
         status_msg = {}
         if self._global_monitoring:
             response = self._board_values[const.BoardTypes.carrier].read_values()

@@ -26,6 +26,8 @@ paths will always override this directory, which will only be searched if the fi
 cannot be found
 '''
 
+env_carrier_ip = "PERCIVAL_CARRIER_IP"
+
 positive_configuration = ["true", "yes", "on", "enable", "enabled"]
 negative_configuration = ["false", "no", "off", "disable", "disabled"]
 
