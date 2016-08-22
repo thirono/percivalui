@@ -8,6 +8,7 @@ from builtins import bytes
 import percival.carrier.const as const
 from percival.carrier.devices import DeviceFamilyFeatures, MAX31730, LTC2309
 from percival.carrier.txrx import hexify, TxRx, TxMessage, TxRxContext
+from percival.carrier.encoding import END_OF_MESSAGE, DATA_ENCODING
 
 
 class TestTxRxClasses(unittest.TestCase):
@@ -110,3 +111,75 @@ class TestTxRxClasses(unittest.TestCase):
         # Close down the socket
         self.s.close()
 
+
+class TestTxRx(unittest.TestCase):
+    def setUp(self):
+        self.s = socket.socket (socket.AF_INET, socket.SOCK_STREAM)
+        # Open a dummy socket for our txrx object to connect to
+        self.s.bind(("127.0.0.1", 0))
+        self.s.listen(3)
+        port = self.s.getsockname()[1]
+        self.txrx = TxRx("127.0.0.1", port)
+        self.connection, self.addr = self.s.accept()
+
+    def tearDown(self):
+        self.txrx.clean()
+        self.connection.close()
+        self.s.close()
+
+    def TestTransmitReceiveBytearray(self):
+        byte_array_msg_tx = bytes('\x00\x01\x02\x03\x04\x05', encoding=DATA_ENCODING)
+        self.txrx.tx_msg(byte_array_msg_tx)
+        # Receive the bytes from our test socket
+        msg = self.connection.recv(6)
+        # Verify the bytes are the same as those sent
+        self.assertEquals(msg, byte_array_msg_tx)
+        # Send some bytes back through the socket
+        byte_array_msg_rx = bytes('\x06\x07\x08\x09\x0A\x0B', encoding=DATA_ENCODING)
+        self.connection.send(byte_array_msg_rx)
+        # Receive the bytes through the txrx object
+        reply = self.txrx.rx_msg(expected_bytes=6)
+        # Verify the bytes have arrived
+        self.assertEquals(reply, byte_array_msg_rx)
+
+    def TestClosedConnection(self):
+        self.connection.close()
+        byte_array_msg_tx = bytes('\x0C\x0D\x0E\x0F\x10\x11', encoding=DATA_ENCODING)
+
+        self.txrx.tx_msg(byte_array_msg_tx)
+        with self.assertRaises(RuntimeError):
+            reply = self.txrx.rx_msg()
+
+    def TestClosedSocketAndConnection(self):
+        """Check that a RuntimeError is raised on txrx.rx_msg() when attempting to read a closed socket through a closed
+        connection which has been closed from the server end"""
+        self.connection.close()
+        self.s.close()
+        byte_array_msg_tx = bytes('\x0C\x0D\x0E\x0F\x10\x11', encoding=DATA_ENCODING)
+
+        self.txrx.tx_msg(byte_array_msg_tx)
+        with self.assertRaises(RuntimeError):
+            reply = self.txrx.rx_msg()
+
+    def TestClosedSocketTimeout(self):
+        """Check that a RuntimeError is raised on txrx.rx_msg() when attempting to read a socket which has been closed
+        from the server end"""
+        self.txrx.timeout = 0.1  # Set a really short timeout so we don't hold up testing
+        self.s.close()
+        byte_array_msg_tx = bytes('\x0C\x0D\x0E\x0F\x10\x11', encoding=DATA_ENCODING)
+
+        self.txrx.tx_msg(byte_array_msg_tx)
+        with self.assertRaises(socket.timeout):
+            reply = self.txrx.rx_msg()
+
+    def TestCloseTxRxSocket(self):
+        """Check that a socket.error is raised on TxRx.tx_msg() and TxRx.rx_msg() when attempting to send/receive data
+        when the client side socket has been closed"""
+        self.txrx.clean()
+        byte_array_msg_tx = bytes('\x0C\x0D\x0E\x0F\x10\x11', encoding=DATA_ENCODING)
+
+        with self.assertRaises(socket.error):
+            self.txrx.tx_msg(byte_array_msg_tx)
+
+        with self.assertRaises(socket.error):
+            reply = self.txrx.rx_msg()

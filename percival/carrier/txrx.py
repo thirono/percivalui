@@ -84,8 +84,8 @@ class TxMessage(object):
         return s
 
     def __eq__(self, other):
-        return (isinstance(other, self.__class__)
-                and self.__dict__ == other.__dict__)
+        return (isinstance(other, self.__class__) and
+                self.__dict__ == other.__dict__)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -205,8 +205,14 @@ class TxRx(object):
         Sockets are normally closed down cleanly on exit from the interpreter, however this method
         may be used in case the socket need to be closed down temporarily.
         """
-        self.sock.shutdown(socket.SHUT_RDWR)
-        self.sock.close()
+        try:
+            self.sock.shutdown(socket.SHUT_RDWR)
+        except socket.error:
+            self.log.warning("unable to shutdown socket")
+        try:
+            self.sock.close()
+        except socket.error:
+            self.log.warning("unable to close socket")
 
 
 @contextmanager
@@ -228,5 +234,4 @@ def TxRxContext(*args, **kwargs):
     trx = TxRx(*args, **kwargs)
     yield trx
     trx.clean()
-    
-       
+
