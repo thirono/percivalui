@@ -1,8 +1,8 @@
-'''
+"""
 Created on 19 May 2015
 
 @author: Ulrik Pedersen
-'''
+"""
 from __future__ import print_function
 
 import os, time
@@ -11,51 +11,15 @@ import numpy as np
 import h5py
 from collections import OrderedDict
 
-import logging
 from percival.log import log
-
 from percival.carrier import const
-from percival.carrier.registers import UARTRegister, BoardRegisters, generate_register_maps
-from percival.carrier.devices import DeviceFunction, DeviceCmd, DeviceFamilyFeatures, DeviceFamily
-from percival.carrier.txrx import TxRx, TxRxContext, hexify
+from percival.carrier.registers import UARTRegister, generate_register_maps
+from percival.carrier.settings import BoardSettings
+from percival.carrier.txrx import TxRxContext, hexify
 from percival.carrier.channels import ControlChannel
-from percival.configuration import ChannelParameters, ControlChannelIniParameters
+from percival.carrier.configuration import ChannelParameters
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
-
-class BoardSettings:
-    def __init__(self, txrx, board):
-        #self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
-        self.log = logging.getLogger(self.__class__.__name__)
-        self.txrx = txrx
-        self._header_block, self._control_block, self._monitoring_block = BoardRegisters[board]
-
-        self._reg_control_settings = UARTRegister(self._control_block)
-        self._control_settings = None
-
-        self._reg_monitoring_settings = UARTRegister(self._monitoring_block)
-        self._monitoring_settings = None
-
-    def _readback_settings(self, uart_register):
-        cmd_msg = uart_register.get_read_cmd_msg()
-        response = self.txrx.send_recv_message(cmd_msg)
-        return response
-
-    def readback_control_settings(self):
-        self.log.debug("Readback Board Control Settings")
-        self._control_settings = self._readback_settings(self._reg_control_settings)
-
-    def device_control_settings(self, device_addr):
-        offset = device_addr - self._control_block.start_address
-        if not self._control_block.is_address_valid(device_addr):
-            raise IndexError("Device address 0x%X not in range of block 0x%X" %
-                             (device_addr, self._control_block.start_address))
-        result = self._control_settings[offset:offset+self._reg_control_settings.words_per_item]
-        return result
-
-    def readback_monitoring_settings(self):
-        self.log.debug("Readback Board Monitoring Settings")
-        self._monitoring_settings = self._readback_settings(self._reg_monitoring_settings)
 
 
 class ReadMonitors(object):
@@ -77,7 +41,7 @@ class ReadMonitors(object):
     def _set_channel_names(self, ini_params):
         response = self._txrx.send_recv_message(self._cmd_msg)
         self._channel_names = []
-        for addr, value in response:
+        for addr, _ in response:
             index = addr - self._uart_block.start_address
             #      addr is just a READ VALUES register address - not the channels base address.
             name = ini_params.monitoring_channel_name_by_id_and_board_type(index, self._board_type)
@@ -125,7 +89,6 @@ class ReadMonitors(object):
         return result
 
 
-
 def store_monitor_data(args, data_dict):
     """
     Store recorded ReadMonitor data to a HDF5 file.
@@ -145,6 +108,7 @@ def store_monitor_data(args, data_dict):
                 log.debug("--- Writing %s data: %s ", field_name, data_array)
                 group.create_dataset(field_name, data=data_array)
 
+
 def options():
     parser = argparse.ArgumentParser()
     parser.add_argument("-r", "--range", default="0,100,20", help="Scan range in integers formatted like this: start,stop,step")
@@ -159,7 +123,7 @@ def options():
 
 def main():
     args = options()
-    log.info (args)
+    log.info(args)
 
     with TxRxContext(board_ip_address) as trx:
         ini_params = ChannelParameters("config/Channel parameters.ini")
@@ -200,6 +164,7 @@ def main():
             log.info("Read carrier monitoring channels: %s", adcs.keys())
 
         # check if we need to execute one more iteration
+        new_value = 0
         if (args.range[2] > 0 and new_value < args.range[1]) or (args.range[2] < 0 and new_value > args.range[1]):
             new_value = args.range[1]
             # Execute one last time to include the maximum value
@@ -215,7 +180,6 @@ def main():
             tstamp = time.time()
             adcs = readmon.read_carrier_monitors()
             log.info("Read carrier monitoring channels: %s", adcs.keys())
-
 
         log.info(readmon.channel_data)
     if args.output:

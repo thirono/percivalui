@@ -1,17 +1,19 @@
-'''
+"""
 Support for observable parameters.
 When using :class:`Observable` it is possible to register observers
 for notifications (callbacks) on change of data values.
 
-The implementation is thread safe by using python threading locks. 
-'''
+The implementation is thread safe by using python threading locks.
+"""
 from __future__ import unicode_literals, absolute_import
 import logging
-logger = logging.getLogger(__name__)
 
 from functools import wraps
 import threading  # for lock
 import weakref
+
+logger = logging.getLogger(__name__)
+
 
 def threadsafe( lockname ):
     """A decorator to acquire and release a lock around a method call.
@@ -19,6 +21,7 @@ def threadsafe( lockname ):
     Use this to provide thread safe implementation of methods. It is not necessarily
     the most efficient use of locking, but for simple cases it does the job in an
     unintrusive fashion.
+    :param lockname:
     """
     def _synched(func):
         @wraps(func)
@@ -32,8 +35,9 @@ def threadsafe( lockname ):
         return _synchronizer
     return _synched
 
-class RecursionError(RuntimeError):
-    pass
+
+#class RecursionError(RuntimeError):
+#    pass
 
 
 class Observable(object):
@@ -63,19 +67,19 @@ class Observable(object):
         return getattr(inst, self.var_name)
     
     def subscribe(self, obsv, exception_handler = None):
-        '''Add a subscriber to be notified on change of value in the Observable.
-        
+        """Add a subscriber to be notified on change of value in the Observable.
+
         :param obsv: Observer to be notified of change.
-        :type obsv: a callable or another :class:`Observable` object. 
+        :type obsv: a callable or another :class:`Observable` object.
             The callable must accept one argument which is the updated value.
-        
+
         :param exception_handler: An exception handler or None
         :type exception_handler: callable with one argument which is the raised exception
-        
+
         :rtype: :class:`Observable._NotifySubscription` object. Hang on to this object
             for as long as notification updates are required. When this object is finalised,
             the notification updates will be cancelled.
-        '''
+        """
         # This func is really just here as a place holder in the docs.
         # Because this class is a python Descriptor it refers all dereferncing
         # through the __get__ function which in turns uses the __ObservableValue__
@@ -86,8 +90,7 @@ class Observable(object):
         '''Private class, used only by :class:`Observable` 
         
         Handle subscribers to update notifcations.'''
-        
-    
+
         def __init__(self):
             self.subscribers = []
             self._value = None
@@ -124,21 +127,21 @@ class Observable(object):
     
         @threadsafe('_sync_lock')
         def subscribe(self, obsv, exception_handler = None):
-            '''subscribe(self, obsv, exception_handler = None)
-        
+            """subscribe(self, obsv, exception_handler = None)
+
             Add a subscriber to be notified on change of value in the Observable.
-            
+
             :param obsv: Observer to be notified of change.
-            :type obsv: a callable or another :class:`Observable` object. 
+            :type obsv: a callable or another :class:`Observable` object.
                 The callable must accept one argument which is the updated value.
-            
+
             :param exception_handler: An exception handler or None
             :type exception_handler: callable with one argument which is the raised exception
-            
+
             :rtype: :class:`Observable._NotifySubscription` object. Hang on to this object
                 for as long as notification updates are required. When this object is finalised,
                 the notification updates will be cancelled.
-            '''
+            """
             observer = obsv.setvalue if isinstance(obsv, Observable.__ObservableValue__) else obsv
             ob_info =(observer, exception_handler)
             self.subscribers.append(ob_info)
@@ -155,17 +158,18 @@ class Observable(object):
             self.subscribers.remove(wref)
     
     class _NotifySubscription(object):
-        '''A subscription class which cancels the notifications to the subscriber
+        """A subscription class which cancels the notifications to the subscriber
            when instances of this class are finalised.
-           
-           There is no need to directly instansiate or operate on insatances of this class.
-           '''
+
+           There is no need to directly instantiate or operate on instances of this class.
+        """
         def __init__(self, subscriber, observable):
             self.subscriber = subscriber
             self.observed = weakref.ref(observable)
+
         def __del__(self):
             obsrvd = self.observed()
-            if (self.subscriber and obsrvd):
+            if self.subscriber and obsrvd:
                 obsrvd._cancel(self.subscriber)
 
 

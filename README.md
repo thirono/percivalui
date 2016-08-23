@@ -19,15 +19,9 @@ System dependencies:
 * Python (2.7)
 * pip - python package manager
 * HDF5 libraries (development package)
+* ZeroMQ (development package)
 
-Building with setuptools will attempt to use pip to download and install dependencies locally first. The python dependencies are listed in requirements.txt:
-
-* setuptools
-* future>=0.14
-* numpy>=1.7.0
-* h5py>=2.5.0
-* nose>=1.3
-* coverage
+Building with setuptools will attempt to use pip to download and install dependencies locally first. The python dependencies are listed in requirements.txt
 
 ## Installation ##
 
@@ -59,20 +53,35 @@ and it is recommended to setup a virtualenv first:
 	pip install -r requirements.txt
 	
 	# Run the unittests to ensure everything is setup in the environment
-	# there should be no failures/errors reported
+	# there should be no failures/errors reported (tested on Ubuntu Trusty, Precise and RHEL6)
 	python setup.py nosetests
 	
 	# Optionally build the documentation
 	python setup.py build_sphinx
 
-Once you have everything working you can build and install the product:
+Once you have everything working you can build and install the product. While the module is in development it is
+recommended to install it into a virtual environment in development mode:
 
-    # Do a local build
-    python setup.py build
+    cd percivalui
     
-    # Install into the system environment or specify a --prefix
-    python setup.py --prefix=/path/to/install/dir install
+	# activate your virtual python environment 
+	source venv27/bin/activate
     
+    python setup.py develop
+
+Updating the sources when the repository has new changes/fixes is then trivial:
+
+    cd percivalui
+    
+	# activate your virtual python environment 
+	source venv27/bin/activate
+    
+    # Clean up before updating
+    python setup.py develop --uninstall
+    
+    git pull origin
+    
+    python setup.py develop
 
 ## Docs ##
 

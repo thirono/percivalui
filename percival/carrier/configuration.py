@@ -1,14 +1,15 @@
-'''
+"""
 Configuration of the Percival Detector system can be loaded from various files.
 
 This module contain classes and functions to manage the loading of configurations.
-'''
+"""
 from __future__ import unicode_literals, absolute_import
 from future.utils import raise_with_traceback
 
 import logging
 
 import os
+import errno
 import re
 from collections import OrderedDict
 from configparser import SafeConfigParser
@@ -25,21 +26,20 @@ paths will always override this directory, which will only be searched if the fi
 cannot be found
 '''
 
+env_carrier_ip = "PERCIVAL_CARRIER_IP"
+
 positive_configuration = ["true", "yes", "on", "enable", "enabled"]
 negative_configuration = ["false", "no", "off", "disable", "disabled"]
 
 
-def find_file(filename, env=None):
-    '''Search for a file and return the full path if it can be found.
-    
+def find_file(filename):
+    """Search for a file and return the full path if it can be found.
+
     Raises IOError if a file of the given name cannot be found.
-    
+
     :param filename: The filename to search for. Can be relative or full path.
-    :param env: The name of an environment variable which can contain a list of
-                colon-separated directories. These directories (if any) will be
-                searched for the :param:`filename` if it cannot be found.
     :returns: An absolute path to the file of the same name.
-    '''
+    """
     # Check if the filename exist as a relative or absolute path
     if os.path.isfile(filename):
         return os.path.abspath(filename)
@@ -49,12 +49,12 @@ def find_file(filename, env=None):
     search_paths = os.getenv(env_config_dir, "")
     if search_paths:
         for path in search_paths.split(":"):
-            fn = os.path.abspath( os.path.join([path, filename]) )
+            fn = os.path.abspath(str(os.path.join(path, filename)))
             if os.path.isfile(fn):
                 return fn
 
     # All other searches failed. We cant find this file. Raise exception.
-    raise IOError
+    raise_with_traceback(IOError(errno.ENOENT, "%s: %s" % (os.strerror(errno.ENOENT), filename)))
 
 
 class IniSectionParameters(object):
@@ -181,6 +181,8 @@ class ChannelParameters(object):
         self._monitoring_channels = None
         self.conf = SafeConfigParser(dict_type=OrderedDict)
         self.conf.read(self._ini_filename)
+        self.log.debug("Read Board Parameters INI file %s:", self._ini_filename)
+        self.log.debug("    sections: %s", self.conf.sections())
 
     @staticmethod
     def _get_channel_number(section_name):
@@ -207,15 +209,15 @@ class ChannelParameters(object):
         for ch in channels:
             if ch.channel_index == index:
                 name = ch.Channel_name
-                if name == None or len(name) == 0:
+                if name is None or len(name) == 0:
                     name = ch.ini_section
                 return name
 
-    def _get_channel_name_by_id_and_board_type(self, id, board_type, channels):
+    def _get_channel_name_by_id_and_board_type(self, channel_id, board_type, channels):
         for ch in channels:
-            if ch.Channel_ID == id and BoardTypes(ch.Board_type) == board_type:
+            if ch.Channel_ID == channel_id and BoardTypes(ch.Board_type) == board_type:
                 name = ch.Channel_name
-                if name == None or len(name) == 0:
+                if name is None or len(name) == 0:
                     name = ch.ini_section
                 return name
 
@@ -227,8 +229,8 @@ class ChannelParameters(object):
     def monitoring_channel_name_by_index(self, index):
         return self._get_channel_name_by_index(index, self.monitoring_channels)
 
-    def monitoring_channel_name_by_id_and_board_type(self, id, board_type):
-        return self._get_channel_name_by_id_and_board_type(id, board_type, self.monitoring_channels)
+    def monitoring_channel_name_by_id_and_board_type(self, channel_id, board_type):
+        return self._get_channel_name_by_id_and_board_type(channel_id, board_type, self.monitoring_channels)
 
     def control_channel_name_by_index(self, index):
         return self._get_channel_name_by_index(index, self.control_channels)
@@ -336,3 +338,79 @@ class ChannelParameters(object):
         return self.__str__()
 
 
+class BoardParameters(object):
+    """
+    Loads device channel settings and parameters from an INI file.
+    """
+    def __init__(self, ini_file):
+        self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+        self.log.setLevel(logging.DEBUG)
+        self._ini_filename = find_file(ini_file)
+        self.conf = None
+
+    def load_ini(self):
+        """
+        Loads and parses the data from INI file.
+        """
+        self.conf = SafeConfigParser(dict_type=OrderedDict)
+        self.conf.read(self._ini_filename)
+
+        self.log.debug("Read Board Parameters INI file %s:", self._ini_filename)
+        self.log.debug("    sections: %s", self.conf.sections())
+
+    @property
+    def board_name(self):
+        if "Board_header" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Board_header section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.get("Board_header", "Board_name")
+
+    @property
+    def board_type(self):
+        if "Board_header" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Board_header section not found in ini file %s" % str(self._ini_filename)))
+        return BoardTypes(self.conf.getint("Board_header", "Board_type"))
+
+
+    @property
+    def board_revision(self):
+        if "Board_header" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Board_header section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.getint("Board_header", "Board_revision_number")
+
+    @property
+    def control_channels_count(self):
+        if "Entry_counts" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Entry_counts section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.getint("Entry_counts", "Control_channels_count")
+
+    @property
+    def monitoring_channels_count(self):
+        if "Entry_counts" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Entry_counts section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.getint("Entry_counts", "Monitoring_channels_count")
+
+
+class ControlParameters(object):
+    """
+    Loads control parameter from an INI file.
+    """
+    def __init__(self, ini_file):
+        self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+        self._ini_filename = find_file(ini_file)
+        self.conf = None
+
+    def load_ini(self):
+        """
+        Loads and parses the data from INI file. The data is stored internally in the object and can be retrieved
+        through the property methods
+        """
+        self.conf = SafeConfigParser(dict_type=OrderedDict)
+        self.conf.read(self._ini_filename)
+        self.log.debug("Read Board Parameters INI file %s:", self._ini_filename)
+        self.log.debug("    sections: %s", self.conf.sections())
+
+    @property
+    def carrier_ip(self):
+        if "Control" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Control section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.get("Control", "carrier_ip").strip("\"")

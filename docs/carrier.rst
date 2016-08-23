@@ -34,6 +34,38 @@
     :special-members: __init__
 
 
+:mod:`percival.carrier.buffer` module
+-------------------------------------
+
+.. automodule:: percival.carrier.buffer
+    :members:
+    :special-members: __init__
+
+
+:mod:`percival.carrier.values` module
+-------------------------------------
+
+.. automodule:: percival.carrier.values
+    :members:
+    :special-members: __init__
+
+
+:mod:`percival.carrier.channels` module
+---------------------------------------
+
+.. automodule:: percival.carrier.channels
+    :members:
+    :special-members: __init__
+
+
+:mod:`percival.carrier.system` module
+-------------------------------------
+
+.. automodule:: percival.carrier.system
+    :members:
+    :special-members: __init__
+
+
 :mod:`percival.carrier.encoding` module
 ---------------------------------------
 

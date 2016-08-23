@@ -5,12 +5,12 @@ Created on 13 May 2015
 '''
 
 from __future__ import print_function
-from builtins import range
+from builtins import range  # pylint: disable=W0622
 import os
 
 from percival.log import log
-from percival.carrier.txrx import TxRx, TxRxContext
-from percival.carrier.encoding import (encode_message, encode_multi_message, decode_message)
+from percival.carrier.txrx import TxRxContext
+from percival.carrier.encoding import (encode_message, decode_message)
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
 
@@ -30,8 +30,8 @@ def main():
             log.debug("Qurying address: %X ...", addr)
             try:
                 resp = trx.send_recv(msg, expected_bytes)
-            except:
-                log.warning("no response (addr: %X", addr)
+            except RuntimeError:
+                log.exception("no response (addr: %X)", addr)
                 continue
             data = decode_message(resp)
             log.info("Got from addr: 0x%04X bytes: %d  words: %d", addr, len(resp), len(data))
@@ -40,4 +40,3 @@ def main():
                 
 if __name__ == '__main__':
     main()
-    

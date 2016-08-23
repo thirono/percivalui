@@ -2,15 +2,16 @@
 Communications module for the Percival Carrier Board XPort interface.
 """
 from __future__ import unicode_literals, absolute_import
-from builtins import bytes
+from builtins import bytes  # pylint: disable=W0622
 
 import logging
 import binascii
 import socket
-from contextlib import contextmanager 
+from contextlib import contextmanager
+from multiprocessing import Lock
 
 from percival.carrier.encoding import DATA_ENCODING, NUM_BYTES_PER_MSG, END_OF_MESSAGE
-from percival.carrier.encoding import (encode_message, encode_multi_message, decode_message)
+from percival.carrier.encoding import decode_message
 
 
 def hexify(registers):
@@ -89,25 +90,26 @@ class TxMessage(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+
 class TxRx(object):
     """
     Transmit and receive data and commands to/from the Carrier Board through the XPort Ethernet
     """
 
     def __init__(self, fpga_addr, port = 10001, timeout = 2.0):
-        '''TxRx Constructor
-        
+        """TxRx Constructor
+
             :param fpga_addr: IP address or network name of the Carrier Board XPort device
             :type  fpga_addr: `str`
             :param port:      IP port number
             :type  port:      `int`
             :param timeout:   Socket communication timeout (seconds)
             :type  timeout:   `float`
-        '''
+        """
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         
         self._fpga_addr = (fpga_addr, port)
-        
+        self._mutex = Lock()
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.settimeout(timeout)
         self.log.debug("connecting to FPGA: %s", str(self._fpga_addr))
@@ -146,7 +148,7 @@ class TxRx(object):
         block_read_bytes = expected_bytes
         expected_resp_len = expected_bytes
         
-        if expected_bytes == None: 
+        if expected_bytes is None:
             expected_resp_len = NUM_BYTES_PER_MSG
             block_read_bytes = 1024
         
@@ -154,7 +156,8 @@ class TxRx(object):
             if expected_bytes:
                 block_read_bytes = expected_bytes-len(msg)
             chunk = self.sock.recv(block_read_bytes)
-            chunk = bytes(chunk, encoding = DATA_ENCODING)
+            if isinstance(chunk, str):
+                chunk = bytes(chunk, encoding=DATA_ENCODING)
             if len(chunk) == 0:
                 raise RuntimeError("socket connection broken (expected a multiple of 6 bytes)")
             msg = msg + chunk
@@ -167,9 +170,10 @@ class TxRx(object):
         :type  msg: bytearray
         :returns:   Response from UART
         :rtype:     bytearray
-        """ 
-        self.tx_msg(msg)
-        resp = self.rx_msg(expected_bytes)
+        """
+        with self._mutex:
+            self.tx_msg(msg)
+            resp = self.rx_msg(expected_bytes)
         return resp
     
     def send_recv_message(self, message):
@@ -180,21 +184,21 @@ class TxRx(object):
         :retuns: Response from UART as a list of tuples: [(address, data)...]
         :rtype:  list
         """
-        self.log.debug("Sending:   %s"%message)
+        self.log.debug("Sending:   %s", message)
         if not isinstance(message, TxMessage):
             raise TypeError("message must be of type TxMessage, not %s"%str(type(message)))
-        
-        self.tx_msg(message.message)
-        resp = self.rx_msg(message.expected_bytes)
+
+        with self._mutex:
+            self.tx_msg(message.message)
+            resp = self.rx_msg(message.expected_bytes)
         result = decode_message(resp)
 
-        self.log.debug(" response: %s"%hexify(result))
+        self.log.debug(" response: %s", hexify(result))
         # Check for expected response
         if not message.validate_eom(resp):
             raise RuntimeError("Expected EOM on TxMessage: %s - got %s"%(str(message), str(result)))
         return result
-        
-    
+
     def clean(self):
         """Shutdown and close the socket safely
             
@@ -226,4 +230,3 @@ def TxRxContext(*args, **kwargs):
     trx.clean()
     
        
-            

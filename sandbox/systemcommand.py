@@ -16,15 +16,17 @@ from percival.carrier.system import SystemCommand
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
 
+
 def options():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-a", "--action", default="no_operation", help="System command to send")
+    parser.add_argument("-a", "--action", action="store", default="no_operation", help="System command to send")
     args = parser.parse_args()
     return args
 
+
 def main():
     args = options()
-    log.info (args)
+    log.info(args)
 
     with TxRxContext(board_ip_address) as trx:
 

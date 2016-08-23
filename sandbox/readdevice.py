@@ -1,8 +1,8 @@
-'''
+"""
 Created on 19 May 2015
 
 @author: up45
-'''
+"""
 from __future__ import print_function
 
 import os, time, signal
@@ -16,12 +16,13 @@ from percival.carrier.txrx import TxRxContext
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
 
+
 class ReadDevice:
     def __init__(self):
         self.keep_running = True
         signal.signal(signal.SIGINT, self.ctrl_c_handler)
 
-    def ctrl_c_handler(self, signal, frame):
+    def ctrl_c_handler(self, signal, frame):  # pylint: disable=W0613
         log.info("Caught CTRL-C")
         self.keep_running = False
 
@@ -40,24 +41,24 @@ class ReadDevice:
             log.info("System no-op command: %s", str(no_op_cmd_msg))
             response = trx.send_recv_message(no_op_cmd_msg)
 
-            cmd.fields.system_cmd = 0 # disable global monitoring
+            cmd.fields.system_cmd = 0  # disable global monitoring
             disable_global_mon_cmd_msg = cmd.get_write_cmd_msg(eom=True)[2]
             log.info("System enable global monitoring command: %s", str(disable_global_mon_cmd_msg))
             response = trx.send_recv_message(disable_global_mon_cmd_msg)
 
-            sample_data = [] # list of tuples: (sample, data)
-            previous_sample = 0
+            sample_data = []  # list of tuples: (sample, data)
+            #previous_sample = 0
             while self.keep_running:
-                cmd.fields.device_cmd = 0 # device no-op
-                cmd.fields.device_type = 1 # device monitoring
-                cmd.fields.device_index = 18 # T sensor...
+                cmd.fields.device_cmd = 0  # device no-op
+                cmd.fields.device_type = 1  # device monitoring
+                cmd.fields.device_index = 18  # T sensor...
                 device_no_op_cmd_msg = cmd.get_write_cmd_msg(eom=True)[0]
                 log.info("Device no-op command: %s", str(device_no_op_cmd_msg))
                 response = trx.send_recv_message(device_no_op_cmd_msg)
 
                 cmd.fields.device_cmd = 5 # device set and get
                 log.debug("cmd map: %s", cmd.fields.generate_map())
-                log.debug("       : %s", cmd.fields._mem_map)
+                log.debug("       : %s", cmd.fields.mem_map)
                 device_set_and_get_cmd_msg = cmd.get_write_cmd_msg(eom=True)[0]
                 log.info("Device get and set command: %s", str(device_set_and_get_cmd_msg))
                 response = trx.send_recv_message(device_set_and_get_cmd_msg)
@@ -78,16 +79,16 @@ class ReadDevice:
                 if True:
                     log.info("    Appending: (%d, %d)", read_word.sample_number, read_word.read_value)
                     sample_data.append((read_word.sample_number, read_word.read_value))
-                previous_sample = read_word.sample_number
+                #previous_sample = read_word.sample_number
                 time.sleep(0.2)
 
             log.debug("Got data: %s", str(sample_data))
 
             with h5py.File("readdevice.h5", "w") as f:
                 numbers = numpy.array(list(zip(*sample_data))[0], dtype=numpy.uint8)
-                dset_sample = f.create_dataset("sample", data=numbers)
+                f.create_dataset("sample", data=numbers)
                 data = numpy.array(list(zip(*sample_data))[1], dtype=numpy.uint16)
-                dset_data = f.create_dataset("data", data=data)
+                f.create_dataset("data", data=data)
 
             log.info("File written. Use one of the following commands to analyse:")
             log.info("  h5dump readdevice.h5")

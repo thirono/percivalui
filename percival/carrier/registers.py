@@ -7,7 +7,7 @@ Update this whenever there are any firmware/documentation changes to register ma
 from __future__ import unicode_literals, absolute_import
 
 from future.utils import with_metaclass, raise_with_traceback
-from builtins import range
+from builtins import range  # pylint: disable=W0622
 import abc
 
 from percival.detector.interface import IABCMeta
@@ -28,7 +28,7 @@ class RegisterMap(object):
 
     def __setattr__(self, name, value):
         logger.debug(str(self._mem_map))
-        if not name in self._mem_map.keys():
+        if name not in self._mem_map.keys():
             return object.__setattr__(self, name, value)
         else:
             self._mem_map[name].value = value
@@ -39,8 +39,8 @@ class RegisterMap(object):
     def parse_map(self, words):
         if len(words) != self.num_words:
             raise_with_traceback(IndexError("Map must contain %d words. Got only %d" % (self.num_words, len(words))))
-        map_fields = [f for (k,f) in sorted(self._mem_map.items(),
-                                        key=lambda key_field: key_field[1].word_index, reverse=True)]
+        map_fields = [f for (k, f) in sorted(self._mem_map.items(),
+                      key=lambda key_field: key_field[1].word_index, reverse=True)]
         for map_field in map_fields:
             map_field.extract_field_value(words)
 
@@ -51,7 +51,7 @@ class RegisterMap(object):
     def generate_map(self):
         words = list(range(self.num_words))
         logger.debug("map: %s", str(self._mem_map))
-        for (key,field) in self._mem_map.items():
+        for (key, field) in self._mem_map.items():  # pylint: disable=W0612
             logger.debug("field: %s", str(field))
             field.insert_field_value(words)
             logger.debug("generate_map: words: %s", str(words))
@@ -61,10 +61,14 @@ class RegisterMap(object):
     def map_fields(self):
         return self._mem_map.keys()
 
+    @property
+    def mem_map(self):
+        return self._mem_map
+
     def __str__(self):
         map_str = ""
-        map_fields = [f for (k,f) in sorted(self._mem_map.items(),
-                                        key=lambda key_field: key_field[1].word_index, reverse=True)]
+        map_fields = [f for (k, f) in sorted(self._mem_map.items(),
+                      key=lambda key_field: key_field[1].word_index, reverse=True)]
         for map_field in map_fields:
             map_str += str(map_field) + ", "
         s = "<%s: Fields = %s>"%(self.__class__.__name__, map_str)
@@ -127,7 +131,7 @@ class MapField(object):
     def insert_field_value(self, words):
         # Clear the relevant bits in the input word (AND with an inverted mask)
         # Then set the relevant bit values (value shifted up and OR'ed)
-        if self._value == None:
+        if self._value is None:
             raise_with_traceback(ValueError("No value initialised for field: \'%s\'"%self._name))
         words[self._word_index] = (words[self._word_index] & (self.mask ^ 2**32-1)) | (self._value << self._bit_offset)
 
@@ -143,13 +147,20 @@ class MapField(object):
         s = "<%s=%s>"%(self._name, str(self._value))
         return s
 
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__)
+            and self.__dict__ == other.__dict__)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 
 class HeaderInfoMap(RegisterMap):
     """Represent the Header Info register bank"""
     num_words = 1
 
     def __init__(self):
-        object.__setattr__(self, '_mem_map', {}) # This prevents infinite recursion when setting attributes
+        object.__setattr__(self, '_mem_map', {})  # This prevents infinite recursion when setting attributes
         self._mem_map = {"eeprom_address":               MapField("eeprom_address",              0, 8, 16),
                          "monitoring_channels_count":    MapField("monitoring_channels_count",   0, 8,  8),
                          "control_channels_count":       MapField("control_channels_count",      0, 8,  0),
@@ -161,7 +172,7 @@ class ControlChannelMap(RegisterMap):
     num_words = 4
 
     def __init__(self):
-        object.__setattr__(self, '_mem_map', {}) # This prevents infinite recursion when setting attributes
+        object.__setattr__(self, '_mem_map', {})  # This prevents infinite recursion when setting attributes
         self._mem_map = {"channel_id":                   MapField("channel_id",                  0,  5, 27),
                          "board_type":                   MapField("board_type",                  0,  3, 24),
                          "component_family_id":          MapField("component_family_id",         0,  4, 20),
@@ -191,7 +202,7 @@ class MonitoringChannelMap(RegisterMap):
     num_words = 4
 
     def __init__(self):
-        object.__setattr__(self, '_mem_map', {}) # This prevents infinite recursion when setting attributes
+        object.__setattr__(self, '_mem_map', {})  # This prevents infinite recursion when setting attributes
         self._mem_map = {"channel_id":                   MapField("channel_id",                  0,  5, 27),
                          "board_type":                   MapField("board_type",                  0,  3, 24),
                          "component_family_id":          MapField("component_family_id",         0,  4, 20),
@@ -222,14 +233,16 @@ class CommandMap(RegisterMap):
     num_words = 3
 
     def __init__(self):
-        object.__setattr__(self, '_mem_map', {}) # This prevents infinite recursion when setting attributes
+        object.__setattr__(self, '_mem_map', {})  # This prevents infinite recursion when setting attributes
         self._mem_map = {"device_cmd":                   MapField("device_cmd",                   0,  3, 28),
                          "device_type":                  MapField("device_type",                  0,  2, 23),
                          #"eeprom_target":                MapField("eeprom_target",                0,  3, 25),
                          "device_index":                 MapField("device_index",                 0, 16,  0),
 
-                         "sensor_cmd":                   MapField("sensor_cmd",                   1, 16, 16),
-                         "sensor_cmd_data":              MapField("sensor_cmd_data",              1, 16,  0),
+                         "buffer_cmd_destination":       MapField("buffer_cmd_destination",       1,  4, 28),
+                         "buffer_cmd":                   MapField("buffer_cmd",                   1,  4, 24),
+                         "buffer_cmd_words":             MapField("buffer_cmd_words",             1,  8, 16),
+                         "buffer_cmd_address":           MapField("buffer_cmd_address",           1, 16,  0),
 
                          "system_cmd":                   MapField("system_cmd",                   2, 16, 16),
                          "system_cmd_data":              MapField("system_cmd_data",              2, 16,  0),
@@ -242,9 +255,10 @@ class EchoWordMap(RegisterMap):
     num_words = 1
 
     def __init__(self):
-        object.__setattr__(self, '_mem_map', {}) # This prevents infinite recursion when setting attributes
+        object.__setattr__(self, '_mem_map', {})  # This prevents infinite recursion when setting attributes
         self._mem_map = {"read_value":                   MapField("read_value",                   0,  16,  0),
                          "i2c_communication_error":      MapField("i2c_communication_error",      0,   1, 16),
+                         "sample_number":                MapField("sample_number",                0,   8, 24),
                          }
 
 
@@ -254,7 +268,7 @@ class ReadValueMap(RegisterMap):
     num_words = 1
 
     def __init__(self):
-        object.__setattr__(self, '_mem_map', {}) # This prevents infinite recursion when setting attributes
+        object.__setattr__(self, '_mem_map', {})  # This prevents infinite recursion when setting attributes
         self._mem_map = {"read_value":                   MapField("read_value",                   0,  16,  0),
                          "i2c_communication_error":      MapField("i2c_communication_error",      0,   1, 16),
                          "safety_exception_detected":    MapField("safety_exception_detected",    0,   1, 17),
@@ -331,24 +345,33 @@ BoardRegisters = {
     const.BoardTypes.plugin:  (const.HEADER_SETTINGS_PLUGIN,  const.CONTROL_SETTINGS_PLUGIN,  const.MONITORING_SETTINGS_PLUGIN),
 }
 
+BoardValueRegisters = {
+    const.BoardTypes.left: const.READ_VALUES_PERIPHERY_LEFT,
+    const.BoardTypes.bottom: const.READ_VALUES_PERIPHERY_BOTTOM,
+    const.BoardTypes.carrier: const.READ_VALUES_CARRIER,
+    const.BoardTypes.plugin: const.READ_VALUES_PLUGIN
+}
+
 # Each entry is a tuple of:     (description,                 read_addr, entries, words, RegisterMap subclass)
 CarrierUARTRegisters = {
-    const.HEADER_SETTINGS_LEFT:        ("Header settings left",        const.READBACK_HEADER_SETTINGS_LEFT,         HeaderInfoMap),
-    const.CONTROL_SETTINGS_LEFT:       ("Control settings left",       const.READBACK_CONTROL_SETTINGS_LEFT,        ControlChannelMap),
-    const.MONITORING_SETTINGS_LEFT:    ("Monitoring settings left",    const.READBACK_MONITORING_SETTINGS_LEFT,     MonitoringChannelMap),
-    const.HEADER_SETTINGS_BOTTOM:      ("Header settings bottom",      const.READBACK_HEADER_SETTINGS_BOTTOM,       HeaderInfoMap),
-    const.CONTROL_SETTINGS_BOTTOM:     ("Control settings bottom",     const.READBACK_CONTROL_SETTINGS_BOTTOM,      ControlChannelMap),
-    const.MONITORING_SETTINGS_BOTTOM:  ("Monitoring settings bottom",  const.READBACK_MONITORING_SETTINGS_BOTTOM,   MonitoringChannelMap),
-    const.HEADER_SETTINGS_CARRIER:     ("Header settings carrier",     const.READBACK_HEADER_SETTINGS_BOTTOM,       HeaderInfoMap),
-    const.CONTROL_SETTINGS_CARRIER:    ("Control settings carrier",    const.READBACK_CONTROL_SETTINGS_CARRIER,     ControlChannelMap),
-    const.MONITORING_SETTINGS_CARRIER: ("Monitoring settings carrier", const.READBACK_MONITORING_SETTINGS_CARRIER,  MonitoringChannelMap),
-    const.HEADER_SETTINGS_PLUGIN:      ("Header settings plugin",      const.READBACK_HEADER_SETTINGS_PLUGIN,       HeaderInfoMap),
-    const.CONTROL_SETTINGS_PLUGIN:     ("Control settings plugin",     const.READBACK_CONTROL_SETTINGS_PLUGIN,      ControlChannelMap),
-    const.MONITORING_SETTINGS_PLUGIN:  ("Monitoring settings plugin",  const.READBACK_MONITORING_SETTINGS_PLUGIN,   MonitoringChannelMap),
-    const.READ_VALUES_CARRIER:         ("Read monitor values carrier", const.READBACK_READ_VALUES_CARRIER,          ReadValueMap),
-
-    const.COMMAND:                     ("CommandMap",                  None,                                        CommandMap),
-    const.READ_ECHO_WORD:              ("Read Echo Word",              const.READBACK_READ_ECHO_WORD,               EchoWordMap),
+    const.HEADER_SETTINGS_LEFT:         ("Header settings left",        const.READBACK_HEADER_SETTINGS_LEFT,         HeaderInfoMap),
+    const.CONTROL_SETTINGS_LEFT:        ("Control settings left",       const.READBACK_CONTROL_SETTINGS_LEFT,        ControlChannelMap),
+    const.MONITORING_SETTINGS_LEFT:     ("Monitoring settings left",    const.READBACK_MONITORING_SETTINGS_LEFT,     MonitoringChannelMap),
+    const.READ_VALUES_PERIPHERY_LEFT:   ("Read monitor values left",    const.READBACK_READ_VALUES_PERIPHERY_LEFT,   ReadValueMap),
+    const.HEADER_SETTINGS_BOTTOM:       ("Header settings bottom",      const.READBACK_HEADER_SETTINGS_BOTTOM,       HeaderInfoMap),
+    const.CONTROL_SETTINGS_BOTTOM:      ("Control settings bottom",     const.READBACK_CONTROL_SETTINGS_BOTTOM,      ControlChannelMap),
+    const.MONITORING_SETTINGS_BOTTOM:   ("Monitoring settings bottom",  const.READBACK_MONITORING_SETTINGS_BOTTOM,   MonitoringChannelMap),
+    const.READ_VALUES_PERIPHERY_BOTTOM: ("Read monitor values bottom",  const.READBACK_READ_VALUES_PERIPHERY_BOTTOM, ReadValueMap),
+    const.HEADER_SETTINGS_CARRIER:      ("Header settings carrier",     const.READBACK_HEADER_SETTINGS_BOTTOM,       HeaderInfoMap),
+    const.CONTROL_SETTINGS_CARRIER:     ("Control settings carrier",    const.READBACK_CONTROL_SETTINGS_CARRIER,     ControlChannelMap),
+    const.MONITORING_SETTINGS_CARRIER:  ("Monitoring settings carrier", const.READBACK_MONITORING_SETTINGS_CARRIER,  MonitoringChannelMap),
+    const.READ_VALUES_CARRIER:          ("Read monitor values carrier", const.READBACK_READ_VALUES_CARRIER,          ReadValueMap),
+    const.HEADER_SETTINGS_PLUGIN:       ("Header settings plugin",      const.READBACK_HEADER_SETTINGS_PLUGIN,       HeaderInfoMap),
+    const.CONTROL_SETTINGS_PLUGIN:      ("Control settings plugin",     const.READBACK_CONTROL_SETTINGS_PLUGIN,      ControlChannelMap),
+    const.MONITORING_SETTINGS_PLUGIN:   ("Monitoring settings plugin",  const.READBACK_MONITORING_SETTINGS_PLUGIN,   MonitoringChannelMap),
+    const.READ_VALUES_PLUGIN:           ("Read monitor values plugin",  const.READBACK_READ_VALUES_PLUGIN,           ReadValueMap),
+    const.COMMAND:                      ("CommandMap",                  None,                                        CommandMap),
+    const.READ_ECHO_WORD:               ("Read Echo Word",              const.READBACK_READ_ECHO_WORD,               EchoWordMap),
 }
 """Look-up table of UART addresses and the corresponding details
 
@@ -361,21 +384,21 @@ CarrierUARTRegisters = {
 
 
 class UARTRegister(object):
-    ''' Represent a specific UART register on the Percival Carrier Board
-    '''
+    """ Represent a specific UART register on the Percival Carrier Board
+    """
     UART_ADDR_WIDTH = 16
     UART_WORD_WIDTH = 32
 
     def __init__(self, uart_block, uart_device=None):
-        '''Constructor
-        
+        """Constructor
+
             :param uart_block: UART start address for a block of registers.
                 This is used as a look-up key to the functionality of that register in the CarrierUARTRegisters dictionary
             :type  uart_block: :obj:`percival.carrier.const.UARTBlock`
             :param uart_device: UART start address for a specific device within the register block. If defined
                 this will be used to generate write commands in get_write_cmd_msg().
             :type uart_device: int
-        '''
+        """
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         (self._name, self._readback_addr, DeviceClass) = CarrierUARTRegisters[uart_block]
         self._uart_block_address = uart_block
@@ -390,15 +413,15 @@ class UARTRegister(object):
             self._uart_address = uart_device
             self.log.debug("UARTRegister updated _uart_address: %02X", self._uart_address)
             if uart_device.bit_length() > self.UART_ADDR_WIDTH:
-                raise_with_traceback(ValueError("UART device address value 0x%H is greater than 16 bits" %
+                raise_with_traceback(ValueError("UART device address value 0x%X is greater than 16 bits" %
                                                 uart_device))
 
         if uart_block.start_address.bit_length() > self.UART_ADDR_WIDTH:
-            raise_with_traceback(ValueError("UART block address value 0x%H is greater than 16 bits" %
+            raise_with_traceback(ValueError("UART block address value 0x%X is greater than 16 bits" %
                                             uart_block.start_address))
         if self._readback_addr:
             if self._readback_addr.start_address.bit_length() > self.UART_ADDR_WIDTH:
-                raise_with_traceback(ValueError("readback_addr value 0x%H is greater than 16 bits" %
+                raise_with_traceback(ValueError("readback_addr value 0x%X is greater than 16 bits" %
                                                 self._readback_addr.start_address))
 
     @property
@@ -471,7 +494,7 @@ def generate_register_maps(registers):
     index = 0
     register_maps = []
     while index < len(registers):
-        addr, data = registers[index]
+        addr, data = registers[index]  # pylint: disable=W0612
         uart_block = get_register_block(addr)
         if not uart_block:
             logger.warning("Did not find UART block for address: 0x%X", addr)
@@ -481,7 +504,7 @@ def generate_register_maps(registers):
             logger.warning("UART address %s doesn't align with element boundary within the block %s.", addr, uart_block)
             index += 1
             continue
-        (name, readback_addr_block, RegisterMapClass) = CarrierUARTRegisters[uart_block]
+        (name, readback_addr_block, RegisterMapClass) = CarrierUARTRegisters[uart_block]  # pylint: disable=W0612
         block_map = RegisterMapClass()
         block_words = registers[index:index + block_map.num_words]
         try:

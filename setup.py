@@ -53,16 +53,16 @@ setup(
     keywords='Percival Xray Detector Science Syncrotron XFEL',
 
     # Specify the packages that this project provides (using find_packages() for automation)
-    packages=find_packages(exclude=['docs','sandbox', 'tests*']),
+    packages=find_packages(exclude=['docs', 'sandbox', 'tests*']),
 
     # run-time dependencies here. These will be installed by pip when the project is installed.
-    install_requires=['numpy', 'h5py', 'future', 'enum34>=1.0'],
+    install_requires=['numpy==1.11.1', 'h5py==2.6.0', 'future==0.15.2', 'enum34==1.1.6', 'npyscreen==4.10.5', 'pyzmq==15.3.0'],
 
     # Additional groups of dependencies (e.g. development dependencies). 
     # You can install these using the following syntax, for example:
     # $ pip install -e .[dev,test]
     extras_require={
-        'test': ['nose>=1.3', 'coverage'],
+        'test': ['nose>=1.3', 'coverage', 'mock'],
     },
 
     # Data files included in the packages
@@ -80,7 +80,9 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'percival=percivalui.control:main',
+            'percival-control=percival.percivalcontrol:main',
+            'percival-client=percival.client:main',
+            'percival-scan-devices=percival.scandevices:main',
         ],
     },
 )

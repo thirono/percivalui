@@ -18,7 +18,7 @@ from __future__ import unicode_literals, absolute_import
 
 from enum import Enum, unique
 
-FIRMWARE_VERSION = "2016.04.20"
+FIRMWARE_VERSION = "2016.06.30"
 """Elettra Firmware version is based on date"""
 
 
@@ -121,6 +121,17 @@ class SystemCmd(Enum):
 
 @unique
 class BoardTypes(Enum):
+    """Enumeration of the board types"
+
+    Current list of board types:
+
+    * `prototype`
+    * `left`
+    * `bottom`
+    * `carrier`
+    * `plugin`
+    * `other`
+    """
     prototype = 0
     left = 1
     bottom = 2
@@ -212,3 +223,38 @@ class DeviceFunction(Enum):
     none = 3
 
 
+@unique
+class BufferTarget(Enum):
+    """Enumeration of the BUFFER_TARGET type """
+    none = 0
+    mezzanine_board_A = 1
+    mezzanine_board_B = 2
+    both_mezzanine_boards = 3
+    plugin_board = 4
+    percival_sensor = 5
+
+
+@unique
+class BufferCmd(Enum):
+    """Enumeration of buffer commands, not all accepted by all boards """
+    no_operation = 0
+    write = 1
+    read = 2
+
+
+BufferCommands = {
+    BufferTarget.mezzanine_board_A: {
+        BufferCmd.no_operation: {"command": int(0), "response": 1},
+        BufferCmd.write:        {"command": int(0), "response": 2},
+        BufferCmd.read:         {"command": int(1), "response": 2}
+                                    },
+    BufferTarget.mezzanine_board_B: {
+        BufferCmd.no_operation: {"command": int(0), "response": 1},
+        BufferCmd.write:        {"command": int(0), "response": 2},
+        BufferCmd.read:         {"command": int(1), "response": 2}
+                                    },
+    BufferTarget.both_mezzanine_boards: {
+        BufferCmd.no_operation: {"command": int(0), "response": 1},
+        BufferCmd.write:        {"command": int(0), "response": 3}
+                                        }
+}

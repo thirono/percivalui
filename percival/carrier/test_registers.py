@@ -44,9 +44,15 @@ class TestHeaderInfoMap(unittest.TestCase):
         self.assertTrue(hasattr(self.dut, "eeprom_address"))
         self.assertTrue(hasattr(self.dut, "monitoring_channels_count"))
         self.assertTrue(hasattr(self.dut, "control_channels_count"))
+        self.assertEquals(self.dut["eeprom_address"], registers.MapField("eeprom_address", 0, 8, 16))
+        self.assertEquals(self.dut["monitoring_channels_count"], registers.MapField("monitoring_channels_count", 0, 8, 8))
+        self.assertEquals(self.dut["control_channels_count"], registers.MapField("control_channels_count", 0, 8, 0))
         with self.assertRaises(AttributeError):
             self.dut.no_parameter_with_this_name
         self.assertTrue(hasattr(self.dut, "num_words"))
+        self.assertEquals(list(self.dut.map_fields).sort(), ["control_channels_count",
+                                                             "monitoring_channels_count",
+                                                             "eeprom_address"].sort())
 
     def testParseValidMap(self):
         self.dut.parse_map([0xA1234567])
@@ -154,6 +160,9 @@ class TestMapField(unittest.TestCase):
     def setUp(self):
         self.dut = registers.MapField("TEST", 2, 3, 4)
 
+    def TestName(self):
+        self.assertEqual(self.dut.name, "TEST")
+
     def TestProps(self):
         self.assertEqual(self.dut.num_bits, 3)
         self.assertEqual(self.dut.bit_offset, 4)
@@ -162,6 +171,8 @@ class TestMapField(unittest.TestCase):
 
     def TestValue(self):
         self.assertEqual(self.dut.value, None)
+        with self.assertRaises(ValueError):
+            self.dut.insert_field_value([0x00, 0x00])
         self.dut.value = 45
         self.assertEqual(self.dut.value, 45)
         self.assertEqual(self.dut._value, 45)
