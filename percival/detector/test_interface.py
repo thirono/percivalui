@@ -1,5 +1,5 @@
 from unittest import TestCase
-from interface import IControl, IData, IDetector
+from percival.detector.interface import IControl, IData, IDetector
 
 
 class TestIDetector(TestCase):
