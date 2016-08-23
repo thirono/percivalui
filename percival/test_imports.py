@@ -1,9 +1,10 @@
-'''
-Created on 8 May 2015
+"""
+Testing import of packages
 
-@author: up45
-'''
+@author: Ulrik
+"""
 import unittest
+
 
 class TestImports(unittest.TestCase):
 

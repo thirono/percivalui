@@ -63,23 +63,17 @@ class CarrierBoard(object):
 
     #### IControl interface implementation ####        
     def start_acquisition(self, exposure, nframes):
-        #raise NotImplementedError
-        pass
+        raise NotImplementedError
 
     def stop_acquisition(self):
-        #raise NotImplementedError
-        pass
+        raise NotImplementedError
 
     def get_nframes(self):
-        #raise NotImplementedError
-        return 42
+        raise NotImplementedError
 
     def powerup_sequence(self):
         raise NotImplementedError
     #### End IControl interface implementation ####
-
-    def initialise_fpga(self):
-        raise NotImplementedError
 
 
 class MezzanineBoard(interface.IData):
@@ -129,7 +123,7 @@ class PercivalUI(object):
 
         Internally maintains objects that implement control and data monitoring.
     """
-    exposure= 1
+    exposure = 1.
     control = CarrierBoard()
     data = MezzanineBoard()
 
@@ -138,10 +132,14 @@ class PercivalUI(object):
 
     def acquire(self, exposure, nframes=1, wait=True):
         """Start the detector acquiring data
+        :rtype: int
+        :param exposure: 
+        :param nframes:
+        :param wait:
         """
         self.control.start_acquisition(exposure, nframes)
         if wait:
-            # Cait until acquisition is complete.
+            # Wait until acquisition is complete.
             # Calculate a suitable timeout based on exposure time and number of frames
             # TODO: for the moment we just fake it with a bit of a sleep here
             time.sleep(exposure * nframes)

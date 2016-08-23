@@ -16,7 +16,6 @@ import logging
 
 import abc
 from inspect import ismethod, getargspec
-from . import parameter
 
 logger = logging.getLogger(__name__)
 
@@ -96,19 +95,12 @@ class IDetector(with_metaclass(abc.ABCMeta, IABCMeta)):
         raise NotImplementedError
 
 
-class IParameter(with_metaclass(abc.ABCMeta, object)):
-    """Base class interface to describe a detector parameter
-
-    The :obj:`value` object is a :class:`detector.parameter.Observable` instance
-    to which callbacks can be registerred to provide notification updates
-    """
-    #__metaclass__ = abc.ABCMeta
-    value = parameter.Observable('value')
-    
-
 class IControl(with_metaclass(abc.ABCMeta, IABCMeta)):
     #__metaclass__ = abc.ABCMeta
-    
+    __iproperties__ = []
+    __imethods__ = ['start_acquisition', 'stop_acquisition', 'get_nframes']
+    _iface_requirements = __imethods__ + __iproperties__
+
     @abc.abstractmethod
     def start_acquisition(self, exposure, nframes):
         raise NotImplementedError
@@ -124,21 +116,24 @@ class IControl(with_metaclass(abc.ABCMeta, IABCMeta)):
 
 class IData(with_metaclass(abc.ABCMeta, IABCMeta)):
     #__metaclass__ = abc.ABCMeta
-    
+    __iproperties__ = ['filename', 'datasetname']
+    __imethods__ = ['start_capture', 'wait_complete']
+    _iface_requirements = __imethods__ + __iproperties__
+
     def get_filename(self):
         return self.filename
 
     def set_filename(self, fname):
         self.filename = fname
     filename = abc.abstractproperty(get_filename, set_filename)
-    
+
     def get_datasetname(self):
         return self.datasetname
 
     def set_datasetname(self, value):
         self.datasetname = value
     datasetname = abc.abstractproperty(get_datasetname, set_datasetname)
-    
+
     @abc.abstractmethod
     def start_capture(self, filename, nframes):
         '''
