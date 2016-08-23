@@ -177,7 +177,7 @@ Total_channels_count = 33\n\
             self.assertEquals(bp.monitoring_channels_count, 19)
 
 
-class TestBoardParameters(unittest.TestCase):
+class TestControlParameters(unittest.TestCase):
     def setUp(self):
         f = open("/tmp/Percival.ini", "w+")
         f.write("\
@@ -188,12 +188,12 @@ carrier_ip = \"127.0.0.1\"\n\
         f = open("/tmp/PercivalNONE.ini", "w+")
         f.write("")
 
-    def test_board_parameters(self):
+    def test_control_parameters(self):
         pp = ControlParameters("/tmp/Percival.ini")
         pp.load_ini()
         self.assertEquals(pp.carrier_ip, '127.0.0.1')
 
-    def test_board_exceptions(self):
+    def test_control_exceptions(self):
         pp = ControlParameters("/tmp/PercivalNONE.ini")
         pp.load_ini()
         with self.assertRaises(RuntimeError):
