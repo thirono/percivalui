@@ -1,3 +1,4 @@
+import six
 from unittest import TestCase
 from percival.detector.interface import IControl, IData, IDetector
 
@@ -65,10 +66,9 @@ class TestIControl(TestCase):
     def test_adhere_to_interface(self):
         """Add the missing stop_exposure method to the self.Control class.
         This should complete the IControl interface"""
-        from types import MethodType
         def stop_acquisition(self):
             raise NotImplementedError
-        self.Control.stop_acquisition = MethodType(stop_acquisition, None, self.Control)
+        self.Control.stop_acquisition = six.create_unbound_method(stop_acquisition, self.Control)
 
         IControl.register(self.Control)
         self.assertTrue(issubclass(self.Control, IControl))
