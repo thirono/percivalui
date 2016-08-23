@@ -202,6 +202,8 @@ class TestTxRx(unittest.TestCase):
 
     def TestSendRecvMessageTimeoutRaisesCommsError(self):
         """Check that no response times out and raises a PercivalCommsError"""
+        self.txrx.timeout = 0.2  # short timeout so we don't hold up testing too much
+
         byte_array_message = bytes("\x01\x01\x01\x01\x01\x01", encoding=DATA_ENCODING)
         txmsg = TxMessage(byte_array_message, num_response_msg=1, expect_eom=True)
         with self.assertRaises(PercivalCommsError):
@@ -216,7 +218,7 @@ class TestTxRx(unittest.TestCase):
         """Check that a broken socket connection raises a PercivalCommsError"""
         # close the dummy socket
         self.s.close()
-
+        self.txrx.timeout = 0.2  # short timeout so we don't hold up testing too much
         byte_array_message = bytes("\x09\x08\x07\x06\x05\x04", encoding=DATA_ENCODING)
         txmsg = TxMessage(byte_array_message, num_response_msg=1, expect_eom=True)
         with self.assertRaises(PercivalCommsError):
