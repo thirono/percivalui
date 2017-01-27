@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from carrier.const import BoardTypes
-from carrier.registers import UARTRegister, BoardRegisters
+from percival.carrier.const import BoardTypes
+from percival.carrier.registers import UARTRegister, BoardRegisters
 from percival.detector.detector import PercivalParameters
 
 

@@ -9,8 +9,7 @@ import unittest, sys, logging
 from mock import MagicMock
 from builtins import bytes
 
-from carrier.configuration import BoardParameters
-from detector.detector import PercivalParameters
+from percival.detector.detector import PercivalParameters
 from percival.carrier import const
 from percival.carrier.settings import BoardSettings
 
