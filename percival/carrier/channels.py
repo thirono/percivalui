@@ -205,7 +205,7 @@ class ControlChannel(Channel):
             echo = self.read_echo_word()
             result = generate_register_maps(echo)
             if result[0].i2c_communication_error:
-                raise IOError("I2C communication error when writing to %s", self._channel_ini.Channel_name)
+                raise IOError("I2C communication error when writing to \'%s\'" % self._channel_ini.Channel_name)
             if result[0].read_value == value:
                 self._log.debug("Read value same a set value %s (\"%s\")", value, self._channel_ini.Channel_name)
                 break
