@@ -23,9 +23,9 @@ class TestSystemCommandClass(unittest.TestCase):
         # Verify the correct TxMessages are sent to the socket
         calls = self.txrx.send_recv_message.mock_calls
         self.assertEqual(calls[0], call(
-            TxMessage(bytes("\x00\xFA\x00\x00\x00\x00", encoding="latin-1"), expect_eom=True)))
+            TxMessage(bytes("\x03\x3C\x00\x00\x00\x00", encoding="latin-1"), expect_eom=True)))
         self.assertEqual(calls[1], call(
-            TxMessage(bytes("\x00\xFA\x00\x02\x00\x00", encoding="latin-1"), expect_eom=True)))
+            TxMessage(bytes("\x03\x3C\x00\x02\x00\x00", encoding="latin-1"), expect_eom=True)))
 
         # Send a command that is not a system command type
         # Check that a TypeError is raised

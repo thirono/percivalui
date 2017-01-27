@@ -132,6 +132,17 @@ Unit = \"V\"\n\
         cp.load_ini()
         self.assertEqual(str(cp), "<ChannelParameters: inifile: /tmp/ChannelNONE.ini Control channels: [] Monitoring channels: []>")
 
+    def test_config_channel_parameters(self):
+        """Checking loading of the config/Channel parameters.ini file (v. 2017.01.24)"""
+        cp = ChannelParameters("config/Channel parameters.ini")
+        cp.load_ini()
+        self.assertEqual(type(cp.control_channels), list)
+        self.assertEqual(type(cp.monitoring_channels), list)
+        # Channel count as per version 2017.01.24
+        self.assertEqual(len(cp.control_channels), 68)
+        self.assertEqual(len(cp.monitoring_channels), 105)
+
+
 
 class TestBoardParameters(unittest.TestCase):
     def setUp(self):

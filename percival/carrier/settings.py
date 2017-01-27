@@ -56,7 +56,7 @@ class BoardSettings:
             channel_address = self._reg_control_settings._uart_address + (address * self._reg_control_settings.words_per_item)
             channel = ini.control_channel_by_address(channel_address)
             #self.log.info(channel)
-            #self.log.info("Uart address %02X", self._reg_control_settings._uart_address + (address * self._reg_control_settings.words_per_item))
+            self.log.info("Uart address %02X", self._reg_control_settings._uart_address + (address * self._reg_control_settings.words_per_item))
             #self.log.info(channel.Channel_ID)
 
             self._control_settings[address] = UARTRegister(self._control_block, channel_address)

@@ -17,7 +17,7 @@ from percival.carrier.registers import UARTRegister, generate_register_maps
 from percival.carrier.settings import BoardSettings
 from percival.carrier.txrx import TxRxContext, hexify
 from percival.carrier.channels import ControlChannel
-from percival.carrier.configuration import ChannelParameters
+from percival.detector.detector import PercivalParameters
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
 
@@ -44,10 +44,10 @@ class ReadMonitors(object):
         for addr, _ in response:
             index = addr - self._uart_block.start_address
             #      addr is just a READ VALUES register address - not the channels base address.
-            name = ini_params.monitoring_channel_name_by_id_and_board_type(index, self._board_type)
+            name = ini_params.monitoring_channel_name_by_index_and_board_type(index, self._board_type)
             self._channel_data.update({name: []})
 
-    def read_carrier_monitors(self):
+    def read_monitors_devices(self):
         """Read all carrier monitor channels with one READ VALUES shortcut command
 
         Parse the resuling [(address, data), (address, data)...] array of tuples into a list of
@@ -105,7 +105,7 @@ def store_monitor_data(args, data_dict):
             log.debug("=========== Creating group %s ============", channel_name)
             group = f.create_group(channel_name)
             for field_name, data_array in channel_fields.items():
-                log.debug("--- Writing %s data: %s ", field_name, data_array)
+                # log.debug("--- Writing %s data: %s ", field_name, data_array)
                 group.create_dataset(field_name, data=data_array)
 
 
@@ -126,27 +126,28 @@ def main():
     log.info(args)
 
     with TxRxContext(board_ip_address) as trx:
-        ini_params = ChannelParameters("config/Channel parameters.ini")
-        ini_params.load_ini()
+        percival_params = PercivalParameters()
+        percival_params.load_ini()
 
-        # Get the Control Channels
-        log.debug("Control Channels: %s", str(ini_params.control_channels))
-        log.debug("Monitoring Channels: %s", str(ini_params.monitoring_channels))
-        log.debug("INI parameters: %s", ini_params)
+        log.debug("INI parameters: %s", percival_params)
 
-        bs = BoardSettings(trx, const.BoardTypes.carrier)
+        channel_ini = percival_params.control_channel_by_name(args.channel)
+        log.info("ini: %s", channel_ini)
+
+        board_type = const.BoardTypes(channel_ini.Board_type)
+        bs = BoardSettings(trx, board_type)
+        #bs.initialise_board(percival_params)
         bs.readback_control_settings()
-
-        ini = ini_params.control_channels_by_name(args.channel)
-        log.info("ini: %s", ini)
-
-        cc_settings = bs.device_control_settings(ini.UART_address)
+        cc_settings = bs.device_control_settings(channel_ini.UART_address)
         log.info("Control Channel #2 settings from board: %s", hexify(cc_settings))
 
         log.debug("Creating control channel")
-        cc = ControlChannel(trx, ini, cc_settings)
+        cc = ControlChannel(trx, channel_ini, cc_settings)
 
-        readmon = ReadMonitors(trx, const.READ_VALUES_CARRIER, ini_params, const.BoardTypes.carrier)
+        readmons = [ReadMonitors(trx, const.READ_VALUES_CARRIER, percival_params, const.BoardTypes.carrier),
+                    ReadMonitors(trx, const.READ_VALUES_PERIPHERY_BOTTOM, percival_params, const.BoardTypes.bottom),
+                    ReadMonitors(trx, const.READ_VALUES_PERIPHERY_LEFT, percival_params, const.BoardTypes.left),
+                    ReadMonitors(trx, const.READ_VALUES_PLUGIN, percival_params, const.BoardTypes.plugin)]
 
         tstamp = time.time()
         for new_value in range(*args.range):
@@ -160,7 +161,8 @@ def main():
                 time.sleep(args.period - dt)
                 log.debug("sleeping: %f sec", args.period - dt)
             tstamp = time.time()
-            adcs = readmon.read_carrier_monitors()
+            adcs = {}
+            [adcs.update(rm.read_monitors_devices()) for rm in readmons]
             log.info("Read carrier monitoring channels: %s", adcs.keys())
 
         # check if we need to execute one more iteration
@@ -178,12 +180,16 @@ def main():
                 time.sleep(args.period - dt)
                 log.debug("sleeping: %f sec", args.period - dt)
             tstamp = time.time()
-            adcs = readmon.read_carrier_monitors()
+            adcs = {}
+            [adcs.update(rm.read_monitors_devices()) for rm in readmons]
             log.info("Read carrier monitoring channels: %s", adcs.keys())
 
-        log.info(readmon.channel_data)
+        #log.info(readmon.channel_data)
+
     if args.output:
-        store_monitor_data(args, readmon.channel_data)
+        mon_data = {}
+        [mon_data.update(rm.channel_data) for rm in readmons]
+        store_monitor_data(args, mon_data)
 
 
 if __name__ == '__main__':

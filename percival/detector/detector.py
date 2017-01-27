@@ -53,7 +53,7 @@ class PercivalParameters(object):
         self._board_params[const.BoardTypes.carrier].load_ini()
         self._board_params[const.BoardTypes.plugin].load_ini()
         self._channel_params.load_ini()
-        self._log.info(self._channel_params.control_channels)
+        #self._log.debug(self._channel_params.control_channels)
 
     @property
     def carrier_ip(self):
@@ -163,6 +163,18 @@ class PercivalParameters(object):
         """
         self._log.debug(self._channel_params)
         return self._channel_params.monitoring_channels_by_name(channel_name)
+
+    def control_channel_by_name(self, channel_name):
+        """
+        Search for the control channel by its name
+
+        :param channel_name: Name of the control channel
+        :type channel_name: str
+        :returns: Control channel ini parameters
+        :rtype: configuration.ControlChannelIniParameters
+        """
+        self._log.debug(self._channel_params)
+        return self._channel_params.control_channels_by_name(channel_name)
 
     @property
     def monitoring_channels(self):
