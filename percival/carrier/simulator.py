@@ -134,13 +134,13 @@ class Simulator(object):
                     reg, length = self.shortcuts[a].getshortcut()
                     msg = bytes()
                     for creg in range(reg, reg+length):
-                        log.info("creg: 0x%04X   reg: (0x%08X)", creg, self.registers[creg])
+                        log.debug("creg: 0x%04X   reg: (0x%08X)", creg, self.registers[creg])
                         msg = msg + encode_message(creg, self.registers[creg])
-                    log.info("Message length of reply: %d", len(msg))
+                    log.debug("Message length of reply: %d", len(msg))
                     client_sock.send(msg)
                 else:
                     if a in self.eoms:
-                        log.debug("EOM required")
+                        log.info("EOM required")
                         # We need to send FFFFABBABAC1 as an end of message
                         client_sock.send(END_OF_MESSAGE)
                     else:
