@@ -53,7 +53,7 @@ def main():
                  0x03FD: ShortcutRegister(0x02E0, 1 * 18),
                  0x03FE: ShortcutRegister(0x02F2, 1 * 8),
                  0x03FF: ShortcutRegister(0x02FA, 1 * 64),
-                 0x0000: ShortcutRegister(0x033A, 1 * 3),  # command
+                 0xFFFF: ShortcutRegister(0x033A, 1 * 3),  # command
 
                  0x0400: ShortcutRegister(0x033D, 1 * 1),  # read left
                  0x0401: ShortcutRegister(0x033E, 84 * 1),  # read bottom
