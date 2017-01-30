@@ -5,6 +5,9 @@ python:
   - "3.3"
   - "3.4"
 
+env:
+  - PERCIVAL_CARRIER_IP=127.0.0.1
+
 cache:
   directories:
     - $HOME/.cache/pip

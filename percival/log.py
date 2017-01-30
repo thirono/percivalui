@@ -30,6 +30,11 @@ percival_log_config = {
             'level': 'INFO',
             'propagate': False,
         },
+        'percival.carrier.simulator': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
         'percival.carrier.buffer': {
             'handlers': ['console'],
             'level': 'ERROR',
@@ -114,7 +119,7 @@ percival_log_config = {
             'handlers': ['console'],
             'level': 'INFO',
             'propagate': False,
-        },
+        }
     }
 }
 
