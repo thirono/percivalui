@@ -3,6 +3,8 @@ Communications module for the Percival Carrier Board XPort interface.
 """
 from __future__ import unicode_literals, absolute_import
 from builtins import bytes  # pylint: disable=W0622
+from future.utils import raise_with_traceback
+
 
 import logging
 import binascii
@@ -12,6 +14,7 @@ from multiprocessing import Lock
 
 from percival.carrier.encoding import DATA_ENCODING, NUM_BYTES_PER_MSG, END_OF_MESSAGE
 from percival.carrier.encoding import decode_message
+from percival.carrier.errors import PercivalCommsError, PercivalProtocolError
 
 
 def hexify(registers):
@@ -84,8 +87,8 @@ class TxMessage(object):
         return s
 
     def __eq__(self, other):
-        return (isinstance(other, self.__class__)
-                and self.__dict__ == other.__dict__)
+        return (isinstance(other, self.__class__) and
+                self.__dict__ == other.__dict__)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -132,15 +135,19 @@ class TxRx(object):
         
         :param msg: Message to transmit
         :type  msg: bytearray
+        :raises `PercivalCommsError`: if the socket connection appears to be broken
         """
-        self.sock.sendall(msg)
+        try:
+            self.sock.sendall(msg)
+        except socket.error as e:
+            raise_with_traceback(PercivalCommsError("Unable to send message (%s)" % e))
     
     def rx_msg(self, expected_bytes = None):
         """Receive messages of up to `expected_bytes` length
         
         :param expected_bytes: Number of bytes expected to be received. If `expected_bytes`
                                is None, read at least one single message
-        :raises `RuntimeError`: if a message of 0 bytes is received indicating a broken socket connection
+        :raises `PercivalCommsError`: if the socket connection appears to be broken
         :returns: The received message
         :rtype:   bytearray
         """
@@ -155,11 +162,15 @@ class TxRx(object):
         while len(msg) < expected_resp_len:
             if expected_bytes:
                 block_read_bytes = expected_bytes-len(msg)
-            chunk = self.sock.recv(block_read_bytes)
+            try:
+                chunk = self.sock.recv(block_read_bytes)
+            except socket.error as e:
+                raise raise_with_traceback(PercivalCommsError("socket connection broken (%s)" % e))
             if isinstance(chunk, str):
                 chunk = bytes(chunk, encoding=DATA_ENCODING)
             if len(chunk) == 0:
-                raise RuntimeError("socket connection broken (expected a multiple of 6 bytes)")
+                raise raise_with_traceback(
+                    PercivalCommsError("socket connection broken (expected a multiple of 6 bytes)"))
             msg = msg + chunk
         return msg
 
@@ -168,12 +179,23 @@ class TxRx(object):
         
         :param msg: UART message to send
         :type  msg: bytearray
+        :param expected_bytes: Number of bytes expected to be received. If `expected_bytes`
+                               is None, read at least one single message
+        :raises `PercivalCommsError`: if the socket connection appears to be broken
         :returns:   Response from UART
         :rtype:     bytearray
         """
         with self._mutex:
-            self.tx_msg(msg)
-            resp = self.rx_msg(expected_bytes)
+            try:
+                self.tx_msg(msg)
+            except PercivalCommsError as e:
+                self.log.exception("Failed to send message %s. ERROR: %s" % (message, e))
+                raise
+            try:
+                resp = self.rx_msg(expected_bytes)
+            except PercivalCommsError as e:
+                self.log.exception("Failed to receive response to message %s. ERROR: %s" % (message, e))
+                raise
         return resp
     
     def send_recv_message(self, message):
@@ -181,6 +203,9 @@ class TxRx(object):
         
         :param message: a single message to send
         :type message: :obj:`TxMessage`
+        :raises `PercivalCommsError`: if the socket connection appears to be broken
+        :raises `TypeError`: if the message is not a :obj:`TxMessage` instance
+        :raises `PercivalProtocolError`: if the response to the command does not validate (checking for EOM)
         :retuns: Response from UART as a list of tuples: [(address, data)...]
         :rtype:  list
         """
@@ -189,14 +214,22 @@ class TxRx(object):
             raise TypeError("message must be of type TxMessage, not %s"%str(type(message)))
 
         with self._mutex:
-            self.tx_msg(message.message)
-            resp = self.rx_msg(message.expected_bytes)
+            try:
+                self.tx_msg(message.message)
+            except PercivalCommsError as e:
+                self.log.exception("Failed to send message %s. ERROR: %s" % (message, e))
+                raise
+            try:
+                resp = self.rx_msg(message.expected_bytes)
+            except PercivalCommsError as e:
+                self.log.exception("Failed to receive response to message %s. ERROR: %s" % (message, e))
+                raise
         result = decode_message(resp)
 
         self.log.debug(" response: %s", hexify(result))
         # Check for expected response
         if not message.validate_eom(resp):
-            raise RuntimeError("Expected EOM on TxMessage: %s - got %s"%(str(message), str(result)))
+            raise PercivalProtocolError("Expected EOM on TxMessage: %s - got %s"%(str(message), str(result)))
         return result
 
     def clean(self):
@@ -205,8 +238,14 @@ class TxRx(object):
         Sockets are normally closed down cleanly on exit from the interpreter, however this method
         may be used in case the socket need to be closed down temporarily.
         """
-        self.sock.shutdown(socket.SHUT_RDWR)
-        self.sock.close()
+        try:
+            self.sock.shutdown(socket.SHUT_RDWR)
+        except socket.error:
+            self.log.warning("unable to shutdown socket")
+        try:
+            self.sock.close()
+        except socket.error:
+            self.log.warning("unable to close socket")
 
 
 @contextmanager
@@ -228,5 +267,4 @@ def TxRxContext(*args, **kwargs):
     trx = TxRx(*args, **kwargs)
     yield trx
     trx.clean()
-    
-       
+

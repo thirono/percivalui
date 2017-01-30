@@ -8,6 +8,8 @@ from builtins import bytes
 import percival.carrier.const as const
 from percival.carrier.devices import DeviceFamilyFeatures, MAX31730, LTC2309
 from percival.carrier.txrx import hexify, TxRx, TxMessage, TxRxContext
+from percival.carrier.encoding import END_OF_MESSAGE, DATA_ENCODING
+from percival.carrier.errors import PercivalProtocolError, PercivalCommsError
 
 
 class TestTxRxClasses(unittest.TestCase):
@@ -66,7 +68,7 @@ class TestTxRxClasses(unittest.TestCase):
         # Close the connection
         self.cnxn.close()
         # Try to read bytes through the closed connection
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(PercivalCommsError):
             reply = txrx.rx_msg()
 
         txrx = TxRx("127.0.0.1", port)
@@ -110,3 +112,131 @@ class TestTxRxClasses(unittest.TestCase):
         # Close down the socket
         self.s.close()
 
+
+class TestTxRx(unittest.TestCase):
+    def setUp(self):
+        self.s = socket.socket (socket.AF_INET, socket.SOCK_STREAM)
+        # Open a dummy socket for our txrx object to connect to
+        self.s.bind(("127.0.0.1", 0))
+        self.s.listen(3)
+        port = self.s.getsockname()[1]
+        self.txrx = TxRx("127.0.0.1", port)
+        self.connection, self.addr = self.s.accept()
+
+    def tearDown(self):
+        self.txrx.clean()
+        self.connection.close()
+        self.s.close()
+
+    def TestTransmitReceiveBytearray(self):
+        byte_array_msg_tx = bytes('\x00\x01\x02\x03\x04\x05', encoding=DATA_ENCODING)
+        self.txrx.tx_msg(byte_array_msg_tx)
+        # Receive the bytes from our test socket
+        msg = self.connection.recv(6)
+        # Verify the bytes are the same as those sent
+        self.assertEquals(msg, byte_array_msg_tx)
+        # Send some bytes back through the socket
+        byte_array_msg_rx = bytes('\x06\x07\x08\x09\x0A\x0B', encoding=DATA_ENCODING)
+        self.connection.send(byte_array_msg_rx)
+        # Receive the bytes through the txrx object
+        reply = self.txrx.rx_msg(expected_bytes=6)
+        # Verify the bytes have arrived
+        self.assertEquals(reply, byte_array_msg_rx)
+
+    def TestClosedConnection(self):
+        self.connection.close()
+        byte_array_msg_tx = bytes('\x0C\x0D\x0E\x0F\x10\x11', encoding=DATA_ENCODING)
+
+        self.txrx.tx_msg(byte_array_msg_tx)
+        with self.assertRaises(PercivalCommsError):
+            reply = self.txrx.rx_msg()
+
+    def TestClosedSocketAndConnection(self):
+        """Check that a RuntimeError is raised on txrx.rx_msg() when attempting to read a closed socket through a closed
+        connection which has been closed from the server end"""
+        self.connection.close()
+        self.s.close()
+        byte_array_msg_tx = bytes('\x0C\x0D\x0E\x0F\x10\x11', encoding=DATA_ENCODING)
+
+        self.txrx.tx_msg(byte_array_msg_tx)
+        with self.assertRaises(PercivalCommsError):
+            reply = self.txrx.rx_msg()
+
+    def TestClosedSocketTimeout(self):
+        """Check that a RuntimeError is raised on txrx.rx_msg() when attempting to read a socket which has been closed
+        from the server end"""
+        self.txrx.timeout = 0.1  # Set a really short timeout so we don't hold up testing
+        self.s.close()
+        byte_array_msg_tx = bytes('\x0C\x0D\x0E\x0F\x10\x11', encoding=DATA_ENCODING)
+
+        self.txrx.tx_msg(byte_array_msg_tx)
+        with self.assertRaises(PercivalCommsError):
+            reply = self.txrx.rx_msg()
+
+    def TestCloseTxRxSocket(self):
+        """Check that a socket.error is raised on TxRx.tx_msg() and TxRx.rx_msg() when attempting to send/receive data
+        when the client side socket has been closed"""
+        self.txrx.clean()
+        byte_array_msg_tx = bytes('\x0C\x0D\x0E\x0F\x10\x11', encoding=DATA_ENCODING)
+
+        with self.assertRaises(PercivalCommsError):
+            self.txrx.tx_msg(byte_array_msg_tx)
+
+        with self.assertRaises(PercivalCommsError):
+            reply = self.txrx.rx_msg()
+
+    def TestSendRecvMessage(self):
+        """The vanilla use-case - send a message and expect an ABBABAC1 return EOM"""
+        byte_array_message = bytes("\x01\x01\x01\x01\x01\x01", encoding=DATA_ENCODING)
+        txmsg = TxMessage(byte_array_message, num_response_msg=1, expect_eom=True)
+        # Send a response back from the server (in advance to avoid potential race condition or timeout
+        byte_array_response = bytes('\xFF\xFF\xAB\xBA\xBA\xC1', encoding=DATA_ENCODING)
+        self.connection.send(byte_array_response)
+        rxmsg = self.txrx.send_recv_message(txmsg)
+        # Check the received message is EOM
+        self.assertEquals(rxmsg, [(0xFFFF, 0xABBABAC1)])
+        # Receive the bytes from our test socket
+        msg = self.connection.recv(6)
+        # Verify the bytes are the same as those sent
+        self.assertEquals(msg, byte_array_message)
+
+    def TestSendRecvMessageTimeoutRaisesCommsError(self):
+        """Check that no response times out and raises a PercivalCommsError"""
+        self.txrx.timeout = 0.2  # short timeout so we don't hold up testing too much
+
+        byte_array_message = bytes("\x01\x01\x01\x01\x01\x01", encoding=DATA_ENCODING)
+        txmsg = TxMessage(byte_array_message, num_response_msg=1, expect_eom=True)
+        with self.assertRaises(PercivalCommsError):
+            self.txrx.send_recv_message(txmsg)
+
+        # Receive the bytes from our test socket
+        msg = self.connection.recv(6)
+        # Verify the bytes are the same as those sent
+        self.assertEquals(msg, byte_array_message)
+
+    def TestSendRecvMessageSocketRaisesCommsError(self):
+        """Check that a broken socket connection raises a PercivalCommsError"""
+        # close the dummy socket
+        self.s.close()
+        self.txrx.timeout = 0.2  # short timeout so we don't hold up testing too much
+        byte_array_message = bytes("\x09\x08\x07\x06\x05\x04", encoding=DATA_ENCODING)
+        txmsg = TxMessage(byte_array_message, num_response_msg=1, expect_eom=True)
+        with self.assertRaises(PercivalCommsError):
+            self.txrx.send_recv_message(txmsg)
+
+    def TestSendRecvMessageInvalidResponseRaisesCommsError(self):
+        """Check that invalid response raises a PercivalProtocolError"""
+        byte_array_message = bytes("\x01\x01\x01\x01\x01\x01", encoding=DATA_ENCODING)
+
+        # Put an invalid response back from the server (in advance to avoid potential race condition or timeout)
+        byte_array_response = bytes('\xBA\xBA\xB0\x00\xB1\x11', encoding=DATA_ENCODING)
+        self.connection.send(byte_array_response)
+
+        txmsg = TxMessage(byte_array_message, num_response_msg=1, expect_eom=True)
+        with self.assertRaises(PercivalProtocolError):
+            self.txrx.send_recv_message(txmsg)
+
+        # Receive the bytes from our test socket
+        msg = self.connection.recv(6)
+        # Verify the bytes are the same as those sent
+        self.assertEquals(msg, byte_array_message)
