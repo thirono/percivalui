@@ -12,6 +12,7 @@ from builtins import bytes
 import percival.carrier.const as const
 from percival.carrier.channels import ControlChannel, MonitoringChannel
 from percival.carrier.txrx import TxMessage
+from percival.carrier.errors import PercivalControlDeviceError
 
 
 class TestChannels(unittest.TestCase):
@@ -95,7 +96,7 @@ class TestChannels(unittest.TestCase):
         # Set the value to 26 from the control point
         self.txrx.send_recv_message.reset_mock()
         # Verify this times out and raises a runtime error
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(PercivalControlDeviceError):
             ctrlChannel.set_value(26, 0.01)
 
         # Set the value to 25 from the control point
@@ -105,6 +106,14 @@ class TestChannels(unittest.TestCase):
         # Verify this raises an IO error
         with self.assertRaises(IOError):
             ctrlChannel.set_value(25)
+
+        # Set the value to 0x42 from the control point
+        self.txrx.send_recv_message.reset_mock()
+        # Set the mock to return a larger value
+        self.txrx.send_recv_message.return_value = [(0x03EE, 0x00000044)]
+        # Verify this raises an exception
+        with self.assertRaises(PercivalControlDeviceError):
+            ctrlChannel.set_value(0x42)
 
     def TestAD5242ControlChannel(self):
         self.channel_ini.reset_mock()

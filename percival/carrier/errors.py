@@ -11,5 +11,5 @@ class PercivalProtocolError(Exception):
     pass
 
 
-class PercivalControlError(Exception):
+class PercivalControlDeviceError(Exception):
     pass
