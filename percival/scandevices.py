@@ -11,7 +11,7 @@ import numpy as np
 import h5py
 from collections import OrderedDict
 
-from percival.log import get_exclusive_file_logger
+from percival.log import log, get_exclusive_file_logger
 from percival.carrier import const
 from percival.carrier.registers import UARTRegister, generate_register_maps
 from percival.carrier.settings import BoardSettings
@@ -19,7 +19,7 @@ from percival.carrier.txrx import TxRxContext, hexify
 from percival.carrier.channels import ControlChannel
 from percival.detector.detector import PercivalParameters
 
-log = get_exclusive_file_logger('percival-scan-devices.log')
+#log = get_exclusive_file_logger('percival-scan-devices.log')
 
 
 class ReadMonitors(object):
@@ -101,7 +101,7 @@ def store_monitor_data(args, data_dict):
         f.attrs["range"] = bytes(args.range)
         f.attrs["channel"] = bytes(args.channel)
         for channel_name, channel_fields in data_dict.items():
-            log.debug("=========== Creating group %s ============", channel_name)
+            #log.debug("=========== Creating group %s ============", channel_name)
             group = f.create_group(channel_name)
             for field_name, data_array in channel_fields.items():
                 # log.debug("--- Writing %s data: %s ", field_name, data_array)
@@ -182,7 +182,7 @@ def main():
             [adcs.update(rm.read_monitors_devices()) for rm in readmons]
             log.info("Read carrier monitoring channels: %s", adcs.keys())
 
-        #log.info(readmon.channel_data)
+        #log.info(adcs)
 
     if args.output:
         print("Writing recorded data to file: ", args.output)
