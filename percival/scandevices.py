@@ -129,7 +129,7 @@ def main():
 
     percival_params = PercivalParameters()
     percival_params.load_ini()
-    log.debug("INI parameters: %s", percival_params)
+    log.debug("Carrier IP address: %s", percival_params.carrier_ip)
 
     with TxRxContext(percival_params.carrier_ip) as trx:
         channel_ini = percival_params.control_channel_by_name(args.channel)

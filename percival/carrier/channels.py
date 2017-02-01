@@ -16,6 +16,7 @@ import logging
 from percival.carrier import const
 from percival.carrier.registers import UARTRegister, BoardRegisters, generate_register_maps
 from percival.carrier.devices import DeviceCmd, DeviceFamilyFeatures, DeviceFamily
+from percival.carrier.errors import PercivalControlError
 
 
 class Channel(object):
@@ -191,6 +192,7 @@ class ControlChannel(Channel):
         * cmd_control_set_value
         * cmd_no_operation
         * cmd_set_and_get_value
+        * read_echo_word
 
         :param value: new value to set
         :param timeout: timeout for acknowledgement
@@ -209,6 +211,11 @@ class ControlChannel(Channel):
             if result[0].read_value == value:
                 self._log.debug("Read value same a set value %s (\"%s\")", value, self._channel_ini.Channel_name)
                 break
+            # TODO: Here we can have a problem: the user can demand value which is outside of the device allowed range.
+            #       The FPGA will then set the value to the maximum allowed value and the ECHO word will reflect that.
+            #       Thus the above if statement will not pass, and we'll retry in this loop until timeout.
+            #       Thus the timeout below can be incorrect - but is necessary because the ECHO word has not always been
+            #       updated in time for when we read it back...
             if time.time() > (start_time + timeout):
                 raise RuntimeError("Timeout when reading back value from ECHO word")
 

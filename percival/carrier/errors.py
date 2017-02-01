@@ -9,3 +9,7 @@ class PercivalCommsError(Exception):
 
 class PercivalProtocolError(Exception):
     pass
+
+
+class PercivalControlError(Exception):
+    pass
