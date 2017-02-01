@@ -150,10 +150,16 @@ def main():
                     ReadMonitors(trx, const.READ_VALUES_PLUGIN, percival_params, const.BoardTypes.plugin)]
 
         tstamp = time.time()
-        scan_range = args.range
-        scan_range[1] += scan_range[2]  # Increment by one to include the final scan step as requested by HW/FW devs
+
+        # Create the list of scan points from the users range arg
+        scan_range = range(*args.range)
+        # Ensure that the last point of the range is always included in the list
+        # even if the last step is not a full step size.
+        if args.range[1] > scan_range[-1]:
+            scan_range.append(args.range[1])
+
         print(" | ".join(["Demand", "ECHO value", "Sample Number", "I2C Error", "Notice"]))
-        for new_value in range(*scan_range):
+        for new_value in scan_range:
             log.info("Writing Control Channel \'%s\' value = %d", args.channel, new_value)
             echo_result = cc.set_value(new_value, timeout=1.0)
             log.info("ECHO: %s", echo_result)
