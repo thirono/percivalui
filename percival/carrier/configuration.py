@@ -306,8 +306,11 @@ class ChannelParameters(object):
                 else:
                     raise_with_traceback(TypeError("Unsupported parameter type %s"%str(parameter_type)))
                 channel.__setattr__(param, value)
-            self.log.debug("Appending channel: %s", channel)
-            channels.append(channel)
+            if channel.Channel_name is None or len(channel.Channel_name) == 0:
+                self.log.debug("Dropping channel %s as it has no Channel name defined.", channel.ini_section)
+            else:
+                self.log.debug("Appending channel: %s", channel)
+                channels.append(channel)
         return channels
 
     @staticmethod

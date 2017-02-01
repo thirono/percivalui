@@ -124,7 +124,8 @@ Unit = \"V\"\n\
         self.assertEqual(type(cp.control_channels), list)
         self.assertEqual(type(cp.monitoring_channels), list)
         self.assertEqual(cp.control_channels_by_name("VCH0").UART_address, 19)
-        self.assertEqual(cp.control_channel_name_by_index(1), "Control_channel<0001>")
+        
+        self.assertEqual(cp.control_channel_name_by_index(1), "VS_Vlow")
         self.assertEqual(cp.monitoring_channel_name_by_id_and_board_type(1, BoardTypes.carrier), "VCH1")
         self.assertEqual(cp.monitoring_channel_by_address(79).Channel_name, "VCH1")
         self.assertEqual(str(cp), "<ChannelParameters: inifile: /tmp/ChannelParameters.ini Control channels: 2 Monitoring channels: 2>")
@@ -139,8 +140,8 @@ Unit = \"V\"\n\
         self.assertEqual(type(cp.control_channels), list)
         self.assertEqual(type(cp.monitoring_channels), list)
         # Channel count as per version 2017.01.24
-        self.assertEqual(len(cp.control_channels), 68)
-        self.assertEqual(len(cp.monitoring_channels), 105)
+        self.assertEqual(len(cp.control_channels), 66)
+        self.assertEqual(len(cp.monitoring_channels), 102)
 
 
 
