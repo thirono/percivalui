@@ -1,3 +1,4 @@
+dist: trusty
 sudo: false
 language: python
 python:
@@ -9,18 +10,21 @@ env:
 cache:
   directories:
     - $HOME/.cache/pip
-    - $HOME/virtualenv/python$TRAVIS_PYTHON_VERSION/lib/python$TRAVIS_PYTHON_VERSION/site-packages
+#    - $HOME/virtualenv/python$TRAVIS_PYTHON_VERSION/lib/python$TRAVIS_PYTHON_VERSION/site-packages
 
 addons:
   apt:
     packages:
       - libhdf5-serial-dev
       - libzmq3-dev
-      - libatlas-base-dev liblapack3gf libblas3gf
+      - libatlas-base-dev liblapack-dev
  
-install:
-  - "pip install -r requirements.txt"
+before_install:
+  - pip install wheel
+  - pip install -r requirements.txt
   - pip install coveralls --upgrade --force-reinstall
+  
+install:
   - python setup.py install
   
 # command to run tests
