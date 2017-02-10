@@ -119,65 +119,27 @@ percival-client        percival-control       percival-scan-devices
 (venv27)(carrier_board_dev) [up45@pc0009 percivalui]$ percival-control
 ```
 
-percival-control
-----------------
-
-This is a wrapper of all the Percival Control classes into one service application. Open a new Terminal window (or tab)
-and start the application with the following commands:
+The installed scripts all have "online help" - i.e. it accepts the -h or --help flags and prints help to the command
+line interface flags and arguments. For example the percival-scan-devices:
 
 ```
-# If you are not already in the percivalui dir:
-cd Percival/percivalui 
+[up45@macpro percivalui]$ percival-scan-devices -h
+usage: percival-scan-devices [-h] [-r RANGE] [-o OUTPUT] [-p PERIOD] [-s] channel
 
-source venv27/bin/activate
+positional arguments:
+  channel               Control Channel to scan
 
-# Set an environment variable with the IP address of your Carrier Board Xport
-export PERCIVAL_CARRIER_IP=xxx.xxx.xxx.xxx
-
-percival-control --init 
-....
-.... lots of applications logs coming out here...
-
+optional arguments:
+  -h, --help            show this help message and exit
+  -r RANGE, --range RANGE
+                        Scan range in integers formatted like this:
+                        start,stop,step
+  -o OUTPUT, --output OUTPUT
+                        Output HDF5 filename
+  -p PERIOD, --period PERIOD
+                        Control the loop period time
+  -s, --status          Print status report at the end of scan
 ```
-
-To interact with the application/carrier board use the ```percival-client``` application (see below).
-
-To quit the application use the ```CTRL-c```.
- 
-percival-client
----------------
-
-This is a terminal text based user interface which allow for sending a number of commands to the carrier board through
-the percival-control service. 
-
-Start the application in a new Terminal window (or tab) with the following commands:
-
-```
-# If you are not already in the percivalui dir:
-cd Percival/percivalui 
-
-source venv27/bin/activate
-
-percival-client 
-```
-
-From this screen you can change the control and status endpoints before starting the client and connecting to the 
-standalone application. Hit enter-enter-enter to accept the default (local) channel settings.
-
-![alt text](images/standalone_client_intro.png "Standalone Client Introduction")
-
-Once the control and status endpoints have been confirmed you are presented with the main screen.  From the left-hand
-pane it is possible to send commands/queries to the percival-control application (and thereby the Percival carrier board). 
-It is also possible to start and stop the status loop; starting it will result in the response box periodically updating 
-with new status.
-
-![alt text](images/standalone_client_main1.png "Standalone Client Main")
-
-It is also possible to request execution of system commands from the client application.
-
-![alt text](images/standalone_client_main2.png "Standalone Client System Command")
-
-To quit the application use "Exit" option in the left-hand Main Menu panel.
 
 Shutdown the Ubuntu VM
 ----------------------
