@@ -18,7 +18,7 @@ from __future__ import unicode_literals, absolute_import
 
 from enum import Enum, unique
 
-FIRMWARE_VERSION = "2017.01.24"
+FIRMWARE_VERSION = "2017.05.05"
 """Elettra Firmware version is based on date"""
 
 
