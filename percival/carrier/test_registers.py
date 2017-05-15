@@ -198,9 +198,9 @@ class TestUARTRegister(unittest.TestCase):
         self.assertTrue(type(msg), list)
         self.assertIsInstance(msg[0], txrx.TxMessage)
         self.assertEqual(len(msg), 3)
-        expected_msg = [bytes('\x03\x3A\x00\x00\x00\x00', encoding='latin-1'),
-                        bytes('\x03\x3B\x00\x00\x00\x00', encoding='latin-1'),
-                        bytes('\x03\x3C\x00\x00\x00\x00', encoding='latin-1')]
+        expected_msg = [bytes('\x01\x22\x00\x00\x00\x00', encoding='latin-1'),
+                        bytes('\x01\x23\x00\x00\x00\x00', encoding='latin-1'),
+                        bytes('\x01\x24\x00\x00\x00\x00', encoding='latin-1')]
         for i in range(3):
             self.assertEqual(msg[i].message, expected_msg[i], msg[i].message)
 

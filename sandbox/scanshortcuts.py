@@ -11,10 +11,11 @@ import os
 from percival.log import log
 from percival.carrier.txrx import TxRxContext
 from percival.carrier.encoding import (encode_message, decode_message)
+from percival.carrier.const import *
 
 board_ip_address = os.getenv("PERCIVAL_CARRIER_IP")
 
-scanrange = range(0x013A, 0x0145+1, 1)
+scanrange = range(READBACK_HEADER_SETTINGS_LEFT.start_address, READBACK_MONITORING_SETTINGS_PLUGIN.start_address+1, 1)
 
 def main():
     log.info("Scanning shortcuts...")

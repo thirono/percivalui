@@ -157,8 +157,8 @@ class TxRx(object):
         
         if expected_bytes is None:
             expected_resp_len = NUM_BYTES_PER_MSG
-            block_read_bytes = 1024
-        
+            block_read_bytes = 4096
+
         while len(msg) < expected_resp_len:
             if expected_bytes:
                 block_read_bytes = expected_bytes-len(msg)
