@@ -14,6 +14,7 @@ from builtins import bytes    # pylint: disable=W0622
 from percival.carrier.encoding import DATA_ENCODING, END_OF_MESSAGE
 from percival.carrier.encoding import (encode_message, decode_message)
 from percival.log import log
+from percival.carrier.const import *
 
 board_ip_port = 10001
 
@@ -37,36 +38,114 @@ class ShortcutRegister(object):
 
 class Simulator(object):
     def __init__(self):
-        self.registers = np.zeros(0x0407, dtype=np.uint32)
-        self.eoms = range(0x0000, 0x03FF)
-        self.shortcuts = {0x03EF: ShortcutRegister(0x0000, 1 * 1),
-                          0x03F0: ShortcutRegister(0x0001, 1 * 4),
-                          0x03F1: ShortcutRegister(0x0005, 1 * 4),
-                          0x03F2: ShortcutRegister(0x0009, 1 * 1),
-                          0x03F3: ShortcutRegister(0x000A, 52 * 4),
-                          0x03F4: ShortcutRegister(0x00DA, 84 * 4),
-                          0x03F5: ShortcutRegister(0x022A, 1 * 1),
-                          0x03F6: ShortcutRegister(0x022B, 14 * 4),
-                          0x03F7: ShortcutRegister(0x0263, 19 * 4),
-                          0x03F8: ShortcutRegister(0x02AF, 1 * 1),
-                          0x03F9: ShortcutRegister(0x02B0, 1 * 4),
-                          0x03FA: ShortcutRegister(0x02B4, 1 * 4),
-                          0x03FB: ShortcutRegister(0x02B8, 1 * 32),
-                          0x03FC: ShortcutRegister(0x02D8, 1 * 8),
-                          0x03FD: ShortcutRegister(0x02E0, 1 * 18),
-                          0x03FE: ShortcutRegister(0x02F2, 1 * 8),
-                          0x03FF: ShortcutRegister(0x02FA, 1 * 64),
-                          0xFFFF: ShortcutRegister(0x033A, 1 * 3),  # command
+        self.registers = np.zeros(READBACK_READ_ECHO_WORD.start_address +
+                                  (READBACK_READ_ECHO_WORD.entries *
+                                   READBACK_READ_ECHO_WORD.words_per_entry),
+                                  dtype=np.uint32)
+        self.eoms = range(0x0000, READBACK_WRITE_BUFFER.start_address)
+        self.shortcuts = {READBACK_HEADER_SETTINGS_LEFT.start_address:
+                              ShortcutRegister(HEADER_SETTINGS_LEFT.start_address,
+                                               HEADER_SETTINGS_LEFT.entries *
+                                               HEADER_SETTINGS_LEFT.words_per_entry),
+                          READBACK_CONTROL_SETTINGS_LEFT.start_address:
+                              ShortcutRegister(CONTROL_SETTINGS_LEFT.start_address,
+                                               CONTROL_SETTINGS_LEFT.entries *
+                                               CONTROL_SETTINGS_LEFT.words_per_entry),
+                          READBACK_MONITORING_SETTINGS_LEFT.start_address:
+                              ShortcutRegister(MONITORING_SETTINGS_LEFT.start_address,
+                                               MONITORING_SETTINGS_LEFT.entries *
+                                               MONITORING_SETTINGS_LEFT.words_per_entry),
+                          READBACK_HEADER_SETTINGS_BOTTOM.start_address:
+                              ShortcutRegister(HEADER_SETTINGS_BOTTOM.start_address,
+                                               HEADER_SETTINGS_BOTTOM.entries *
+                                               HEADER_SETTINGS_BOTTOM.words_per_entry),
+                          READBACK_CONTROL_SETTINGS_BOTTOM.start_address:
+                              ShortcutRegister(CONTROL_SETTINGS_BOTTOM.start_address,
+                                               CONTROL_SETTINGS_BOTTOM.entries *
+                                               CONTROL_SETTINGS_BOTTOM.words_per_entry),
+                          READBACK_MONITORING_SETTINGS_BOTTOM.start_address:
+                              ShortcutRegister(MONITORING_SETTINGS_BOTTOM.start_address,
+                                               MONITORING_SETTINGS_BOTTOM.entries *
+                                               MONITORING_SETTINGS_BOTTOM.words_per_entry),
+                          READBACK_HEADER_SETTINGS_CARRIER.start_address:
+                              ShortcutRegister(HEADER_SETTINGS_CARRIER.start_address,
+                                               HEADER_SETTINGS_CARRIER.entries *
+                                               HEADER_SETTINGS_CARRIER.words_per_entry),
+                          READBACK_CONTROL_SETTINGS_CARRIER.start_address:
+                              ShortcutRegister(CONTROL_SETTINGS_CARRIER.start_address,
+                                               CONTROL_SETTINGS_CARRIER.entries *
+                                               CONTROL_SETTINGS_CARRIER.words_per_entry),
+                          READBACK_MONITORING_SETTINGS_CARRIER.start_address:
+                              ShortcutRegister(MONITORING_SETTINGS_CARRIER.start_address,
+                                               MONITORING_SETTINGS_CARRIER.entries *
+                                               MONITORING_SETTINGS_CARRIER.words_per_entry),
+                          READBACK_HEADER_SETTINGS_PLUGIN.start_address:
+                              ShortcutRegister(HEADER_SETTINGS_PLUGIN.start_address,
+                                               HEADER_SETTINGS_PLUGIN.entries *
+                                               HEADER_SETTINGS_PLUGIN.words_per_entry),
+                          READBACK_CONTROL_SETTINGS_PLUGIN.start_address:
+                              ShortcutRegister(CONTROL_SETTINGS_PLUGIN.start_address,
+                                               CONTROL_SETTINGS_PLUGIN.entries *
+                                               CONTROL_SETTINGS_PLUGIN.words_per_entry),
+                          READBACK_MONITORING_SETTINGS_PLUGIN.start_address:
+                              ShortcutRegister(MONITORING_SETTINGS_PLUGIN.start_address,
+                                               MONITORING_SETTINGS_PLUGIN.entries *
+                                               MONITORING_SETTINGS_PLUGIN.words_per_entry),
+                          READBACK_CHIP_READOUT_SETTINGS.start_address:
+                              ShortcutRegister(CHIP_READOUT_SETTINGS.start_address,
+                                               CHIP_READOUT_SETTINGS.entries *
+                                               CHIP_READOUT_SETTINGS.words_per_entry),
+                          READBACK_CLOCK_SETTINGS.start_address:
+                              ShortcutRegister(CLOCK_SETTINGS.start_address,
+                                               CLOCK_SETTINGS.entries *
+                                               CLOCK_SETTINGS.words_per_entry),
+                          READBACK_SYSTEM_SETTINGS.start_address:
+                              ShortcutRegister(SYSTEM_SETTINGS.start_address,
+                                               SYSTEM_SETTINGS.entries *
+                                               SYSTEM_SETTINGS.words_per_entry),
+                          READBACK_SAFETY_SETTINGS.start_address:
+                              ShortcutRegister(SAFETY_SETTINGS.start_address,
+                                               SAFETY_SETTINGS.entries *
+                                               SAFETY_SETTINGS.words_per_entry),
+                          READBACK_WRITE_BUFFER.start_address:
+                              ShortcutRegister(WRITE_BUFFER.start_address,
+                                               WRITE_BUFFER.entries *
+                                               WRITE_BUFFER.words_per_entry),
+                          0xFFFF: ShortcutRegister(COMMAND.start_address,
+                                                   COMMAND.entries *
+                                                   COMMAND.words_per_entry),  # command
 
-                          0x0400: ShortcutRegister(0x033D, 1 * 1),  # read left
-                          0x0401: ShortcutRegister(0x033E, 84 * 1),  # read bottom
-                          0x0402: ShortcutRegister(0x0392, 19 * 1),  # read carrier
-                          0x0403: ShortcutRegister(0x03A5, 1 * 1),   # read plugin
-                          0x0404: ShortcutRegister(0x03A6, 1 * 8),   # read status
-                          0x0405: ShortcutRegister(0x03AE, 1 * 64),  # read buffer
-                          0x0406: ShortcutRegister(0x03EE, 1 * 1)}
+                          READBACK_READ_VALUES_PERIPHERY_LEFT.start_address:
+                              ShortcutRegister(READ_VALUES_PERIPHERY_LEFT.start_address,
+                                               READ_VALUES_PERIPHERY_LEFT.entries *
+                                               READ_VALUES_PERIPHERY_LEFT.words_per_entry),  # read left
+                          READBACK_READ_VALUES_PERIPHERY_BOTTOM.start_address:
+                              ShortcutRegister(READ_VALUES_PERIPHERY_BOTTOM.start_address,
+                                               READ_VALUES_PERIPHERY_BOTTOM.entries *
+                                               READ_VALUES_PERIPHERY_BOTTOM.words_per_entry),  # read bottom
+                          READBACK_READ_VALUES_CARRIER.start_address:
+                              ShortcutRegister(READ_VALUES_CARRIER.start_address,
+                                               READ_VALUES_CARRIER.entries *
+                                               READ_VALUES_CARRIER.words_per_entry),  # read carrier
+                          READBACK_READ_VALUES_PLUGIN.start_address:
+                              ShortcutRegister(READ_VALUES_PLUGIN.start_address,
+                                               READ_VALUES_PLUGIN.entries *
+                                               READ_VALUES_PLUGIN.words_per_entry),   # read plugin
+                          READBACK_READ_VALUES_STATUS.start_address:
+                              ShortcutRegister(READ_VALUES_STATUS.start_address,
+                                               READ_VALUES_STATUS.entries *
+                                               READ_VALUES_STATUS.words_per_entry),   # read status
+                          READBACK_READ_BUFFER.start_address:
+                              ShortcutRegister(READ_BUFFER.start_address,
+                                               READ_BUFFER.entries *
+                                               READ_BUFFER.words_per_entry),  # read buffer
+                          READBACK_READ_ECHO_WORD.start_address:
+                              ShortcutRegister(READ_ECHO_WORD.start_address,
+                                               READ_ECHO_WORD.entries *
+                                               READ_ECHO_WORD.words_per_entry)}
 
         self.server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.server_sock.settimeout(None)
         self.server_sock.bind(('', board_ip_port))
         self.server_sock.listen(5)
@@ -79,9 +158,10 @@ class Simulator(object):
             log.debug("Waiting for sim thread to complete")
             self.thread.join(2.0)
         log.debug("Closing socket")
+#        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("localhost", board_ip_port))
         self.server_sock.close()
         self.thread.join(2.0)
-        if self.thread.isAlive:
+        if self.thread.isAlive():
             log.warning("Simulation thread is still running. This should not happen")
 
     def start(self, forever=False, blocking=False):
@@ -121,6 +201,7 @@ class Simulator(object):
 
         # set_value = 0
         chunk = client_sock.recv(block_read_bytes)
+        log.info("Here!")
         while len(chunk) > 0:
             if isinstance(chunk, str):
                 chunk = bytes(chunk, encoding=DATA_ENCODING)
@@ -150,7 +231,7 @@ class Simulator(object):
                 # Implementation of some expected results
                 # If set value called for VCH device then the next read echo
                 # is happy if it sees the same value
-                if a == 0x022E or\
+                if a == 0x001A or\
                     a == 0x0232 or\
                     a == 0x0236 or\
                     a == 0x023A or\
@@ -158,7 +239,8 @@ class Simulator(object):
                     a == 0x0242 or\
                     a == 0x0246 or\
                     a == 0x0250:
-                    self.registers[0x03EE] = w
+                    log.debug("***** SETTING VALUE: 0x%04X", a)
+                    self.registers[READ_ECHO_WORD.start_address] = w
 
                 # Implementation of some expected results
                 # If set value called for DPOT device then the next read echo
@@ -169,7 +251,7 @@ class Simulator(object):
                     a == 0x0260 or\
                     a == 0x0264 or\
                     a == 0x0268:
-                    self.registers[0x03EE] = w & 0x0FFFF
+                    self.registers[READ_ECHO_WORD.start_address] = w & 0x0FFFF
 
             chunk = client_sock.recv(block_read_bytes)
 
@@ -178,8 +260,8 @@ class Simulator(object):
 
 def main():
     sim = Simulator()
-    sim.start(forever=False, blocking=False)
-    sim.shutdown()
+    sim.start(forever=True, blocking=True)
+    #sim.shutdown()
     log.debug("Sim out!")
 
 if __name__ == '__main__':
