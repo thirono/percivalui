@@ -51,7 +51,8 @@ def main():
                     log.exception("no response (message: %s)", cmd_msg)
 
         # Now read back and check we are matching
-        scanrange = range(0x013A, 0x0145 + 1, 1)
+        scanrange = range(const.READBACK_HEADER_SETTINGS_LEFT.start_address,
+                          const.READBACK_MONITORING_SETTINGS_PLUGIN.start_address + 1, 1)
         expected_bytes = None
         for addr in scanrange:
             msg = encode_message(addr, 0x00000000)
@@ -63,12 +64,15 @@ def main():
                 continue
             data = decode_message(resp)
             for (a, w) in data:
-                test_data = decode_message(cmd_msg[a].message)
-                _, tw = test_data[0]
-                if w == tw:
-                    log.info("Match address 0X%04X [0X%08X] == [0X%08X]", a, w, tw)
-                else:
-                    log.info("Mismatch!!")
+                try:
+                    test_data = decode_message(cmd_msg[a].message)
+                    _, tw = test_data[0]
+                    if w == tw:
+                        log.info("Match address 0X%04X [0X%08X] == [0X%08X]", a, w, tw)
+                    else:
+                        log.info("Mismatch!! [0X%08X] != [0X%08X]", w, tw)
+                except:
+                    log.warning("Invalid index 0X%04X", a)
 
 if __name__ == '__main__':
     main()
