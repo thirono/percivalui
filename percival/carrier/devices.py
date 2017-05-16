@@ -130,6 +130,9 @@ class AD5242(object):
         self._channel = channel
         self._device = DeviceFamily.AD5242
 
+    def initialize(self):
+        self._channel.cmd_initialize()
+
     def set_value(self, value, timeout=0.1):
         """
         Set the value of the device.
@@ -157,6 +160,9 @@ class AD5263(object):
         self._channel = channel
         self._device = DeviceFamily.AD5263
 
+    def initialize(self):
+        self._channel.cmd_initialize()
+
     def set_value(self, value, timeout=0.1):
         """
         Set the value of the device.
@@ -183,6 +189,9 @@ class AD5669(object):
         self._name = name
         self._channel = channel
         self._device = DeviceFamily.AD5669
+
+    def initialize(self):
+        self._channel.cmd_initialize()
 
     def set_value(self, value, timeout=0.1):
         """

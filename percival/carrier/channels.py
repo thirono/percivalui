@@ -127,7 +127,12 @@ class Channel(object):
 
         :returns: list of (address, dataword) tuples
         """
-        result = self.command(DeviceCmd.initialize)
+        result = None
+
+        # Send an initialize command to the device if it is supported
+        if self._device_family_features.supports_cmd(DeviceCmd.initialize):
+            result = self.command(DeviceCmd.initialize)
+
         return result
 
 
@@ -158,10 +163,6 @@ class ControlChannel(Channel):
         # Initialise the UARTRegister map
         self._reg_control_settings.initialize_map(settings)
         self._log.debug("Control Settings Map: %s", self._reg_control_settings.fields)
-
-        # Send an initialize command to the device if it is supported
-        if self._device_family_features.supports_cmd(DeviceCmd.initialize):
-            self.cmd_initialize()
 
     def cmd_control_set_value(self, value):
         """
