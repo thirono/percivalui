@@ -447,16 +447,25 @@ class PercivalDetector(object):
         # First check to see if parameter is a keyword
         if parameter == "controls":
             reply = {}
+            reply["controls"] = []
             for control in self._controls:
+                reply["controls"].append(control)
                 reply[control] = self._controls[control].device
 
         elif parameter == "monitors":
             reply = {}
+            reply["monitors"] = []
             for monitor in self._monitors:
+                reply["monitors"].append(monitor)
                 reply[monitor] = self._monitors[monitor].device
 
-        elif parameter == "device":
+        elif parameter == "boards":
             reply = {
+                "boards": [const.BoardTypes.carrier.name,
+                           const.BoardTypes.left.name,
+                           const.BoardTypes.bottom.name,
+                           const.BoardTypes.plugin.name
+                          ],
                 const.BoardTypes.carrier.name: {
                     "name":           self._percival_params.board_name(const.BoardTypes.carrier),
                     "type":           self._percival_params.board_type(const.BoardTypes.carrier).name,
