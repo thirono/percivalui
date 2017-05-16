@@ -207,7 +207,7 @@ class PercivalDetector(object):
 
     This class has no threading internally but should be considered thread safe (needs checking)
     """
-    def __init__(self, initialise_hardware=True):
+    def __init__(self, download_config=True, initialise_hardware=True):
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._txrx = None
         self._global_monitoring = False
@@ -219,9 +219,11 @@ class PercivalDetector(object):
         self._sys_cmd = None
         self.load_ini()
         self.setup_control()
-        if initialise_hardware:
-            self.initialise_board()
+        if download_config:
+            self.load_configuration()
         self.load_channels()
+        if initialise_hardware:
+            self.initialize_channels()
 
     def load_ini(self):
         """
@@ -248,11 +250,11 @@ class PercivalDetector(object):
         self._board_values[const.BoardTypes.carrier] = BoardValues(self._txrx, const.BoardTypes.carrier)
         self._sys_cmd = SystemCommand(self._txrx)
 
-    def initialise_board(self):
+    def load_configuration(self):
         """
         Download the configuration from ini files to the hardware.
         """
-        self._log.info("Initialising board")
+        self._log.info("Downloading configuration to hardware")
         cmd_msgs = self._board_settings[const.BoardTypes.left].initialise_board(self._percival_params)
         cmd_msgs += self._board_settings[const.BoardTypes.bottom].initialise_board(self._percival_params)
         cmd_msgs += self._board_settings[const.BoardTypes.carrier].initialise_board(self._percival_params)
@@ -309,6 +311,13 @@ class PercivalDetector(object):
                 description, device = DeviceFactory[const.DeviceFamily(cc._channel_ini.Component_family_ID)]
                 self._controls[cc._channel_ini.Channel_name] = device(cc._channel_ini.Channel_name, cc)
 
+    def initialize_channels(self):
+        """
+        Initialize all control devices that support the command.
+        """
+        for control in self._controls:
+            self._controls[control].initialize()
+
     def set_global_monitoring(self, state=True):
         """
         Turn on or off global monitoring.  This sends two system commands; enable_global_monitoring and
@@ -335,6 +344,17 @@ class PercivalDetector(object):
         :type cmd: str
         """
         self._sys_cmd.send_command(const.SystemCmd[cmd])
+
+    def initialize(self, device):
+        """
+        Initialize a control device.
+
+        :param device: Name of device to set the value of
+        :type device: str
+        """
+        if device in self._controls:
+            self._controls[device].initialize()
+
 
     def set_value(self, device, value, timeout=0.1):
         """

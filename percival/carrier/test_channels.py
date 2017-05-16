@@ -31,6 +31,8 @@ class TestChannels(unittest.TestCase):
         self.channel_ini.UART_address = 10
         self.channel_ini.Board_type = const.BoardTypes.bottom
         ctrlChannel = ControlChannel(self.txrx, self.channel_ini, self.settings)
+        # Send a command to initialise the channel
+        ctrlChannel.cmd_initialize()
         # Verify the txrx mock had send_rcv_message called
         self.txrx.send_recv_message.assert_called_with(
             TxMessage(bytes("\x01\x22\x20\x00\x00\x01", encoding="latin-1"), expect_eom=True))

@@ -13,9 +13,9 @@ from percival.detector.ipc_reactor import IpcReactor
 
 
 class PercivalStandalone(object):
-    def __init__(self, initialise_hardware=True):
+    def __init__(self, download_config=True, initialise_hardware=True):
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
-        self._detector = PercivalDetector(initialise_hardware)
+        self._detector = PercivalDetector(download_config, initialise_hardware)
         self._ctrl_channel = None
         self._status_channel = None
         self._reactor = IpcReactor()
