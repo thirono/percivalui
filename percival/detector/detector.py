@@ -321,11 +321,15 @@ class PercivalDetector(object):
             if bt != const.BoardTypes.prototype:
                 settings = self._board_settings[bt].device_monitoring_settings(monitor.UART_address)
                 mc = MonitoringChannel(self._txrx, monitor, settings)
-                self._log.debug("Adding %s [%s] to monitor set",
-                                   (const.DeviceFamily(mc._channel_ini.Component_family_ID)).name,
-                                   mc._channel_ini.Channel_name)
-                description, device = DeviceFactory[const.DeviceFamily(mc._channel_ini.Component_family_ID)]
-                self._monitors[mc._channel_ini.Channel_name] = device(mc._channel_ini.Channel_name, mc)
+                if mc._channel_ini.Channel_name is None or len(mc._channel_ini.Channel_name) == 0:
+                    self._log.debug("Dropping %s as it has no channel name defined",
+                                    (const.DeviceFamily(mc._channel_ini.Component_family_ID)).name)
+                else:
+                    self._log.debug("Adding %s [%s] to monitor set",
+                                       (const.DeviceFamily(mc._channel_ini.Component_family_ID)).name,
+                                       mc._channel_ini.Channel_name)
+                    description, device = DeviceFactory[const.DeviceFamily(mc._channel_ini.Component_family_ID)]
+                    self._monitors[mc._channel_ini.Channel_name] = device(mc._channel_ini.Channel_name, mc)
 
         # Readback the control settings
         self._board_settings[const.BoardTypes.left].readback_control_settings()
@@ -340,11 +344,15 @@ class PercivalDetector(object):
             if bt != const.BoardTypes.prototype:
                 settings = self._board_settings[bt].device_control_settings(control.UART_address)
                 cc = ControlChannel(self._txrx, control, settings)
-                self._log.debug("Adding %s [%s] to control set",
-                                   (const.DeviceFamily(cc._channel_ini.Component_family_ID)).name,
-                                   cc._channel_ini.Channel_name)
-                description, device = DeviceFactory[const.DeviceFamily(cc._channel_ini.Component_family_ID)]
-                self._controls[cc._channel_ini.Channel_name] = device(cc._channel_ini.Channel_name, cc)
+                if cc._channel_ini.Channel_name is None or len(cc._channel_ini.Channel_name) == 0:
+                    self._log.debug("Dropping %s as it has no channel name defined",
+                                    (const.DeviceFamily(cc._channel_ini.Component_family_ID)).name)
+                else:
+                    self._log.debug("Adding %s [%s] to control set",
+                                       (const.DeviceFamily(cc._channel_ini.Component_family_ID)).name,
+                                       cc._channel_ini.Channel_name)
+                    description, device = DeviceFactory[const.DeviceFamily(cc._channel_ini.Component_family_ID)]
+                    self._controls[cc._channel_ini.Channel_name] = device(cc._channel_ini.Channel_name, cc)
 
         # Load the sensor DACs from the ini file
         sensor_dacs = self._percival_params.sensor_dac_channels
