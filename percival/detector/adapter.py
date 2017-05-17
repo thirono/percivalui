@@ -6,6 +6,7 @@ Created on 22nd July 2016
 import logging
 import time
 from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types, response_types
+from percival.carrier.influxdb import InfluxDB
 from percival.detector.detector import PercivalDetector
 from concurrent import futures
 from tornado.ioloop import IOLoop
@@ -32,6 +33,8 @@ class PercivalAdapter(ApiAdapter):
         super(PercivalAdapter, self).__init__(**kwargs)
 
         self._detector = PercivalDetector()
+        db = InfluxDB('localhost', 8086, 'percival')
+        self._detector.setup_db(db)
         self._detector.set_global_monitoring(True)
         #self.status_update(0.1)
 

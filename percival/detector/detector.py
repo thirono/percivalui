@@ -243,6 +243,7 @@ class PercivalDetector(object):
         self._start_time = datetime.now()
         self._username = getpass.getuser()
         self._txrx = None
+        self._db = None
         self._global_monitoring = False
         self._percival_params = PercivalParameters()
         self._board_settings = {}
@@ -288,6 +289,20 @@ class PercivalDetector(object):
         self._sys_cmd = SystemCommand(self._txrx)
         self._sensor_buffer_cmd = SensorBufferCommand(self._txrx)
         self._sensor = Sensor(self._sensor_buffer_cmd)
+
+    def setup_db(self, db):
+        """
+        Provide a DB interface for logging data from the detector.
+        This will store the DB object for use when reading status.
+        The DB object must support the following interface:
+        ...
+        ...
+        ...
+
+        :param db:
+        :return:
+        """
+        self._db = db
 
     def load_configuration(self):
         """
@@ -529,10 +544,11 @@ class PercivalDetector(object):
         The values shortcut is read out from the hardware and the status of all
         monitors is updated appropriately.
         """
-        # self._log.debug("Update status callback called")
+        self._log.debug("Update status callback called")
         status_msg = {}
         if self._global_monitoring:
             response = self._board_values[const.BoardTypes.carrier].read_values()
+            time_now = datetime.datetime.today()
             self._log.debug(response)
             read_maps = generate_register_maps(response)
             self._log.debug(read_maps)
@@ -544,6 +560,8 @@ class PercivalDetector(object):
                 if name in self._monitors:
                     self._monitors[name].update(read_maps[offset])
                     status_msg[name] = self._monitors[name].status
+                    if self._db:
+                        self._db.log_point(time_now, name, self._monitors[name].status)
 
             self._log.debug("Status: %s", status_msg)
         return status_msg
