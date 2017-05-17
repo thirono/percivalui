@@ -8,7 +8,7 @@
     <title>Percival Detector</title>
 
     <!-- Bootstrap -->
-    <link href="js/bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="js/bootstrap-3.3.7-dist/css/bootstrap.css" rel="stylesheet">
     <link href="css/tabulator.css" rel="stylesheet">
     <!--<link href="css/lpdpower.css" rel="stylesheet"> -->
 
@@ -26,20 +26,51 @@
           </button>
           <div class="navbar-brand"><img class="navbar-brand logo" src="img/percival-logo.jpg">Percival Detector</div>
         </div>
+        <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li class="home"><a href="#/home-view"> <span
+                        class="glyphicon glyphicon-home"></span> <strong>Home</strong><span
+                        class="label"></span></a></li>
+
+                <li class="av navbar-nav"><a href="#/configuration-view"
+                    class="dropdown-toggle" role="button" aria-expanded="false"> <strong>Configuration</strong>
+                        <span class="label">Percival Setup</span>
+                </a></li>
+                <li class="av navbar-nav"><a href="#/status-view"
+                    class="dropdown-toggle" role="button" aria-expanded="false"> <strong>Status</strong>
+                        <span class="label">Monitoring of Channels</span>
+                </a></li>
+                <li class="av navbar-nav"><a href="#/control-view"
+                    class="dropdown-toggle" role="button" aria-expanded="false"> <strong>Control</strong>
+                        <span class="label">Control Channel Setpoints</span>
+                </a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="#/login"><span class="glyphicon glyphicon-log-in"></span>
+                        Login</a></li>
+            </ul>
+        </div>
       </div>
     </nav>
 
-	<div class="container-fluid">
-		<div class="row fluid-row">
-		
+<!-- HOME PAGE -->
+	<div class="container-fluid home-view page">
+		<div class="row fluid-row">		
 			<div class="span3">
 				<div class="well sidebar-nav-fixed">
 					<div class="container-fluid">
 						<div class="row sidebar-title">
-						  <h3> </h3>
+						  <h3>&nbsp;</h3>
 						</div>
 						<div class="row sidebar-title">
-							<h3>Status</h3>
+							<h3>Odin Control</h3>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-3">API Version:</div>
+							<div id="api-version" class="col-xs-5 m-5 status vertical-align">&nbsp;</div>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-3">&nbsp;</div>
 						</div>
 						<div class="row sidebar-row vertical-align">
 							<div class="col-xs-3">Adapters Loaded:</div>
@@ -47,6 +78,24 @@
 						</div>
 						<div class="row sidebar-row vertical-align">
 							<div class="col-xs-3">&nbsp;</div>
+						</div>
+					</div> <!-- container-fluid -->
+				</div> <!--  well sidebar-nav-fixed -->
+			</div> <!-- span3 -->
+		</div> <!-- row fluid-row -->	
+	</div> <!--  container-fluid -->
+
+<!-- CONFIGURATION PAGE -->
+	<div class="container-fluid configuration-view page">
+		<div class="row fluid-row">
+			<div class="span3">
+				<div class="well sidebar-nav-fixed">
+					<div class="container-fluid">
+						<div class="row sidebar-title">
+						  <h3> </h3>
+						</div>
+						<div class="row sidebar-title">
+							<h3>Configuration</h3>
 						</div>
 						<div class="row sidebar-row vertical-align">
 							<div class="col-xs-3">Boards:</div>
@@ -65,6 +114,58 @@
 						<div class="row sidebar-row vertical-align">
 							<div class="col-xs-3">Monitors:</div>
 							<div id="overall-monitors" class="col-xs-5 status vertical-align">&nbsp;</div>
+  					</div>						
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-3">&nbsp;</div>
+						</div>
+					</div> <!-- container-fluid -->
+				</div> <!--  well sidebar-nav-fixed -->
+			</div> <!-- span3 -->
+		</div> <!-- row fluid-row -->	
+	</div> <!--  container-fluid -->
+
+	<div class="container-fluid status-view page">
+		<div class="row fluid-row">
+			<div class="span3">
+				<div class="well sidebar-nav-fixed">
+					<div class="container-fluid">
+						<div class="row sidebar-title">
+						  <h3> </h3>
+						</div>
+						<div class="row sidebar-title">
+							<h3>Status</h3>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-1">&nbsp;</div>
+							<div id="stat-1" class="col-xs-2 status vertical-align panel panel-danger">&nbsp;</div>
+							<div id="stat-2" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-3" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-4" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-5" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+  					</div>						
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-1">&nbsp;</div>
+							<div id="stat-6" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-7" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-8" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-9" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-10" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+  					</div>						
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-1">&nbsp;</div>
+							<div id="stat-11" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-12" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-13" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-14" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-15" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+  					</div>						
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-1">&nbsp;</div>
+							<div id="stat-16" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-17" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-18" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-19" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-20" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
   					</div>						
 					</div> <!-- container-fluid -->
 				</div> <!--  well sidebar-nav-fixed -->

@@ -1,4 +1,13 @@
 api_version = '0.1';
+monitor_names = [];
+current_page = "configuration-view";
+
+percival = {
+  api_version: '0.1',
+  current_page: '.home-view',
+  monitors: {}
+  };
+
 
 class ProgressBar
 {
@@ -27,33 +36,91 @@ class ProgressBar
 	}
 }
 
-$( document ).ready(function() {
+class Monitor
+{
+  constructor(parent, id, device)
+  {
+    this.parent = parent;
+    this.id = id;
+    this.device = device.device;
+    this.unit = device.unit;
+    this.low_threshold = device.low_threshold;
+    this.extreme_low_threshold = device.extreme_low_threshold;
+    this.high_threshold = device.high_threshold;
+    this.extreme_high_threshold = device.extreme_high_threshold;
+    this.safety_exception = device.safety_exception;
+    this.i2c_comms_error = device.i2c_comms_error;
+    this.value = 0.0;
+    this.html_text = "<div class=\"panel-heading\">" + this.id + "</div>" + 
+                     "<table>" + 
+                     "<tr><td width=120px>Device:</td><td colspan=2 width=150px>" + this.device + "</td></tr>";
+    if (this.device == "LTC2309"){
+      this.html_text += "<tr><td>Voltage:</td><td colspan=2 id=\"" + this.id + "-value\">0.000 ";
+    } else if (this.device == "MAX31730"){
+      this.html_text += "<tr><td>Temperature:</td><td colspan=2 id=\"" + this.id + "-value\">0.000 ";            
+    }
+    this.html_text += this.unit + "</td></tr>";            
+    this.html_text += "<tr><td></td><td>Warn</td><td>Error</td></tr>";            
+    this.html_text += "<tr><td>Low:</td><td id=\"" + this.id + "-low\">" + led_html(parseInt(device.low_threshold), "yellow", 25) + "</td>" + 
+                      "<td id=\"" + this.id + "-lolo\">" + led_html(parseInt(device.extreme_low_threshold), "red", 25) + "</td></tr>" + 
+                      "<tr><td>High:</td><td id=\"" + this.id + "-high\">" + led_html(parseInt(device.high_threshold), "yellow", 25) + "</td>" + 
+                      "<td id=\"" + this.id + "-hihi\">" + led_html(parseInt(device.extreme_high_threshold), "red", 25) + "</td></tr>" + 
+                      "<tr><td>Safety Exception:</td><td id=\"" + this.id + "-safety\">" + led_html(parseInt(device.safety_exception), "red", 25) + "</td>" + 
+                      "<tr><td>i2c Error:</td><td id=\"" + this.id + "-i2c\">" + led_html(parseInt(device.i2c_comms_error), "red", 25) + "</td>" + 
+                      "</table>";
+    $(this.parent).html(this.html_text);
+    this.update(device);
+  }
+  
+  update(device)
+  {
+    if (this.device == "LTC2309"){
+      if (this.value != device.voltage){
+        this.update_value(device.voltage);
+      }
+    } else if (this.device == "MAX31730"){
+      if (this.value != device.temperature){
+        this.update_value(device.temperature);
+      }
+    }    
+  }
+  
+  update_value(value)
+  {
+    $('#' + this.id + '-value').html("" + parseFloat(value).toFixed(3));
+    this.value = value;
+  }
+}
 
-    update_api_version();
-    update_api_adapters();
-    update_api_read_boards();
-    update_api_read_controls();
-    update_api_read_monitors();
+$( document ).ready(function() 
+{
+  update_api_version();
+  update_api_adapters();
+  render('#/home-view');
+  
+  setInterval(update_api_read_status, 100);
 
-//    get_led_states();
-//   get_psu_states();
-
-//    setInterval(update_api_sensors, 200);
+  $(window).on('hashchange', function(){
+		// On every hash change the render function is called with the new hash.
+		// This is how the navigation of the app is executed.
+		render(decodeURI(window.location.hash));
+	});
 });
 
 function update_api_version() {
 
     $.getJSON('/api', function(response) {
         $('#api-version').html(response.api_version);
-        api_version = response.api_version;
+        percival.api_version = response.api_version;
     });
 }
 
 function update_api_adapters() {
-
+//alert("HERE");
     $.getJSON('/api/' + api_version + '/adapters/', function(response) {
         adapter_list = response.adapters.join(", ");
         $('#api-adapters').html(adapter_list);
+        //alert(adapter_list);
     });
 }
 
@@ -104,9 +171,11 @@ function update_api_read_controls() {
 }
 
 function update_api_read_monitors() {
-
+//alert("Here");
     $.getJSON('/api/' + api_version + '/percival/monitors/', function(response) {
         mon_list = response["monitors"];
+        monitor_names = mon_list;
+        //$('#overall-monitors').html("");
         $('#overall-monitors').tabulator({height:"220px",
                                           pagination:"local",
                                           columns:[
@@ -125,9 +194,56 @@ function update_api_read_monitors() {
     });
 }
 
+function update_api_read_status() 
+{
+  $.getJSON('/api/' + api_version + '/percival/status/', function(response) {
+    var len = monitor_names.length;
+    var tableData = [];
+    for (var index = 0; index < len; index++){
+      if (percival.monitors[monitor_names[index]] == null){
+        percival.monitors[monitor_names[index]] = new Monitor('#stat-' + (index+1), monitor_names[index], response[monitor_names[index]]);
+      } else {
+        percival.monitors[monitor_names[index]].update(response[monitor_names[index]]);
+      }
+    }
+  });
+}
+
+function led_html(value, colour, width)
+{
+  var html_text = "<img width=" + width + "px src=img/";
+  if (value == 0){
+    html_text += "led-off";
+  } else {
+    html_text +=  colour + "-led-on";
+  }
+  html_text += ".png></img>";
+  return html_text;
+}
 
 
-
-
+function render(url) 
+{
+  // This function decides what type of page to show 
+  // depending on the current url hash value.
+  // Get the keyword from the url.
+  var temp = "." + url.split('/')[1];
+  // Hide whatever page is currently shown.
+  $(".page").hide();
+		
+  // Show the new page
+  $(temp).show();
+  current_page = temp;
+    
+  if (temp == ".home-view"){
+    update_api_version();
+    update_api_adapters();
+  } else if (temp == ".configuration-view"){
+    // Re-request the configuration
+    update_api_read_boards();
+    update_api_read_controls();
+    update_api_read_monitors();
+  }    		
+}
 
 
