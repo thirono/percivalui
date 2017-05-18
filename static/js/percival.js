@@ -51,7 +51,11 @@ class Monitor
     this.safety_exception = device.safety_exception;
     this.i2c_comms_error = device.i2c_comms_error;
     this.value = 0.0;
-    this.html_text = "<div class=\"panel-heading\">" + this.id + "</div>" + 
+    this.html_text = "<div class=\"panel-heading clearfix\">" +
+                     "<span class=\"panel-title pull-left\">" + this.id + "</span>" +
+                     "<button type=\"button\" id=\"" + this.id +
+                     "-expbtn\" class=\"btn btn-outline-info btn-sm pull-right float-align-vertical\">" +
+                     "<span id=\"" + this.id + "-expglp\" class=\"glyphicon glyphicon-resize-full\"></span></button></div>" +
                      "<table>" + 
                      "<tr><td width=120px>Device:</td><td colspan=2 width=150px>" + this.device + "</td></tr>";
     if (this.device == "LTC2309"){
@@ -59,16 +63,30 @@ class Monitor
     } else if (this.device == "MAX31730"){
       this.html_text += "<tr><td>Temperature:</td><td colspan=2 id=\"" + this.id + "-value\">0.000 ";            
     }
-    this.html_text += this.unit + "</td></tr>";            
-    this.html_text += "<tr><td></td><td>Warn</td><td>Error</td></tr>";            
-    this.html_text += "<tr><td>Low:</td><td id=\"" + this.id + "-low\">" + led_html(parseInt(device.low_threshold), "yellow", 25) + "</td>" + 
+    this.html_text += this.unit + "</td></tr></table>";
+    this.html_text += "<table id=\"" + this.id + "-dtbl\">";
+    this.html_text += "<tr><td width=120px></td><td width=75px>Warn</td><td width=75px>Error</td></tr>";
+    this.html_text += "<tr><td>Low:</td><td id=\"" + this.id + "-low\">" + led_html(parseInt(device.low_threshold), "yellow", 25) + "</td>" +
                       "<td id=\"" + this.id + "-lolo\">" + led_html(parseInt(device.extreme_low_threshold), "red", 25) + "</td></tr>" + 
                       "<tr><td>High:</td><td id=\"" + this.id + "-high\">" + led_html(parseInt(device.high_threshold), "yellow", 25) + "</td>" + 
                       "<td id=\"" + this.id + "-hihi\">" + led_html(parseInt(device.extreme_high_threshold), "red", 25) + "</td></tr>" + 
-                      "<tr><td>Safety Exception:</td><td id=\"" + this.id + "-safety\">" + led_html(parseInt(device.safety_exception), "red", 25) + "</td>" + 
-                      "<tr><td>i2c Error:</td><td id=\"" + this.id + "-i2c\">" + led_html(parseInt(device.i2c_comms_error), "red", 25) + "</td>" + 
+                      "<tr><td>Safety Exception:</td><td></td><td id=\"" + this.id + "-safety\">" + led_html(parseInt(device.safety_exception), "red", 25) + "</td>" +
+                      "<tr><td>i2c Error:</td><td></td><td id=\"" + this.id + "-i2c\">" + led_html(parseInt(device.i2c_comms_error), "red", 25) + "</td>" +
                       "</table>";
     $(this.parent).html(this.html_text);
+    $('#' + this.id + '-dtbl').hide();
+    $('#' + this.id + '-expbtn').click(function(){
+        //alert("Clicked!! " + $(this).attr("id"));
+        if ($('#' + $(this).attr("id").replace('-expbtn', '-dtbl')).is(':visible')){
+            $('#' + $(this).attr("id").replace('-expbtn', '-dtbl')).hide();
+            $('#' + $(this).attr("id").replace('-expbtn', '-expglp')).removeClass('glyphicon-resize-small');
+            $('#' + $(this).attr("id").replace('-expbtn', '-expglp')).addClass('glyphicon-resize-full');
+        } else {
+            $('#' + $(this).attr("id").replace('-expbtn', '-dtbl')).show();
+            $('#' + $(this).attr("id").replace('-expbtn', '-expglp')).removeClass('glyphicon-resize-full');
+            $('#' + $(this).attr("id").replace('-expbtn', '-expglp')).addClass('glyphicon-resize-small');
+        }
+    });
     this.update(device);
   }
   
@@ -77,6 +95,7 @@ class Monitor
     if (this.device == "LTC2309"){
       if (this.value != device.voltage){
         this.update_value(device.voltage);
+        this.update_high(device.extreme_high_threshold);
       }
     } else if (this.device == "MAX31730"){
       if (this.value != device.temperature){
@@ -89,6 +108,17 @@ class Monitor
   {
     $('#' + this.id + '-value').html("" + parseFloat(value).toFixed(3));
     this.value = value;
+  }
+
+  update_high(value)
+  {
+    $('#' + this.id + '-hihi').html(led_html(parseInt(value), "red", 25));
+    this.extreme_high_threshold = value;
+    if (value == 1){
+        $(this.parent).removeClass("panel-default");
+        $(this.parent).removeClass("panel-warning");
+        $(this.parent).addClass("panel-danger");
+    }
   }
 }
 
