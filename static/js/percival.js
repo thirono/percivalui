@@ -126,6 +126,7 @@ $( document ).ready(function()
 {
   update_api_version();
   update_api_adapters();
+  update_server_setup();
   render('#/home-view');
   
   setInterval(update_api_read_status, 100);
@@ -151,6 +152,14 @@ function update_api_adapters() {
         adapter_list = response.adapters.join(", ");
         $('#api-adapters').html(adapter_list);
         //alert(adapter_list);
+    });
+}
+
+function update_server_setup() {
+    $.getJSON('/api/' + api_version + '/percival/setup/', function(response) {
+        $('#server-start-time').html(response.start_time);
+        $('#server-username').html(response.username);
+        alert(response.start_time);
     });
 }
 

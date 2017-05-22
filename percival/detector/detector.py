@@ -6,6 +6,8 @@ Created on 20 May 2016
 from __future__ import print_function
 import os
 import logging
+from datetime import datetime
+import getpass
 
 from percival.carrier import const
 from percival.carrier.buffer import SensorBufferCommand
@@ -238,6 +240,8 @@ class PercivalDetector(object):
     """
     def __init__(self, download_config=True, initialise_hardware=True):
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+        self._start_time = datetime.now()
+        self._username = getpass.getuser()
         self._txrx = None
         self._global_monitoring = False
         self._percival_params = PercivalParameters()
@@ -453,7 +457,11 @@ class PercivalDetector(object):
         self._log.debug("Reading data %s", parameter)
 
         # First check to see if parameter is a keyword
-        if parameter == "controls":
+        if parameter == "setup":
+            reply = {"username": self._username,
+                     "start_time": self._start_time.strftime("%B %d, %Y %H:%M:%S")}
+
+        elif parameter == "controls":
             reply = {}
             reply["controls"] = []
             for control in self._controls:
