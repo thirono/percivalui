@@ -241,20 +241,38 @@ class BufferCmd(Enum):
     write = 1
     read = 2
 
+@unique
+class SensorBufferCmd(Enum):
+    """Enumeration of sensor specific buffer commands, only relevant to the sensor """
+    no_operation = 0
+    send_DACs_setup = 1
+    send_CONFIGURATION_setup = 2
+    send_CALIBRATION_setup = 3
+    send_ROI_setup = 4
+    send_DEBUG_setup = 5
+
 
 BufferCommands = {
     BufferTarget.mezzanine_board_A: {
         BufferCmd.no_operation: {"command": int(0), "response": 1},
         BufferCmd.write:        {"command": int(0), "response": 2},
         BufferCmd.read:         {"command": int(1), "response": 2}
-                                    },
+    },
     BufferTarget.mezzanine_board_B: {
         BufferCmd.no_operation: {"command": int(0), "response": 1},
         BufferCmd.write:        {"command": int(0), "response": 2},
         BufferCmd.read:         {"command": int(1), "response": 2}
-                                    },
+    },
     BufferTarget.both_mezzanine_boards: {
         BufferCmd.no_operation: {"command": int(0), "response": 1},
         BufferCmd.write:        {"command": int(0), "response": 3}
-                                        }
+    },
+    BufferTarget.percival_sensor: {
+        SensorBufferCmd.no_operation:             {"command": int(0), "response": 1},
+        SensorBufferCmd.send_DACs_setup:          {"command": int(0), "response": 1},
+        SensorBufferCmd.send_CONFIGURATION_setup: {"command": int(1), "response": 1},
+        SensorBufferCmd.send_CALIBRATION_setup:   {"command": int(2), "response": 1},
+        SensorBufferCmd.send_ROI_setup:           {"command": int(3), "response": 1},
+        SensorBufferCmd.send_DEBUG_setup:         {"command": int(4), "response": 1}
+    }
 }
