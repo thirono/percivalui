@@ -13,6 +13,7 @@ from percival.carrier import const
 from percival.carrier.buffer import SensorBufferCommand
 from percival.carrier.channels import ControlChannel, MonitoringChannel
 from percival.carrier.devices import DeviceFactory
+from percival.carrier.influxdb import InfluxDB
 from percival.carrier.registers import generate_register_maps, BoardValueRegisters
 from percival.carrier.sensor import Sensor
 from percival.carrier.settings import BoardSettings
@@ -85,6 +86,34 @@ class PercivalParameters(object):
             default_carrier_ip = "192.168.0.2"
             self._log.warning("No carrier IP address found in configuration file")
         return os.getenv(env_carrier_ip, default_carrier_ip)
+
+    @property
+    def database(self):
+        """
+        Return the IP address, port number and name of the database.
+
+        The IP address configuration will be loaded from the percival.ini config file.
+
+        :returns: Database configuration object
+        :rtype: Dict
+        """
+        db = {}
+        try:
+            db["address"] = self._control_params.database_ip
+        except RuntimeError:
+            db["address"] = "127.0.0.1"
+
+        try:
+            db["port"] = int(self._control_params.database_port)
+        except RuntimeError:
+            db["port"] = 8086
+
+        try:
+            db["name"] = self._control_params.database_name
+        except RuntimeError:
+            db["name"] = "percival"
+
+        return db
 
     def board_name(self, board):
         """
@@ -256,6 +285,7 @@ class PercivalDetector(object):
         self._control_groups = None
         self._monitor_groups = None
         self.load_ini()
+        self.setup_db()
         self.setup_control()
         if download_config:
             self.load_configuration()
@@ -290,7 +320,7 @@ class PercivalDetector(object):
         self._sensor_buffer_cmd = SensorBufferCommand(self._txrx)
         self._sensor = Sensor(self._sensor_buffer_cmd)
 
-    def setup_db(self, db):
+    def setup_db(self):
         """
         Provide a DB interface for logging data from the detector.
         This will store the DB object for use when reading status.
@@ -302,7 +332,16 @@ class PercivalDetector(object):
         :param db:
         :return:
         """
-        self._db = db
+        self._db = InfluxDB(self._percival_params.database["address"],
+                            self._percival_params.database["port"],
+                            self._percival_params.database["name"]
+                            )
+        self._connect_db()
+
+    def _connect_db(self):
+        # Attempt connection to the database
+        self._db.connect()
+
 
     def load_configuration(self):
         """
@@ -472,10 +511,12 @@ class PercivalDetector(object):
         self._log.debug("Reading data %s", parameter)
 
         # First check to see if parameter is a keyword
-        if parameter == "setup":
+        if parameter == "driver":
             reply = {"username": self._username,
-                     "start_time": self._start_time.strftime("%B %d, %Y %H:%M:%S")}
-
+                     "start_time": self._start_time.strftime("%B %d, %Y %H:%M:%S"),
+                     "up_time": str(datetime.now() - self._start_time),
+                     "influx_db": self._db.get_status()
+            }
         elif parameter == "controls":
             reply = {}
             reply["controls"] = []
@@ -548,7 +589,7 @@ class PercivalDetector(object):
         status_msg = {}
         if self._global_monitoring:
             response = self._board_values[const.BoardTypes.carrier].read_values()
-            time_now = datetime.datetime.today()
+            time_now = datetime.today()
             self._log.debug(response)
             read_maps = generate_register_maps(response)
             self._log.debug(read_maps)

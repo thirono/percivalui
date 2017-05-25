@@ -33,10 +33,8 @@ class PercivalAdapter(ApiAdapter):
         super(PercivalAdapter, self).__init__(**kwargs)
 
         self._detector = PercivalDetector()
-        db = InfluxDB('localhost', 8086, 'percival')
-        self._detector.setup_db(db)
         self._detector.set_global_monitoring(True)
-        #self.status_update(0.1)
+        self.status_update(0.1)
 
     @run_on_executor
     def status_update(self, task_interval):
@@ -85,8 +83,13 @@ class PercivalAdapter(ApiAdapter):
         # Split the path by /
         options = path.split("/")
         logging.debug("%s", options)
-        # Pass the option to the detector to obtain the parameter
-        self._detector.set_value(options[0], int(options[1]))
+        # Database reconnection
+        if options[0] in "influxdb" and options[1] in "connect":
+            self._detector.setup_db()
+        else:
+            # Pass the option to the detector to obtain the parameter
+            self._detector.set_value(options[0], int(options[1]))
+
         response = {'response': '{}: PUT on path {}'.format(self.name, path)}
         status_code = 200
 
