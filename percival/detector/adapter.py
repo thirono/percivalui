@@ -6,7 +6,6 @@ Created on 22nd July 2016
 import logging
 import time
 from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types, response_types
-from percival.carrier.influxdb import InfluxDB
 from percival.detector.detector import PercivalDetector
 from concurrent import futures
 from tornado.ioloop import IOLoop

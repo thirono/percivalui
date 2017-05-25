@@ -13,7 +13,7 @@ from percival.carrier import const
 from percival.carrier.buffer import SensorBufferCommand
 from percival.carrier.channels import ControlChannel, MonitoringChannel
 from percival.carrier.devices import DeviceFactory
-from percival.carrier.influxdb import InfluxDB
+from percival.carrier.database import InfluxDB
 from percival.carrier.registers import generate_register_maps, BoardValueRegisters
 from percival.carrier.sensor import Sensor
 from percival.carrier.settings import BoardSettings
