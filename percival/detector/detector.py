@@ -18,8 +18,8 @@ from percival.carrier.system import SystemCommand
 from percival.carrier.txrx import TxRx
 from percival.carrier.values import BoardValues
 from percival.carrier.configuration import ChannelParameters, BoardParameters, \
-    ControlParameters, BufferParameters, env_carrier_ip
-
+    ControlParameters, ControlGroupParameters, BufferParameters, env_carrier_ip
+from percival.detector.groups import Group
 
 class PercivalParameters(object):
     """
@@ -46,6 +46,7 @@ class PercivalParameters(object):
         }
         self._channel_params = ChannelParameters("config/Channel parameters.ini")
         self._buffer_params = BufferParameters("config/BufferParameters.ini")
+        self._control_group_params = ControlGroupParameters("config/ControlGroups.ini")
 
     def load_ini(self):
         """
@@ -58,7 +59,7 @@ class PercivalParameters(object):
         self._board_params[const.BoardTypes.plugin].load_ini()
         self._channel_params.load_ini()
         self._buffer_params.load_ini()
-        self._log.debug(self._buffer_params.dac_channels)
+        self._control_group_params.load_ini()
 
     @property
     def carrier_ip(self):
@@ -211,6 +212,10 @@ class PercivalParameters(object):
         """
         return self._buffer_params.dac_channels
 
+    @property
+    def control_group_params(self):
+        return self._control_group_params
+
 
 class PercivalDetector(object):
     """
@@ -234,6 +239,7 @@ class PercivalDetector(object):
         self._sys_cmd = None
         self._sensor_buffer_cmd = None
         self._sensor = None
+        self._control_groups = None
         self.load_ini()
         self.setup_control()
         if download_config:
@@ -335,6 +341,9 @@ class PercivalDetector(object):
         for dac in sensor_dacs:
             self._sensor.add_dac(dac)
 
+        # Load in control groups from the ini file
+        self._control_groups = Group(self._percival_params.control_group_params)
+
     def initialize_channels(self):
         """
         Initialize all control devices that support the command.
@@ -395,6 +404,12 @@ class PercivalDetector(object):
 
         elif device in self._sensor.dacs:
             self._sensor.set_dac(device, value)
+
+        elif device in self._control_groups.group_names:
+            # A group name has been specified for the set value
+            # Get the list of channels and apply the value for each one
+            for channel in self._control_groups.get_channels(device):
+                self._controls[channel].set_value(value, timeout)
 
     def apply_sensor_dac_values(self):
         self._sensor.apply_dac_values()

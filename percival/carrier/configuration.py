@@ -159,6 +159,7 @@ class MonitoringChannelIniParameters(IniSectionParameters):
                             "Unit": (0, str),
                             }
 
+
 class BufferDACIniParameters(IniSectionParameters):
     section_regexp = re.compile(r'^Buffer_DAC<\d{4}>$')
 
@@ -428,6 +429,7 @@ class ControlParameters(object):
             raise_with_traceback(RuntimeError("Control section not found in ini file %s" % str(self._ini_filename)))
         return self.conf.get("Control", "carrier_ip").strip("\"")
 
+
 class BufferParameters(object):
     """
     Loads buffer transfer description from an INI file.
@@ -510,5 +512,51 @@ class BufferParameters(object):
                 channel.__setattr__(param, value)
             self.log.debug("Appending channel: %s", channel)
             channels.append(channel)
+        return channels
+
+
+class ControlGroupParameters(object):
+    """
+    Loads groups of controls description from an INI file.
+    """
+    def __init__(self, ini_file):
+        self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+        self._ini_filename = find_file(ini_file)
+
+    def load_ini(self):
+        """
+        Loads and parses the data from INI file. The data is stored internally in the object and can be retrieved
+        through the property methods
+        """
+        self.conf = SafeConfigParser(dict_type=OrderedDict)
+        self.conf.read(self._ini_filename)
+        self.log.debug("Read Control Groups INI file %s:", self._ini_filename)
+        self.log.debug("    sections: %s", self.conf.sections())
+
+    @property
+    def sections(self):
+        return self.conf.sections()
+
+    def get_name(self, section):
+        name = ""
+        for item in self.conf.items(section):
+            if "group_name" in item[0]:
+                name = item[1].replace('"', '')
+                break
+        return name
+
+    def get_description(self, section):
+        desc = ""
+        for item in self.conf.items(section):
+            if "group_description" in item[0]:
+                desc = item[1].replace('"', '')
+                break
+        return desc
+
+    def get_channels(self, section):
+        channels = []
+        for item in self.conf.items(section):
+            if "channel_name" in item[0]:
+                channels.append(item[1].replace('"', ''))
         return channels
 
