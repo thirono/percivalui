@@ -429,6 +429,24 @@ class ControlParameters(object):
             raise_with_traceback(RuntimeError("Control section not found in ini file %s" % str(self._ini_filename)))
         return self.conf.get("Control", "carrier_ip").strip("\"")
 
+    @property
+    def database_ip(self):
+        if "Database" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Database section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.get("Database", "address").strip("\"")
+
+    @property
+    def database_port(self):
+        if "Database" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Database section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.get("Database", "port").strip("\"")
+
+    @property
+    def database_name(self):
+        if "Database" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Database section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.get("Database", "name").strip("\"")
+
 
 class BufferParameters(object):
     """

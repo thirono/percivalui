@@ -8,6 +8,22 @@ percival = {
   monitors: {}
   };
 
+$.put = function(url, data, callback, type)
+{
+  if ( $.isFunction(data) ){
+    type = type || callback,
+    callback = data,
+    data = {}
+  }
+
+  return $.ajax({
+    url: url,
+    type: 'PUT',
+    success: callback,
+    data: data,
+    contentType: type
+  });
+}
 
 class ProgressBar
 {
@@ -129,7 +145,12 @@ $( document ).ready(function()
   update_server_setup();
   render('#/home-view');
   
+  setInterval(update_server_setup, 1000);
   setInterval(update_api_read_status, 100);
+
+  $('#server-db-reconnect').click(function(){
+    reconnect_db();
+  });
 
   $(window).on('hashchange', function(){
 		// On every hash change the render function is called with the new hash.
@@ -137,6 +158,11 @@ $( document ).ready(function()
 		render(decodeURI(window.location.hash));
 	});
 });
+
+function reconnect_db()
+{
+    $.put('/api/' + api_version + '/percival/influxdb/connect', function(response){});
+}
 
 function update_api_version() {
 
@@ -156,10 +182,22 @@ function update_api_adapters() {
 }
 
 function update_server_setup() {
-    $.getJSON('/api/' + api_version + '/percival/setup/', function(response) {
+    $.getJSON('/api/' + api_version + '/percival/driver/', function(response) {
         $('#server-start-time').html(response.start_time);
+        $('#server-up-time').html(response.up_time);
         $('#server-username').html(response.username);
-        alert(response.start_time);
+        $('#server-db-address').html(response.influx_db.address);
+        $('#server-db-port').html(response.influx_db.port);
+        $('#server-db-name').html(response.influx_db.name);
+        if (response.influx_db.connected){
+            connected = 1;
+            $('#server-db-reconnect').hide();
+            $('#server-db-connected').html(led_html(1, "green", 25));
+        } else {
+            connected = 0;
+            $('#server-db-reconnect').show();
+            $('#server-db-connected').html(led_html(1, "red", 25));
+        }
     });
 }
 
