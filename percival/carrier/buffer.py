@@ -19,6 +19,7 @@ from __future__ import print_function
 import logging
 
 from percival.carrier import const
+from percival.carrier.encoding import encode_multi_message
 from percival.carrier.registers import UARTRegister
 
 
@@ -124,3 +125,25 @@ class BufferCommand(object):
         self.cmd_no_operation()
         self._command(cmd, words, address)
 
+
+class SensorBufferCommand(BufferCommand):
+    def __init__(self, txrx):
+        super(SensorBufferCommand, self).__init__(txrx, const.BufferTarget.percival_sensor)
+        self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+
+    def send_dacs_setup_cmd(self, words):
+        # First encode the words into the correct message format and send the values
+        # to fill up the buffer
+        msg = encode_multi_message(const.WRITE_BUFFER.start_address, words)
+        self._log.debug("Writing buffer DAC values to address: %X ...", const.WRITE_BUFFER.start_address)
+        try:
+            for item in msg:
+                self._txrx.send_recv(item, None)
+        except RuntimeError:
+            self._log.exception("No response (addr: %X)", const.WRITE_BUFFER.start_address)
+
+        # Now send the command to write the buffer as sensor DAC values
+        # cmd = send_DACs_setup_to_target
+        # words = 0
+        # address = 1
+        self.send_command(const.BufferCmd.write, 0, 1)

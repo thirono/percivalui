@@ -231,8 +231,8 @@ class Simulator(object):
                 # Implementation of some expected results
                 # If set value called for VCH device then the next read echo
                 # is happy if it sees the same value
-                if a == 0x001A or\
-                    a == 0x0232 or\
+                if a == 0x0016 or\
+                    a == 0x001A or\
                     a == 0x0236 or\
                     a == 0x023A or\
                     a == 0x023E or\

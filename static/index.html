@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Percival Detector</title>
+
+    <!-- Bootstrap -->
+    <link href="js/bootstrap-3.3.7-dist/css/bootstrap.css" rel="stylesheet">
+    <link href="css/tabulator.css" rel="stylesheet">
+    <link href="css/percival.css" rel="stylesheet">
+
+  </head>
+  <body>
+  
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <div class="navbar-brand"><img class="navbar-brand logo" src="img/percival-logo.jpg">Percival Detector</div>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li class="home"><a href="#/home-view"> <span
+                        class="glyphicon glyphicon-home"></span> <strong>Home</strong><span
+                        class="label"></span></a></li>
+
+                <li class="av navbar-nav"><a href="#/configuration-view"
+                    class="dropdown-toggle" role="button" aria-expanded="false"> <strong>Configuration</strong>
+                        <span class="label">Percival Setup</span>
+                </a></li>
+                <li class="av navbar-nav"><a href="#/status-view"
+                    class="dropdown-toggle" role="button" aria-expanded="false"> <strong>Status</strong>
+                        <span class="label">Live Monitoring</span>
+                </a></li>
+                <li class="av navbar-nav"><a href="#/control-view"
+                    class="dropdown-toggle" role="button" aria-expanded="false"> <strong>Control</strong>
+                        <span class="label">Control Channel Setpoints</span>
+                </a></li>
+                <li class="av navbar-nav"><a href="#/data-view"
+                    class="dropdown-toggle" role="button" aria-expanded="false"> <strong>Data</strong>
+                        <span class="label">Archived Data</span>
+                </a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="#/login"><span class="glyphicon glyphicon-log-in"></span>
+                        Login</a></li>
+            </ul>
+        </div>
+      </div>
+    </nav>
+
+<!-- HOME PAGE -->
+	<div class="container-fluid home-view page">
+		<div class="row fluid-row">		
+			<div class="span3">
+				<div class="well sidebar-nav-fixed">
+					<div class="container-fluid">
+						<div class="row sidebar-title">
+						  <h3>&nbsp;</h3>
+						</div>
+						<div class="row sidebar-title">
+							<h3>Odin Control</h3>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-3">API Version:</div>
+							<div id="api-version" class="col-xs-5 m-5 status vertical-align">&nbsp;</div>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-3">&nbsp;</div>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-3">Adapters Loaded:</div>
+							<div id="api-adapters" class="col-xs-5 status vertical-align">&nbsp;</div>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-3">&nbsp;</div>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-3">Server Start Time:</div>
+							<div id="server-start-time" class="col-xs-5 status vertical-align">&nbsp;</div>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-3">&nbsp;</div>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-3">Server Username:</div>
+							<div id="server-username" class="col-xs-5 status vertical-align">&nbsp;</div>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-3">&nbsp;</div>
+						</div>
+					</div> <!-- container-fluid -->
+				</div> <!--  well sidebar-nav-fixed -->
+			</div> <!-- span3 -->
+		</div> <!-- row fluid-row -->	
+	</div> <!--  container-fluid -->
+
+<!-- CONFIGURATION PAGE -->
+	<div class="container-fluid configuration-view page">
+		<div class="row fluid-row">
+			<div class="span3">
+				<div class="well sidebar-nav-fixed">
+					<div class="container-fluid">
+						<div class="row sidebar-title">
+						  <h3> </h3>
+						</div>
+						<div class="row sidebar-title">
+							<h3>Configuration</h3>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-3">Boards:</div>
+							<div id="overall-boards" class="col-xs-5 m-5 status vertical-align">&nbsp;</div>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-3">&nbsp;</div>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-3">Controls:</div>
+							<div id="overall-controls" class="col-xs-5 status vertical-align">&nbsp;</div>
+  					</div>						
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-3">&nbsp;</div>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-3">Monitors:</div>
+							<div id="overall-monitors" class="col-xs-5 status vertical-align">&nbsp;</div>
+  					</div>						
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-3">&nbsp;</div>
+						</div>
+					</div> <!-- container-fluid -->
+				</div> <!--  well sidebar-nav-fixed -->
+			</div> <!-- span3 -->
+		</div> <!-- row fluid-row -->	
+	</div> <!--  container-fluid -->
+
+	<div class="container-fluid status-view page">
+		<div class="row fluid-row">
+			<div class="span3">
+				<div class="well sidebar-nav-fixed">
+					<div class="container-fluid">
+						<div class="row sidebar-title">
+						  <h3> </h3>
+						</div>
+						<div class="row sidebar-title">
+							<h3>Status</h3>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-1">&nbsp;</div>
+							<div id="stat-1" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-2" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-3" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-4" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-5" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+  					</div>						
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-1">&nbsp;</div>
+							<div id="stat-6" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-7" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-8" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-9" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-10" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+  					</div>						
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-1">&nbsp;</div>
+							<div id="stat-11" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-12" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-13" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-14" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-15" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+  					</div>						
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-1">&nbsp;</div>
+							<div id="stat-16" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-17" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-18" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-19" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+							<div id="stat-20" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
+  					</div>						
+					</div> <!-- container-fluid -->
+				</div> <!--  well sidebar-nav-fixed -->
+			</div> <!-- span3 -->
+			
+			
+		</div> <!-- row fluid-row -->	
+	</div> <!--  container-fluid -->
+
+	<div class="container-fluid data-view page">
+		<div class="row fluid-row">
+			<div class="span3">
+				<div class="well sidebar-nav-fixed">
+					<div class="container-fluid">
+						<div class="row sidebar-title">
+						  <h3> </h3>
+						</div>
+						<div class="row sidebar-title">
+							<h3>Status</h3>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-1">&nbsp;</div>
+							<div class="col-xs-10 status"><iframe width="100%" height="700px" src="http://127.0.0.1:3000/dashboard/db/first-dashboard?orgId=1&from=now-1h&to=now"></iframe></div>
+  					</div>						
+					</div> <!-- container-fluid -->
+				</div> <!--  well sidebar-nav-fixed -->
+			</div> <!-- span3 -->
+			
+			
+		</div> <!-- row fluid-row -->	
+	</div> <!--  container-fluid -->
+
+  
+  
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="js/jquery-3.2.1.min.js" type="text/javascript"></script>
+    <script src="js/jquery-ui.min.js" type="text/javascript"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="js/bootstrap-3.3.7-dist/js/bootstrap.min.js" type="text/javascript"></script>
+    <script src="js/tabulator.js" type="text/javascript"></script>
+    <script src="js/percival.js" type="text/javascript"></script>
+
+</body>
+</html>
+

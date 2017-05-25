@@ -160,6 +160,20 @@ class MonitoringChannelIniParameters(IniSectionParameters):
                             }
 
 
+class BufferDACIniParameters(IniSectionParameters):
+    section_regexp = re.compile(r'^Buffer_DAC<\d{4}>$')
+
+    def __init__(self, channel_number):
+        object.__setattr__(self, '_parameters', {})  # This prevents infinite recursion when setting attributes
+        self._channel_number = channel_number
+        self.ini_section = None
+        self._parameters = {"Channel_name": (0, str),
+                            "Buffer_index": (0, int),
+                            "Bit_offset": (0, int),
+                            "Bit_size": (0, int),
+                            }
+
+
 class ChannelParameters(object):
     """
     Loads device channel settings and parameters from an INI file.
@@ -414,3 +428,180 @@ class ControlParameters(object):
         if "Control" not in self.conf.sections():
             raise_with_traceback(RuntimeError("Control section not found in ini file %s" % str(self._ini_filename)))
         return self.conf.get("Control", "carrier_ip").strip("\"")
+
+
+class BufferParameters(object):
+    """
+    Loads buffer transfer description from an INI file.
+    """
+    def __init__(self, ini_file):
+        self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+        self._ini_filename = find_file(ini_file)
+        self.conf = None
+        self._dac_channels = None
+
+    def load_ini(self):
+        """
+        Loads and parses the data from INI file. The data is stored internally in the object and can be retrieved
+        through the property methods
+        """
+        self.conf = SafeConfigParser(dict_type=OrderedDict)
+        self.conf.read(self._ini_filename)
+        self.log.debug("Read Buffer Transfer Parameters INI file %s:", self._ini_filename)
+        self.log.debug("    sections: %s", self.conf.sections())
+
+    @staticmethod
+    def _get_channel_number(section_name):
+        match = re.match(r'^.*Buffer_DAC<(\d{4})>$', section_name)
+        if match:
+            result = int(match.group(1))
+            return result
+        else:
+            raise_with_traceback(RuntimeError("Unable to detect channel name from \"%s\""%section_name))
+
+    def _get_channel_matching(self, regexp):
+        sections_matching = []
+        for section in self.conf.sections():
+            if regexp.match(section):
+                sections_matching.append(section)
+        return sections_matching
+
+    @property
+    def dac_channels(self):
+        """
+        List of `BufferDACIniParameters`
+        """
+        if self._dac_channels:
+            return self._dac_channels
+        self._dac_channels = self._get_channels(BufferDACIniParameters)
+        return self._dac_channels
+
+
+    def _get_channels(self, channel_class):
+        """
+        Loop through all channel sections matching a certain type `channel_class` and parse the parameters of each
+        section into new `channel_class` instance objects.
+
+        :param channel_class: an :class:`IniSectionParameters` derivative class
+        :return: a list of instances of the channel_class :obj:`IniSectionParameters` derivative.
+        :rtype list:
+        """
+        channels = []
+        sections = self._get_channel_matching(channel_class.section_regexp)
+        for section in sections:
+            channel_number = self._get_channel_number(section)
+            channel = channel_class(channel_number)
+            channel.ini_section = section
+            for param in channel.parameters():
+                parameter_type = channel.get_type(param)
+                if parameter_type == int:
+                    value = self.conf.getint(section, param)
+                elif parameter_type == str:
+                    value = self.conf.get(section, param)
+                    value = str(value.strip("\""))  # Get rid of any double quotes from the ini file
+                elif parameter_type == bool:
+                    str_value = self.conf.get(section, param)
+                    if str_value.lower() in positive_configuration:
+                        value = True
+                    elif str_value.lower() in negative_configuration:
+                        value = False
+                    else:
+                        raise_with_traceback(TypeError("Unsupported boolean: %s = \"%s\"" % (param, str_value)))
+                else:
+                    raise_with_traceback(TypeError("Unsupported parameter type %s" % str(parameter_type)))
+                channel.__setattr__(param, value)
+            self.log.debug("Appending channel: %s", channel)
+            channels.append(channel)
+        return channels
+
+
+class ChannelGroupParameters(object):
+    """
+    Loads groups of controls description from an INI file.
+    """
+    def __init__(self, ini_file):
+        self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+        self._ini_filename = find_file(ini_file)
+
+    def load_ini(self):
+        """
+        Loads and parses the data from INI file. The data is stored internally in the object and can be retrieved
+        through the property methods
+        """
+        self.conf = SafeConfigParser(dict_type=OrderedDict)
+        self.conf.read(self._ini_filename)
+        self.log.debug("Read Channel Groups INI file %s:", self._ini_filename)
+        self.log.debug("    sections: %s", self.conf.sections())
+
+    @property
+    def sections(self):
+        return self.conf.sections()
+
+    def get_name(self, section):
+        name = ""
+        for item in self.conf.items(section):
+            if "group_name" in item[0]:
+                name = item[1].replace('"', '')
+                break
+        return name
+
+    def get_description(self, section):
+        desc = ""
+        for item in self.conf.items(section):
+            if "group_description" in item[0]:
+                desc = item[1].replace('"', '')
+                break
+        return desc
+
+    def get_channels(self, section):
+        channels = []
+        for item in self.conf.items(section):
+            if "channel_name" in item[0]:
+                channels.append(item[1].replace('"', ''))
+        return channels
+
+
+class SetpointGroupParameters(object):
+    """
+    Loads groups of controls description from an INI file.
+    """
+    def __init__(self, ini_file):
+        self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+        self._ini_filename = find_file(ini_file)
+
+    def load_ini(self):
+        """
+        Loads and parses the data from INI file. The data is stored internally in the object and can be retrieved
+        through the property methods
+        """
+        self.conf = SafeConfigParser(dict_type=OrderedDict)
+        self.conf.read(self._ini_filename)
+        self.log.debug("Read Setpoint Groups INI file %s:", self._ini_filename)
+        self.log.debug("    sections: %s", self.conf.sections())
+
+    @property
+    def sections(self):
+        return self.conf.sections()
+
+    def get_name(self, section):
+        name = ""
+        for item in self.conf.items(section):
+            if "setpoint_name" in item[0]:
+                name = item[1].replace('"', '')
+                break
+        return name
+
+    def get_description(self, section):
+        desc = ""
+        for item in self.conf.items(section):
+            if "setpoint_description" in item[0]:
+                desc = item[1].replace('"', '')
+                break
+        return desc
+
+    def get_channels(self, section):
+        channels = []
+        for item in self.conf.items(section):
+            channels.append(item)
+        return channels
+

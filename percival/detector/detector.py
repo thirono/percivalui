@@ -6,16 +6,22 @@ Created on 20 May 2016
 from __future__ import print_function
 import os
 import logging
+from datetime import datetime
+import getpass
 
 from percival.carrier import const
+from percival.carrier.buffer import SensorBufferCommand
 from percival.carrier.channels import ControlChannel, MonitoringChannel
 from percival.carrier.devices import DeviceFactory
 from percival.carrier.registers import generate_register_maps, BoardValueRegisters
+from percival.carrier.sensor import Sensor
 from percival.carrier.settings import BoardSettings
 from percival.carrier.system import SystemCommand
 from percival.carrier.txrx import TxRx
 from percival.carrier.values import BoardValues
-from percival.carrier.configuration import ChannelParameters, BoardParameters, ControlParameters, env_carrier_ip
+from percival.carrier.configuration import ChannelParameters, BoardParameters, \
+    ControlParameters, ChannelGroupParameters, SetpointGroupParameters, BufferParameters, env_carrier_ip
+from percival.detector.groups import Group
 
 
 class PercivalParameters(object):
@@ -42,6 +48,10 @@ class PercivalParameters(object):
             const.BoardTypes.plugin: BoardParameters("config/Board PLUGIN.ini")
         }
         self._channel_params = ChannelParameters("config/Channel parameters.ini")
+        self._buffer_params = BufferParameters("config/BufferParameters.ini")
+        self._control_group_params = ChannelGroupParameters("config/ControlGroups.ini")
+        self._monitor_group_params = ChannelGroupParameters("config/MonitorGroups.ini")
+        self._setpoint_group_params = SetpointGroupParameters("config/SetpointGroups.ini")
 
     def load_ini(self):
         """
@@ -53,7 +63,10 @@ class PercivalParameters(object):
         self._board_params[const.BoardTypes.carrier].load_ini()
         self._board_params[const.BoardTypes.plugin].load_ini()
         self._channel_params.load_ini()
-        #self._log.debug(self._channel_params.control_channels)
+        self._buffer_params.load_ini()
+        self._control_group_params.load_ini()
+        self._monitor_group_params.load_ini()
+        self._setpoint_group_params.load_ini()
 
     @property
     def carrier_ip(self):
@@ -196,6 +209,24 @@ class PercivalParameters(object):
         """
         return self._channel_params.control_channels
 
+    @property
+    def sensor_dac_channels(self):
+        """
+        Return a list of `BufferDACIniParameters`
+
+        :returns: List of control channel ini parameters for sensor DACs
+        :rtype: list
+        """
+        return self._buffer_params.dac_channels
+
+    @property
+    def control_group_params(self):
+        return self._control_group_params
+
+    @property
+    def monitor_group_params(self):
+        return self._monitor_group_params
+
 
 class PercivalDetector(object):
     """
@@ -209,6 +240,8 @@ class PercivalDetector(object):
     """
     def __init__(self, download_config=True, initialise_hardware=True):
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+        self._start_time = datetime.now()
+        self._username = getpass.getuser()
         self._txrx = None
         self._global_monitoring = False
         self._percival_params = PercivalParameters()
@@ -217,6 +250,10 @@ class PercivalDetector(object):
         self._monitors = {}
         self._controls = {}
         self._sys_cmd = None
+        self._sensor_buffer_cmd = None
+        self._sensor = None
+        self._control_groups = None
+        self._monitor_groups = None
         self.load_ini()
         self.setup_control()
         if download_config:
@@ -249,6 +286,8 @@ class PercivalDetector(object):
         self._board_settings[const.BoardTypes.plugin] = BoardSettings(self._txrx, const.BoardTypes.plugin)
         self._board_values[const.BoardTypes.carrier] = BoardValues(self._txrx, const.BoardTypes.carrier)
         self._sys_cmd = SystemCommand(self._txrx)
+        self._sensor_buffer_cmd = SensorBufferCommand(self._txrx)
+        self._sensor = Sensor(self._sensor_buffer_cmd)
 
     def load_configuration(self):
         """
@@ -286,11 +325,15 @@ class PercivalDetector(object):
             if bt != const.BoardTypes.prototype:
                 settings = self._board_settings[bt].device_monitoring_settings(monitor.UART_address)
                 mc = MonitoringChannel(self._txrx, monitor, settings)
-                self._log.debug("Adding %s [%s] to monitor set",
-                                   (const.DeviceFamily(mc._channel_ini.Component_family_ID)).name,
-                                   mc._channel_ini.Channel_name)
-                description, device = DeviceFactory[const.DeviceFamily(mc._channel_ini.Component_family_ID)]
-                self._monitors[mc._channel_ini.Channel_name] = device(mc._channel_ini.Channel_name, mc)
+                if mc._channel_ini.Channel_name is None or len(mc._channel_ini.Channel_name) == 0:
+                    self._log.debug("Dropping %s as it has no channel name defined",
+                                    (const.DeviceFamily(mc._channel_ini.Component_family_ID)).name)
+                else:
+                    self._log.debug("Adding %s [%s] to monitor set",
+                                       (const.DeviceFamily(mc._channel_ini.Component_family_ID)).name,
+                                       mc._channel_ini.Channel_name)
+                    description, device = DeviceFactory[const.DeviceFamily(mc._channel_ini.Component_family_ID)]
+                    self._monitors[mc._channel_ini.Channel_name] = device(mc._channel_ini.Channel_name, mc)
 
         # Readback the control settings
         self._board_settings[const.BoardTypes.left].readback_control_settings()
@@ -305,11 +348,26 @@ class PercivalDetector(object):
             if bt != const.BoardTypes.prototype:
                 settings = self._board_settings[bt].device_control_settings(control.UART_address)
                 cc = ControlChannel(self._txrx, control, settings)
-                self._log.debug("Adding %s [%s] to control set",
-                                   (const.DeviceFamily(cc._channel_ini.Component_family_ID)).name,
-                                   cc._channel_ini.Channel_name)
-                description, device = DeviceFactory[const.DeviceFamily(cc._channel_ini.Component_family_ID)]
-                self._controls[cc._channel_ini.Channel_name] = device(cc._channel_ini.Channel_name, cc)
+                if cc._channel_ini.Channel_name is None or len(cc._channel_ini.Channel_name) == 0:
+                    self._log.debug("Dropping %s as it has no channel name defined",
+                                    (const.DeviceFamily(cc._channel_ini.Component_family_ID)).name)
+                else:
+                    self._log.debug("Adding %s [%s] to control set",
+                                       (const.DeviceFamily(cc._channel_ini.Component_family_ID)).name,
+                                       cc._channel_ini.Channel_name)
+                    description, device = DeviceFactory[const.DeviceFamily(cc._channel_ini.Component_family_ID)]
+                    self._controls[cc._channel_ini.Channel_name] = device(cc._channel_ini.Channel_name, cc)
+
+        # Load the sensor DACs from the ini file
+        sensor_dacs = self._percival_params.sensor_dac_channels
+        for dac in sensor_dacs:
+            self._sensor.add_dac(dac)
+
+        # Load in control groups from the ini file
+        self._control_groups = Group(self._percival_params.control_group_params)
+
+        # Load in control groups from the ini file
+        self._monitor_groups = Group(self._percival_params.monitor_group_params)
 
     def initialize_channels(self):
         """
@@ -355,7 +413,6 @@ class PercivalDetector(object):
         if device in self._controls:
             self._controls[device].initialize()
 
-
     def set_value(self, device, value, timeout=0.1):
         """
         Set the value of a control device.
@@ -369,6 +426,18 @@ class PercivalDetector(object):
         """
         if device in self._controls:
             self._controls[device].set_value(value, timeout)
+
+        elif device in self._sensor.dacs:
+            self._sensor.set_dac(device, value)
+
+        elif device in self._control_groups.group_names:
+            # A group name has been specified for the set value
+            # Get the list of channels and apply the value for each one
+            for channel in self._control_groups.get_channels(device):
+                self._controls[channel].set_value(value, timeout)
+
+    def apply_sensor_dac_values(self):
+        self._sensor.apply_dac_values()
 
     def read(self, parameter):
         """
@@ -388,18 +457,31 @@ class PercivalDetector(object):
         self._log.debug("Reading data %s", parameter)
 
         # First check to see if parameter is a keyword
-        if parameter == "controls":
+        if parameter == "setup":
+            reply = {"username": self._username,
+                     "start_time": self._start_time.strftime("%B %d, %Y %H:%M:%S")}
+
+        elif parameter == "controls":
             reply = {}
+            reply["controls"] = []
             for control in self._controls:
+                reply["controls"].append(control)
                 reply[control] = self._controls[control].device
 
         elif parameter == "monitors":
             reply = {}
+            reply["monitors"] = []
             for monitor in self._monitors:
+                reply["monitors"].append(monitor)
                 reply[monitor] = self._monitors[monitor].device
 
-        elif parameter == "device":
+        elif parameter == "boards":
             reply = {
+                "boards": [const.BoardTypes.carrier.name,
+                           const.BoardTypes.left.name,
+                           const.BoardTypes.bottom.name,
+                           const.BoardTypes.plugin.name
+                          ],
                 const.BoardTypes.carrier.name: {
                     "name":           self._percival_params.board_name(const.BoardTypes.carrier),
                     "type":           self._percival_params.board_type(const.BoardTypes.carrier).name,
