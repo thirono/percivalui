@@ -18,8 +18,9 @@ from percival.carrier.system import SystemCommand
 from percival.carrier.txrx import TxRx
 from percival.carrier.values import BoardValues
 from percival.carrier.configuration import ChannelParameters, BoardParameters, \
-    ControlParameters, ControlGroupParameters, BufferParameters, env_carrier_ip
+    ControlParameters, ChannelGroupParameters, SetpointGroupParameters, BufferParameters, env_carrier_ip
 from percival.detector.groups import Group
+
 
 class PercivalParameters(object):
     """
@@ -46,7 +47,9 @@ class PercivalParameters(object):
         }
         self._channel_params = ChannelParameters("config/Channel parameters.ini")
         self._buffer_params = BufferParameters("config/BufferParameters.ini")
-        self._control_group_params = ControlGroupParameters("config/ControlGroups.ini")
+        self._control_group_params = ChannelGroupParameters("config/ControlGroups.ini")
+        self._monitor_group_params = ChannelGroupParameters("config/MonitorGroups.ini")
+        self._setpoint_group_params = SetpointGroupParameters("config/SetpointGroups.ini")
 
     def load_ini(self):
         """
@@ -60,6 +63,8 @@ class PercivalParameters(object):
         self._channel_params.load_ini()
         self._buffer_params.load_ini()
         self._control_group_params.load_ini()
+        self._monitor_group_params.load_ini()
+        self._setpoint_group_params.load_ini()
 
     @property
     def carrier_ip(self):
@@ -216,6 +221,10 @@ class PercivalParameters(object):
     def control_group_params(self):
         return self._control_group_params
 
+    @property
+    def monitor_group_params(self):
+        return self._monitor_group_params
+
 
 class PercivalDetector(object):
     """
@@ -240,6 +249,7 @@ class PercivalDetector(object):
         self._sensor_buffer_cmd = None
         self._sensor = None
         self._control_groups = None
+        self._monitor_groups = None
         self.load_ini()
         self.setup_control()
         if download_config:
@@ -343,6 +353,9 @@ class PercivalDetector(object):
 
         # Load in control groups from the ini file
         self._control_groups = Group(self._percival_params.control_group_params)
+
+        # Load in control groups from the ini file
+        self._monitor_groups = Group(self._percival_params.monitor_group_params)
 
     def initialize_channels(self):
         """

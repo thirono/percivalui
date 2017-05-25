@@ -515,7 +515,7 @@ class BufferParameters(object):
         return channels
 
 
-class ControlGroupParameters(object):
+class ChannelGroupParameters(object):
     """
     Loads groups of controls description from an INI file.
     """
@@ -530,7 +530,7 @@ class ControlGroupParameters(object):
         """
         self.conf = SafeConfigParser(dict_type=OrderedDict)
         self.conf.read(self._ini_filename)
-        self.log.debug("Read Control Groups INI file %s:", self._ini_filename)
+        self.log.debug("Read Channel Groups INI file %s:", self._ini_filename)
         self.log.debug("    sections: %s", self.conf.sections())
 
     @property
@@ -558,5 +558,50 @@ class ControlGroupParameters(object):
         for item in self.conf.items(section):
             if "channel_name" in item[0]:
                 channels.append(item[1].replace('"', ''))
+        return channels
+
+
+class SetpointGroupParameters(object):
+    """
+    Loads groups of controls description from an INI file.
+    """
+    def __init__(self, ini_file):
+        self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+        self._ini_filename = find_file(ini_file)
+
+    def load_ini(self):
+        """
+        Loads and parses the data from INI file. The data is stored internally in the object and can be retrieved
+        through the property methods
+        """
+        self.conf = SafeConfigParser(dict_type=OrderedDict)
+        self.conf.read(self._ini_filename)
+        self.log.debug("Read Setpoint Groups INI file %s:", self._ini_filename)
+        self.log.debug("    sections: %s", self.conf.sections())
+
+    @property
+    def sections(self):
+        return self.conf.sections()
+
+    def get_name(self, section):
+        name = ""
+        for item in self.conf.items(section):
+            if "setpoint_name" in item[0]:
+                name = item[1].replace('"', '')
+                break
+        return name
+
+    def get_description(self, section):
+        desc = ""
+        for item in self.conf.items(section):
+            if "setpoint_description" in item[0]:
+                desc = item[1].replace('"', '')
+                break
+        return desc
+
+    def get_channels(self, section):
+        channels = []
+        for item in self.conf.items(section):
+            channels.append(item)
         return channels
 
