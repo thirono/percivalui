@@ -617,9 +617,9 @@ class SetpointGroupParameters(object):
                 break
         return desc
 
-    def get_channels(self, section):
-        channels = []
+    def get_setpoints(self, section):
+        sps = {}
         for item in self.conf.items(section):
-            channels.append(item)
-        return channels
+            sps[item[0]] = item[1]
+        return sps
 
