@@ -139,8 +139,8 @@ Unit = \"V\"\n\
         self.assertEqual(type(cp.control_channels), list)
         self.assertEqual(type(cp.monitoring_channels), list)
         # Channel count as per version 2017.05.05
-        self.assertEqual(len(cp.control_channels), 17)
-        self.assertEqual(len(cp.monitoring_channels), 22)
+        self.assertEqual(len(cp.control_channels), 68)
+        self.assertEqual(len(cp.monitoring_channels), 105)
 
 
 

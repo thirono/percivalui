@@ -23,9 +23,10 @@ class TestChannels(unittest.TestCase):
         self.txrx = MagicMock()
         self.channel_ini = MagicMock()
         self.settings = [(0x00, 0x00), (0x00, 0x00), (0x00, 0x00), (0x00, 0x00)]
+        self.echo_word_address = 0x03EE
 
     def TestControlChannel(self):
-        self.txrx.send_recv_message = MagicMock(return_value=[(0x0183, 0x00000019)])
+        self.txrx.send_recv_message = MagicMock(return_value=[(self.echo_word_address, 0x00000019)])
         self.channel_ini.Component_family_ID = const.DeviceFamily.AD5669
         self.channel_ini._channel_number = 1
         self.channel_ini.UART_address = 10
@@ -35,21 +36,21 @@ class TestChannels(unittest.TestCase):
         ctrlChannel.cmd_initialize()
         # Verify the txrx mock had send_rcv_message called
         self.txrx.send_recv_message.assert_called_with(
-            TxMessage(bytes("\x01\x22\x20\x00\x00\x01", encoding="latin-1"), expect_eom=True))
+            TxMessage(bytes("\x03\x3A\x20\x00\x00\x01", encoding="latin-1"), expect_eom=True))
 
         # Send a no-op command
         self.txrx.send_recv_message.reset_mock()
         ctrlChannel.cmd_no_operation()
         # Verify the txrx mock had send_rcv_message called
         self.txrx.send_recv_message.assert_called_with(
-            TxMessage(bytes("\x01\x22\x00\x00\x00\x01", encoding="latin-1"), expect_eom=True))
+            TxMessage(bytes("\x03\x3A\x00\x00\x00\x01", encoding="latin-1"), expect_eom=True))
 
         # Send a set and get value
         self.txrx.send_recv_message.reset_mock()
         ctrlChannel.cmd_set_and_get_value()
         # Verify the txrx mock had send_rcv_message called
         self.txrx.send_recv_message.assert_called_with(
-            TxMessage(bytes("\x01\x22\x50\x00\x00\x01", encoding="latin-1"), expect_eom=True))
+            TxMessage(bytes("\x03\x3A\x50\x00\x00\x01", encoding="latin-1"), expect_eom=True))
 
 
         # Send a read echo word command
@@ -57,7 +58,7 @@ class TestChannels(unittest.TestCase):
         ctrlChannel.read_echo_word()
         # Verify the txrx mock had send_rcv_message called
         self.txrx.send_recv_message.assert_called_with(
-            TxMessage(bytes("\x01\x9B\x00\x00\x00\x00", encoding="latin-1"), expect_eom=False))
+            TxMessage(bytes("\x04\x06\x00\x00\x00\x00", encoding="latin-1"), expect_eom=False))
 
         # Set the value to 10
         self.txrx.send_recv_message.reset_mock()
@@ -80,19 +81,19 @@ class TestChannels(unittest.TestCase):
         calls = self.txrx.send_recv_message.mock_calls
         self.assertEqual(calls[0], call(
             # Command: no-op on device index 1
-            TxMessage(bytes("\x01\x22\x00\x00\x00\x01", encoding="latin-1"), expect_eom=True)))
+            TxMessage(bytes("\x03\x3A\x00\x00\x00\x01", encoding="latin-1"), expect_eom=True)))
         self.assertEqual(calls[1], call(
             # Set Control value on UART addr 0x000D to 25 (=0x19)
             TxMessage(bytes("\x00\x0D\x00\x00\x00\x19", encoding="latin-1"), expect_eom=True)))
         self.assertEqual(calls[2], call(
             # Command: no-op on device index 1
-            TxMessage(bytes("\x01\x22\x00\x00\x00\x01", encoding="latin-1"), expect_eom=True)))
+            TxMessage(bytes("\x03\x3A\x00\x00\x00\x01", encoding="latin-1"), expect_eom=True)))
         self.assertEqual(calls[3], call(
             # Command: set_and_get_value on device index 1
-            TxMessage(bytes("\x01\x22\x50\x00\x00\x01", encoding="latin-1"), expect_eom=True)))
+            TxMessage(bytes("\x03\x3A\x50\x00\x00\x01", encoding="latin-1"), expect_eom=True)))
         self.assertEqual(calls[4], call(
             # Readback READ ECHO WORD
-            TxMessage(bytes("\x01\x9B\x00\x00\x00\x00", encoding="latin-1"), expect_eom=False)))
+            TxMessage(bytes("\x04\x06\x00\x00\x00\x00", encoding="latin-1"), expect_eom=False)))
 
         # Set the value to 26 from the control point
         self.txrx.send_recv_message.reset_mock()
@@ -103,14 +104,14 @@ class TestChannels(unittest.TestCase):
         # Set the value to 25 from the control point
         self.txrx.send_recv_message.reset_mock()
         # Set the mock to return an i2c error
-        self.txrx.send_recv_message.return_value = [(0x0183, 0x00010019)]
+        self.txrx.send_recv_message.return_value = [(self.echo_word_address, 0x00010019)]
         # Verify this raises an IO error
         with self.assertRaises(IOError):
             ctrlChannel.set_value(25)
 
     def TestAD5242ControlChannel(self):
         self.channel_ini.reset_mock()
-        self.txrx.send_recv_message = MagicMock(return_value=[(0x0183, 0x00000019)])
+        self.txrx.send_recv_message = MagicMock(return_value=[(self.echo_word_address, 0x00000019)])
         self.channel_ini.Component_family_ID = const.DeviceFamily.AD5242
         self.channel_ini._channel_number = 52
         self.channel_ini.UART_address = 214
@@ -122,7 +123,7 @@ class TestChannels(unittest.TestCase):
             TxMessage(bytes("\x00\xD9\x00\x01\x00\x0A", encoding="latin-1"), expect_eom=True))
 
     def TestMonitoringChannel(self):
-        self.txrx.send_recv_message = MagicMock(return_value=[(0x0183, 0x01000023)])
+        self.txrx.send_recv_message = MagicMock(return_value=[(self.echo_word_address, 0x01000023)])
         self.channel_ini.Component_family_ID = const.DeviceFamily.MAX31730
         self.channel_ini._channel_number = 18
         self.channel_ini.UART_address = 139
@@ -136,20 +137,20 @@ class TestChannels(unittest.TestCase):
         # Verify the txrx mock had send_rcv_message called
         calls = self.txrx.send_recv_message.mock_calls
         self.assertEqual(calls[0], call(
-            TxMessage(bytes("\x01\x9B\x00\x00\x00\x00", encoding="latin-1"), expect_eom=False)))
+            TxMessage(bytes("\x04\x06\x00\x00\x00\x00", encoding="latin-1"), expect_eom=False)))
         self.assertEqual(calls[1], call(
-            TxMessage(bytes("\x01\x22\x00\x80\x00\x12", encoding="latin-1"), expect_eom=True)))
+            TxMessage(bytes("\x03\x3A\x00\x80\x00\x12", encoding="latin-1"), expect_eom=True)))
         self.assertEqual(calls[2], call(
-            TxMessage(bytes("\x01\x22\x50\x80\x00\x12", encoding="latin-1"), expect_eom=True)))
+            TxMessage(bytes("\x03\x3A\x50\x80\x00\x12", encoding="latin-1"), expect_eom=True)))
         self.assertEqual(calls[3], call(
-            TxMessage(bytes("\x01\x9B\x00\x00\x00\x00", encoding="latin-1"), expect_eom=False)))
+            TxMessage(bytes("\x04\x06\x00\x00\x00\x00", encoding="latin-1"), expect_eom=False)))
 
         # Setup the mock with different sample numbers
         self.txrx.send_recv_message = MagicMock() #return_value=[(0x03EE, 0x01000023), (0x03EE, 0x02000023)])
-        self.txrx.send_recv_message.side_effect = [[(0x0183, 0x01000012)],
-                                                   [(0x0183, 0xABBABAC1)],
-                                                   [(0x0183, 0xABBABAC1)],
-                                                   [(0x0183, 0x02000013)]]
+        self.txrx.send_recv_message.side_effect = [[(self.echo_word_address, 0x01000012)],
+                                                   [(self.echo_word_address, 0xABBABAC1)],
+                                                   [(self.echo_word_address, 0xABBABAC1)],
+                                                   [(self.echo_word_address, 0x02000013)]]
         mntrChannel = MonitoringChannel(self.txrx, self.channel_ini, self.settings)
         self.txrx.send_recv_message.reset_mock()
         value = mntrChannel.get_value()
@@ -157,10 +158,10 @@ class TestChannels(unittest.TestCase):
 
         # Setup the mock to return i2c error
         self.txrx.send_recv_message = MagicMock() #return_value=[(0x03EE, 0x01000023), (0x03EE, 0x02000023)])
-        self.txrx.send_recv_message.side_effect = [[(0x0183, 0x01010012)],
-                                                   [(0x0183, 0xABBABAC1)],
-                                                   [(0x0183, 0xABBABAC1)],
-                                                   [(0x0183, 0x02010013)]]
+        self.txrx.send_recv_message.side_effect = [[(self.echo_word_address, 0x01010012)],
+                                                   [(self.echo_word_address, 0xABBABAC1)],
+                                                   [(self.echo_word_address, 0xABBABAC1)],
+                                                   [(self.echo_word_address, 0x02010013)]]
         # Verify this raises an IO error
         with self.assertRaises(IOError):
             value = mntrChannel.get_value()
