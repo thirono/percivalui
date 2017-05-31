@@ -83,6 +83,7 @@ docs/build
 .idea/
 venv27/
 venv34/
+venv35/
 
 /*.hdf
 /*.hdf5
