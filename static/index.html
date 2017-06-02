@@ -168,14 +168,26 @@
 		<div class="row fluid-row">
 			<div class="span3">
 				<div class="well sidebar-nav-fixed">
-					<div class="container-fluid">
+					<div class="container-fluid" id="stat-container">
 						<div class="row sidebar-title">
 						  <h3> </h3>
 						</div>
 						<div class="row sidebar-title">
 							<h3>Status</h3>
 						</div>
-						<div class="row sidebar-row vertical-align">
+						<div class="row sidebar-row vertical-align" id="status-anchor">
+							<div class="col-xs-2">
+								<div class="dropdown">
+									<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+										Channels<span class="caret"></span>
+									</button>
+									<ul class="dropdown-menu" role="menu" id="status-group">
+										<li role="presentation"><a role="menuitem" tabindex="-1" href="#">All</a></li>
+									</ul>
+							</div>
+							</div>
+						</div>
+						<!--<div class="row sidebar-row vertical-align">
 							<div class="col-xs-1">&nbsp;</div>
 							<div id="stat-1" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
 							<div id="stat-2" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
@@ -206,7 +218,7 @@
 							<div id="stat-18" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
 							<div id="stat-19" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
 							<div id="stat-20" class="col-xs-2 status vertical-align panel panel-default">&nbsp;</div>
-  					</div>						
+  					</div>-->
 					</div> <!-- container-fluid -->
 				</div> <!--  well sidebar-nav-fixed -->
 			</div> <!-- span3 -->

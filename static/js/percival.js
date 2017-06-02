@@ -5,7 +5,10 @@ current_page = "configuration-view";
 percival = {
   api_version: '0.1',
   current_page: '.home-view',
-  monitors: {}
+  monitors: {},
+  monitor_count: 0,
+  monitor_divs: 0,
+  groups: {}
   };
 
 $.put = function(url, data, callback, type)
@@ -57,7 +60,8 @@ class Monitor
   constructor(parent, id, device)
   {
     this.parent = parent;
-    this.id = id;
+    this.disp_name = id;
+    this.id = id.split(' ').join('_');
     this.device = device.device;
     this.unit = device.unit;
     this.low_threshold = device.low_threshold;
@@ -68,16 +72,17 @@ class Monitor
     this.i2c_comms_error = device.i2c_comms_error;
     this.value = 0.0;
     this.html_text = "<div class=\"panel-heading clearfix\">" +
-                     "<span class=\"panel-title pull-left\">" + this.id + "</span>" +
+                     "<span class=\"panel-title pull-left\">" + this.disp_name + " [" + this.device +
+                     "]</span>" +
                      "<button type=\"button\" id=\"" + this.id +
                      "-expbtn\" class=\"btn btn-outline-info btn-sm pull-right float-align-vertical\">" +
                      "<span id=\"" + this.id + "-expglp\" class=\"glyphicon glyphicon-resize-full\"></span></button></div>" +
-                     "<table>" + 
-                     "<tr><td width=120px>Device:</td><td colspan=2 width=150px>" + this.device + "</td></tr>";
+                     "<table>";
+                     //"<tr><td width=120px>Device:</td><td colspan=2 width=150px>" + this.device + "</td></tr>";
     if (this.device == "LTC2309"){
-      this.html_text += "<tr><td>Voltage:</td><td colspan=2 id=\"" + this.id + "-value\">0.000 ";
+      this.html_text += "<tr><td width=120px>Voltage:</td><td colspan=2 id=\"" + this.id + "-value\">0.000 ";
     } else if (this.device == "MAX31730"){
-      this.html_text += "<tr><td>Temperature:</td><td colspan=2 id=\"" + this.id + "-value\">0.000 ";            
+      this.html_text += "<tr><td width=120px>Temperature:</td><td colspan=2 id=\"" + this.id + "-value\">0.000 ";
     }
     this.html_text += this.unit + "</td></tr></table>";
     this.html_text += "<table id=\"" + this.id + "-dtbl\">";
@@ -105,35 +110,69 @@ class Monitor
     });
     this.update(device);
   }
-  
+
+  hide()
+  {
+    $(this.parent).hide();
+  }
+
+  show()
+  {
+    $(this.parent).insertAfter('#status-anchor');
+    $(this.parent).show();
+  }
+
   update(device)
   {
     if (this.device == "LTC2309"){
       if (this.value != device.voltage){
         this.update_value(device.voltage);
-        this.update_high(device.extreme_high_threshold);
       }
     } else if (this.device == "MAX31730"){
       if (this.value != device.temperature){
         this.update_value(device.temperature);
       }
     }    
+    this.update_warnings(device.low_threshold, device.high_threshold);
+    this.update_errors(device.extreme_low_threshold,
+                       device.extreme_high_threshold,
+                       device.safety_exception,
+                       device.i2c_comms_error);
   }
   
   update_value(value)
   {
-    $('#' + this.id + '-value').html("" + parseFloat(value).toFixed(3));
+    $('#' + this.id + '-value').html("" + parseFloat(value).toFixed(3) + " " + this.unit);
     this.value = value;
   }
 
-  update_high(value)
+  update_warnings(low_val, high_val)
   {
-    $('#' + this.id + '-hihi').html(led_html(parseInt(value), "red", 25));
-    this.extreme_high_threshold = value;
-    if (value == 1){
-        $(this.parent).removeClass("panel-default");
+    $('#' + this.id + '-low').html(led_html(parseInt(low_val), "yellow", 25));
+    $('#' + this.id + '-high').html(led_html(parseInt(high_val), "yellow", 25));
+    this.high_threshold = high_val;
+    this.low_threshold = low_val;
+    if (high_val == 1 || low_val == 1){
+        $(this.parent).addClass("panel-warning");
+    } else {
         $(this.parent).removeClass("panel-warning");
+    }
+  }
+
+  update_errors(lolo_val, hihi_val, safety, comms)
+  {
+    $('#' + this.id + '-hihi').html(led_html(parseInt(hihi_val), "red", 25));
+    $('#' + this.id + '-lolo').html(led_html(parseInt(lolo_val), "red", 25));
+    $('#' + this.id + '-safety').html(led_html(parseInt(safety), "red", 25));
+    $('#' + this.id + '-i2c').html(led_html(parseInt(comms), "red", 25));
+    this.extreme_high_threshold = hihi_val;
+    this.extreme_low_threshold = lolo_val;
+    this.safety_exception = safety;
+    this.i2c_comms_error = comms;
+    if (hihi_val == 1 || lolo_val == 1 || safety == 1 || comms == 1){
         $(this.parent).addClass("panel-danger");
+    } else {
+        $(this.parent).removeClass("panel-danger");
     }
   }
 }
@@ -144,7 +183,7 @@ $( document ).ready(function()
   update_api_adapters();
   update_server_setup();
   render('#/home-view');
-  
+
   setInterval(update_server_setup, 1000);
   setInterval(update_api_read_status, 100);
 
@@ -199,6 +238,39 @@ function update_server_setup() {
             $('#server-db-connected').html(led_html(1, "red", 25));
         }
     });
+    $.getJSON('/api/' + api_version + '/percival/groups/', function(response) {
+        percival.groups = response
+
+        // Group list
+        mg = percival.groups.monitor_groups.group_names;
+        html = "<li role=\"presentation\"><a role=\"menuitem\" tabindex=\"-1\" href=\"#/status-view\" onclick=\"update_visible_monitors('All')\">All</a></li>";
+        for (var index=0; index < mg.length; index++){
+            html += "<li role=\"presentation\"><a role=\"menuitem\" tabindex=\"-1\" href=\"#/status-view\" onclick=\"update_visible_monitors('"+mg[index]+"')\">"+mg[index]+"</a></li>";
+        }
+        $('#status-group').html(html);
+        //alert(JSON.stringify(response));
+    });
+}
+
+function update_visible_monitors(group)
+{
+    var mon_length = monitor_names.length;
+    //alert(mon_length);
+    for (var index = 0; index < mon_length; index++){
+        if (group == "All"){
+            percival.monitors[monitor_names[index]].show();
+        } else {
+
+            percival.monitors[monitor_names[index]].hide();
+        }
+    }
+
+    if (group != "All"){
+        var monitors = percival.groups.monitor_groups[group].channels;
+        for (var index = 0; index < monitors.length; index++){
+            percival.monitors[monitors[index]].show();
+        }
+    }
 }
 
 function update_api_read_boards() {
@@ -213,15 +285,18 @@ function update_api_read_boards() {
                                           ]
                                         });
         var len = board_list.length;
+        var monitor_count = 0;
         var tableData = [];
         for (var index = 0; index < len; index++){
-          tableData[index] = { id: index, 
+            monitor_count += response[board_list[index]].monitors_count;
+            tableData[index] = { id: index,
                                name:response[board_list[index]].name,
                                type:response[board_list[index]].type,
                                controls:response[board_list[index]].controls_count,
                                monitors:response[board_list[index]].monitors_count };
-        }
+            }
         $('#overall-boards').tabulator("setData", tableData);
+        percival.monitor_count = monitor_count;
     });
 }
 
@@ -275,6 +350,7 @@ function update_api_read_status()
 {
   $.getJSON('/api/' + api_version + '/percival/status/', function(response) {
     var len = monitor_names.length;
+    render_status_view();
     var tableData = [];
     for (var index = 0; index < len; index++){
       if (percival.monitors[monitor_names[index]] == null){
@@ -320,7 +396,27 @@ function render(url)
     update_api_read_boards();
     update_api_read_controls();
     update_api_read_monitors();
-  }    		
+  }
 }
 
-
+function render_status_view()
+{
+    // Check if the number of monitors has increased past the number of holder divs
+    if (percival.monitor_count > percival.monitor_divs){
+        // Calculate the number of new rows
+        var new_count = percival.monitor_count - percival.monitor_divs;
+        //alert("New rows: " + new_row_count);
+        for (var index = percival.monitor_divs; index < (percival.monitor_divs+new_count); index++){
+            //html_text = "<div class=\"row sidebar-row vertical-align\"><div class=\"col-xs-1\">&nbsp;</div>";
+            html_text = "";
+                html_text += "<div id=\"stat-" + (index+1) +
+                             "\" class=\"col-xs-3 status vertical-align panel panel-default\">&nbsp;</div>";
+            //}
+            //html_text += "</div>";
+            //alert(html_text);
+            // Append the rows to the container
+            $('#stat-container').append(html_text);
+        }
+        percival.monitor_divs += new_count;
+    }
+}
