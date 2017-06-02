@@ -517,6 +517,27 @@ class PercivalDetector(object):
                      "up_time": str(datetime.now() - self._start_time),
                      "influx_db": self._db.get_status()
             }
+
+        elif parameter == "groups":
+            # Construct dictionaries of control and monitor groups
+            reply = {"control_groups": {"group_names": []},
+                     "monitor_groups": {"group_names": []}
+                     }
+            ctrl_group_names = self._control_groups.group_names
+            for ctrl_group in ctrl_group_names:
+                reply["control_groups"]["group_names"].append(ctrl_group)
+                reply["control_groups"][ctrl_group] = {
+                    "description": self._control_groups.get_description(ctrl_group),
+                    "channels": self._control_groups.get_channels(ctrl_group)
+                }
+            monitor_group_names = self._monitor_groups.group_names
+            for monitor_group in monitor_group_names:
+                reply["monitor_groups"]["group_names"].append(monitor_group)
+                reply["monitor_groups"][monitor_group] = {
+                    "description": self._monitor_groups.get_description(monitor_group),
+                    "channels": self._monitor_groups.get_channels(monitor_group)
+                }
+
         elif parameter == "controls":
             reply = {}
             reply["controls"] = []
