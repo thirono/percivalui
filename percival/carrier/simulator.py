@@ -8,8 +8,11 @@ from __future__ import print_function
 import socket
 import numpy as np
 from threading import Thread
+import math
+import time
 
 import signal
+from datetime import datetime
 from builtins import bytes    # pylint: disable=W0622
 from percival.carrier.encoding import DATA_ENCODING, END_OF_MESSAGE
 from percival.carrier.encoding import (encode_message, decode_message)
@@ -34,6 +37,25 @@ class ShortcutRegister(object):
 
     def getshortcut(self):
         return self.register, self.length
+
+
+class Temperature(object):
+    """
+    Simple temperature monitor
+    """
+    def __init__(self, address):
+        self._address = address
+        self._time = datetime.now()
+        self._value = 0
+
+    def update(self):
+        new_time = datetime.now()
+        delta_t = (new_time - self._time).total_seconds() % 200
+        self._value = (100 * math.sin(delta_t / 200 * 2 * math.pi)) + 2000
+
+    @property
+    def value(self):
+        return self._value
 
 
 class Simulator(object):
@@ -149,6 +171,8 @@ class Simulator(object):
         self.server_sock.settimeout(None)
         self.server_sock.bind(('', board_ip_port))
         self.server_sock.listen(5)
+        self._t1 = Temperature(0x33E)
+        self.sim_value_thread = None
 
         self.thread = None
 
@@ -165,6 +189,8 @@ class Simulator(object):
             log.warning("Simulation thread is still running. This should not happen")
 
     def start(self, forever=False, blocking=False):
+        self.sim_value_thread = Thread(target=self._update_sim_values)
+        self.sim_value_thread.start()
         if forever and blocking:
             self._serve_forever()
         elif forever and not blocking:
@@ -179,6 +205,13 @@ class Simulator(object):
             log.debug("starting thread")
             self.thread.daemon = True
             self.thread.start()
+
+    def _update_sim_values(self):
+        while 1:
+            time.sleep(0.2)
+            self._t1.update()
+            for index in range(0x392, 0x3A5):
+                self.registers[index] = self._t1.value
 
     def _serve_forever(self):
         while 1:
