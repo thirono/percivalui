@@ -52,12 +52,16 @@ class BoardSettings:
         # Initialise the control channels
         #self.log.info(self._reg_control_settings.num_items)
         self._control_settings = {}
+        self.log.info("Num Items: %d", self._reg_control_settings.num_items)
         for address in range(0, self._reg_control_settings.num_items):
             channel_address = self._reg_control_settings._uart_address + (address * self._reg_control_settings.words_per_item)
             channel = ini.control_channel_by_address(channel_address)
-            #self.log.info(channel)
+            #self.log.info(channel_address)
+            #self.log.info("self._reg_control_settings._uart_address: %d", self._reg_control_settings._uart_address)
+            #self.log.info("address: %d", address)
+            #self.log.info("self._reg_control_settings.words_per_item: %d", self._reg_control_settings.words_per_item)
             #self.log.info("Uart address %02X", self._reg_control_settings._uart_address + (address * self._reg_control_settings.words_per_item))
-            #self.log.info(channel.Channel_ID)
+            #self.log.info(channel)
 
             self._control_settings[address] = UARTRegister(self._control_block, channel_address)
 
@@ -75,7 +79,16 @@ class BoardSettings:
             self._control_settings[address].fields.channel_default_off = channel.Default_OFF_value
             self._control_settings[address].fields.power_status = channel.Power_status
             self._control_settings[address].fields.value = channel.Value
-            cmd_msg += self._control_settings[address].get_write_cmd_msg(True)
+            try:
+                cmd_msg += self._control_settings[address].get_write_cmd_msg(True)
+            except:
+                self.log.info(channel_address)
+                self.log.info("self._reg_control_settings._uart_address: %d", self._reg_control_settings._uart_address)
+                self.log.info("address: %d", address)
+                self.log.info("self._reg_control_settings.words_per_item: %d", self._reg_control_settings.words_per_item)
+                self.log.info("Uart address %02X", self._reg_control_settings._uart_address + (address * self._reg_control_settings.words_per_item))
+                self.log.info(channel)
+                raise
 
         # Initialise the control channels
         # self.log.info(self._reg_control_settings.num_items)
@@ -105,7 +118,13 @@ class BoardSettings:
             self._monitoring_settings[address].fields.channel_monitoring = channel.Monitoring
             self._monitoring_settings[address].fields.safety_exception_threshold = channel.Safety_exception_threshold
             self._monitoring_settings[address].fields.read_frequency = channel.Read_frequency
-            cmd_msg += self._monitoring_settings[address].get_write_cmd_msg(True)
+            try:
+                cmd_msg += self._monitoring_settings[address].get_write_cmd_msg(True)
+            except:
+                self.log.info(channel_address)
+                self.log.info("Uart address %02X", self._reg_monitoring_settings._uart_address + (address * self._reg_monitoring_settings.words_per_item))
+                self.log.info(channel)
+                raise
 
         return cmd_msg
 
