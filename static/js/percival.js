@@ -1,5 +1,6 @@
 api_version = '0.1';
 monitor_names = [];
+monitor_desc = {};
 current_page = "configuration-view";
 
 percival = {
@@ -8,7 +9,8 @@ percival = {
   monitors: {},
   monitor_count: 0,
   monitor_divs: 0,
-  groups: {}
+  groups: {},
+  control_names: []
   };
 
 $.put = function(url, data, callback, type)
@@ -71,6 +73,8 @@ class Monitor
     this.safety_exception = device.safety_exception;
     this.i2c_comms_error = device.i2c_comms_error;
     this.value = 0.0;
+    this.raw_value = 0;
+    this.sample_number = 0;
     this.html_text = "<div class=\"panel-heading clearfix\">" +
                      "<span class=\"panel-title pull-left\">" + this.disp_name + " [" + this.device +
                      "]</span>" +
@@ -86,6 +90,8 @@ class Monitor
     }
     this.html_text += this.unit + "</td></tr></table>";
     this.html_text += "<table id=\"" + this.id + "-dtbl\">";
+    this.html_text += "<tr><td width=120px>Raw Value:</td><td colspan=2 id=\"" + this.id + "-raw\">0</td></tr>";
+    this.html_text += "<tr><td width=120px>Sample Number:</td><td colspan=2 id=\"" + this.id + "-sample\">0</td></tr>";
     this.html_text += "<tr><td width=120px></td><td width=75px>Warn</td><td width=75px>Error</td></tr>";
     this.html_text += "<tr><td>Low:</td><td id=\"" + this.id + "-low\">" + led_html(parseInt(device.low_threshold), "yellow", 25) + "</td>" +
                       "<td id=\"" + this.id + "-lolo\">" + led_html(parseInt(device.extreme_low_threshold), "red", 25) + "</td></tr>" + 
@@ -132,7 +138,13 @@ class Monitor
       if (this.value != device.temperature){
         this.update_value(device.temperature);
       }
-    }    
+    }
+    if (this.raw_value != device.raw_value){
+      this.update_raw_value(device.raw_value);
+    }
+    if (this.sample_number != device.sample_number){
+      this.update_sample_number(device.sample_number);
+    }
     this.update_warnings(device.low_threshold, device.high_threshold);
     this.update_errors(device.extreme_low_threshold,
                        device.extreme_high_threshold,
@@ -140,6 +152,18 @@ class Monitor
                        device.i2c_comms_error);
   }
   
+  update_raw_value(value)
+  {
+    $('#' + this.id + '-raw').html("" + parseInt(value));
+    this.raw_value = value;
+  }
+
+  update_sample_number(value)
+  {
+    $('#' + this.id + '-sample').html("" + parseInt(value));
+    this.sample_number = value;
+  }
+
   update_value(value)
   {
     $('#' + this.id + '-value').html("" + parseFloat(value).toFixed(3) + " " + this.unit);
@@ -185,10 +209,17 @@ $( document ).ready(function()
   render('#/home-view');
 
   setInterval(update_server_setup, 1000);
+  setInterval(update_api_read_monitors, 1000);
   setInterval(update_api_read_status, 100);
 
   $('#server-db-reconnect').click(function(){
     reconnect_db();
+  });
+  $('#server-ar-start').click(function(){
+    auto_read('start');
+  });
+  $('#server-ar-stop').click(function(){
+    auto_read('stop');
   });
 
   $(window).on('hashchange', function(){
@@ -201,6 +232,11 @@ $( document ).ready(function()
 function reconnect_db()
 {
     $.put('/api/' + api_version + '/percival/influxdb/connect', function(response){});
+}
+
+function auto_read(action)
+{
+    $.put('/api/' + api_version + '/percival/auto_read/' + action, function(response){});
 }
 
 function update_api_version() {
@@ -237,6 +273,26 @@ function update_server_setup() {
             $('#server-db-reconnect').show();
             $('#server-db-connected').html(led_html(1, "red", 25));
         }
+        $('#server-hw-address').html(response.hardware.address);
+        $('#server-hw-port').html(response.hardware.port);
+        if (response.hardware.connected){
+            connected = 1;
+            $('#server-hw-reconnect').hide();
+            $('#server-hw-connected').html(led_html(1, "green", 25));
+        } else {
+            connected = 0;
+            $('#server-hw-reconnect').show();
+            $('#server-hw-connected').html(led_html(1, "red", 25));
+        }
+        if (response.auto_read){
+            $('#server-ar-start').hide();
+            $('#server-ar-stop').show();
+            $('#server-ar-status').html(led_html(1, "green", 25));
+        } else {
+            $('#server-ar-start').show();
+            $('#server-ar-stop').hide();
+            $('#server-ar-status').html(led_html(1, "red", 25));
+        }
     });
     $.getJSON('/api/' + api_version + '/percival/groups/', function(response) {
         percival.groups = response
@@ -249,11 +305,23 @@ function update_server_setup() {
         }
         $('#status-group').html(html);
         //alert(JSON.stringify(response));
+
+        // Control channels for manual set points
+        cg = percival.groups.control_groups.group_names.concat(percival.control_names);
+		html = "";
+		for (var index=0; index < cg.length; index++){
+            html += "<option role=\"presentation\">" + cg[index] + "</option>";
+        }
+        if (html != $('#control-set-channel').html()){
+            $('#control-set-channel').html(html);
+        }
     });
 }
 
 function update_visible_monitors(group)
 {
+    $('#status-group-name').text("Channels [ " + group + " ] ");
+
     var mon_length = monitor_names.length;
     //alert(mon_length);
     for (var index = 0; index < mon_length; index++){
@@ -296,13 +364,13 @@ function update_api_read_boards() {
                                monitors:response[board_list[index]].monitors_count };
             }
         $('#overall-boards').tabulator("setData", tableData);
-        percival.monitor_count = monitor_count;
     });
 }
 
 function update_api_read_controls() {
 
     $.getJSON('/api/' + api_version + '/percival/controls/', function(response) {
+        percival.control_names = response["controls"];
         ctrl_list = response["controls"];
         $('#overall-controls').tabulator({height:"220px",
                                           pagination:"local",
@@ -322,31 +390,36 @@ function update_api_read_controls() {
     });
 }
 
-function update_api_read_monitors() {
-//alert("Here");
+function update_api_read_monitors()
+{
     $.getJSON('/api/' + api_version + '/percival/monitors/', function(response) {
-        mon_list = response["monitors"];
-        monitor_names = mon_list;
-        //$('#overall-monitors').html("");
-        $('#overall-monitors').tabulator({height:"220px",
-                                          pagination:"local",
-                                          columns:[
-                                          {title:"Name", field:"name", sorter:"string", width:"50%"},
-                                          {title:"Type", field:"type", sorter:"string", width:"50%"}
-                                          ]
-                                        });
-        var len = mon_list.length;
-        var tableData = [];
-        for (var index = 0; index < len; index++){
-          tableData[index] = { id: index, 
-                               name:mon_list[index],
-                               type:response[mon_list[index]] };
-        }
-        $('#overall-monitors').tabulator("setData", tableData);
+        monitor_names = response["monitors"];
+        monitor_desc = response;
+        percival.monitor_count = monitor_names.length;
     });
 }
 
-function update_api_read_status() 
+function render_config_view()
+{
+    //$('#overall-monitors').html("");
+    $('#overall-monitors').tabulator({height:"220px",
+                                      pagination:"local",
+                                      columns:[
+                                      {title:"Name", field:"name", sorter:"string", width:"50%"},
+                                      {title:"Type", field:"type", sorter:"string", width:"50%"}
+                                      ]
+                                    });
+    var len = monitor_names.length;
+    var tableData = [];
+    for (var index = 0; index < len; index++){
+        tableData[index] = { id: index,
+                             name:monitor_names[index],
+                             type:monitor_desc[monitor_names[index]] };
+    }
+    $('#overall-monitors').tabulator("setData", tableData);
+}
+
+function update_api_read_status()
 {
   $.getJSON('/api/' + api_version + '/percival/status/', function(response) {
     var len = monitor_names.length;
@@ -395,7 +468,7 @@ function render(url)
     // Re-request the configuration
     update_api_read_boards();
     update_api_read_controls();
-    update_api_read_monitors();
+    render_config_view();
   }
 }
 
