@@ -48,13 +48,14 @@ class InfluxDB(object):
         return status
 
     def log_point(self, time, measurement, data):
-        point = {
-            "measurement": measurement,
-            "time": time,
-            "fields": {}
-        }
+        if self._connected:
+            point = {
+                "measurement": measurement,
+                "time": time,
+                "fields": {}
+            }
 
-        for item in data:
-            point["fields"][item] = data[item]
+            for item in data:
+                point["fields"][item] = data[item]
 
-        self._influx_client.write_points([point])
+            self._influx_client.write_points([point])

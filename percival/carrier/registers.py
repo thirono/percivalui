@@ -463,6 +463,7 @@ class UARTRegister(object):
         data_words = self.fields.generate_map()
         write_cmd_msg = encoding.encode_multi_message(self._uart_address, data_words)
         write_cmd_msg = [txrx.TxMessage(msg, num_response_msg=1, expect_eom=eom) for msg in write_cmd_msg]
+
         return write_cmd_msg
 
 

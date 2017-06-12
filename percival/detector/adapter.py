@@ -6,7 +6,6 @@ Created on 22nd July 2016
 import logging
 import time
 from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types, response_types
-from percival.carrier.influxdb import InfluxDB
 from percival.detector.detector import PercivalDetector
 from concurrent import futures
 from tornado.ioloop import IOLoop
@@ -32,14 +31,16 @@ class PercivalAdapter(ApiAdapter):
         """
         super(PercivalAdapter, self).__init__(**kwargs)
 
-        self._detector = PercivalDetector()
+        self._detector = PercivalDetector(False,False)
         self._detector.set_global_monitoring(True)
+        self._auto_read = True
         self.status_update(0.1)
 
     @run_on_executor
     def status_update(self, task_interval):
         if self._detector:
-            self._detector.update_status()
+            if self._auto_read:
+                self._detector.update_status()
         time.sleep(task_interval)
         IOLoop.instance().add_callback(self.status_update, task_interval)
 
@@ -61,6 +62,10 @@ class PercivalAdapter(ApiAdapter):
         options = path.split("/")
         # Pass the option to the detector to obtain the parameter
         response = self._detector.read(options[0])
+        # If the driver status has been requested append the auto_read status
+        if options[0] in "driver":
+            response["auto_read"] = self._auto_read
+
         status_code = 200
         logging.debug(response)
 
@@ -86,6 +91,12 @@ class PercivalAdapter(ApiAdapter):
         # Database reconnection
         if options[0] in "influxdb" and options[1] in "connect":
             self._detector.setup_db()
+        elif options[0] in "auto_read":
+            # Global monitoring has either been requested to start or stop
+            if options[1] in "start":
+                self._auto_read = True
+            else:
+                self._auto_read = False
         else:
             # Pass the option to the detector to obtain the parameter
             self._detector.set_value(options[0], int(options[1]))

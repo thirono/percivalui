@@ -19,25 +19,28 @@ scanrange = range(READBACK_HEADER_SETTINGS_LEFT.start_address, READBACK_MONITORI
 
 def main():
     log.info("Scanning shortcuts...")
-    
-    with TxRxContext(board_ip_address) as trx:
-        trx.timeout = 1.0
-        
-        expected_bytes = None
-        #for addr, expected_bytes in scanrange:
-        for addr in scanrange:
-            msg = encode_message(addr, 0x00000000)
-    
-            log.debug("Qurying address: %X ...", addr)
-            try:
-                resp = trx.send_recv(msg, expected_bytes)
-            except RuntimeError:
-                log.exception("no response (addr: %X)", addr)
-                continue
-            data = decode_message(resp)
-            log.info("Got from addr: 0x%04X bytes: %d  words: %d", addr, len(resp), len(data))
-            for (a, w) in data:
-                log.info("           (0x%04X) 0x%08X", a, w)
+
+    try:
+        with TxRxContext(board_ip_address) as trx:
+            trx.timeout = 1.0
+
+            expected_bytes = None
+            #for addr, expected_bytes in scanrange:
+            for addr in scanrange:
+                msg = encode_message(addr, 0x00000000)
+
+                log.debug("Qurying address: %X ...", addr)
+                try:
+                    resp = trx.send_recv(msg, expected_bytes)
+                except RuntimeError:
+                    log.exception("no response (addr: %X)", addr)
+                    continue
+                data = decode_message(resp)
+                log.info("Got from addr: 0x%04X bytes: %d  words: %d", addr, len(resp), len(data))
+                for (a, w) in data:
+                    log.info("           (0x%04X) 0x%08X", a, w)
+    except:
+        log.info("Exception in TxRx: Check PERCIVAL_CARRIER_IP is correct")
                 
 if __name__ == '__main__':
     main()

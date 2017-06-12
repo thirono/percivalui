@@ -117,7 +117,15 @@ class TxRx(object):
         self.sock.settimeout(timeout)
         self.log.debug("connecting to FPGA: %s", str(self._fpga_addr))
         self.sock.connect(self._fpga_addr)
-    
+
+    def get_status(self):
+        status = {
+            "address": self._fpga_addr[0],
+            "port": self._fpga_addr[1],
+            "connected": True
+        }
+        return status
+
     @property
     def fpga_addr(self):
         return self._fpga_addr
