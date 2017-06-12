@@ -6,7 +6,7 @@ Created on 20 May 2016
 from __future__ import print_function
 import os
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 import getpass
 
 from percival.carrier import const
@@ -342,7 +342,6 @@ class PercivalDetector(object):
         # Attempt connection to the database
         self._db.connect()
 
-
     def load_configuration(self):
         """
         Download the configuration from ini files to the hardware.
@@ -422,6 +421,38 @@ class PercivalDetector(object):
 
         # Load in control groups from the ini file
         self._monitor_groups = Group(self._percival_params.monitor_group_params)
+
+    def parse_command(self, command):
+        """
+        Parses command object to execute commands
+        :param command:
+        :return:
+        """
+        # TODO: Log the details of the command
+        # Expect command object to contain user, source IP, source type[script|web]
+        # Check for the command options
+        params = {}
+        if "params" in command:
+            params = command["params"]
+        if "command" in command:
+            if command["command"] in "connect_influxdb":
+                self.setup_db()
+            elif command["command"] in "auto_read":
+                # Global monitoring has either been requested to start or stop
+                if "state" in params:
+                    if "start" in params["state"]:
+                        self._auto_read = True
+                    elif "stop" in params["state"]:
+                        self._auto_read = False
+
+            elif command["command"] in "write":
+                if "channel" in params and "value" in params:
+                    # Pass the option to the detector to obtain the parameter
+                    self.set_value(params["channel"], int(params["value"]))
+
+    def download_configuration(self):
+        self.load_configuration()
+        self.load_channels()
 
     def initialize_channels(self):
         """
@@ -515,8 +546,9 @@ class PercivalDetector(object):
             reply = {"username": self._username,
                      "start_time": self._start_time.strftime("%B %d, %Y %H:%M:%S"),
                      "up_time": str(datetime.now() - self._start_time),
-                     "influx_db": self._db.get_status()
-            }
+                     "influx_db": self._db.get_status(),
+                     "hardware": self._txrx.get_status()
+                     }
 
         elif parameter == "groups":
             # Construct dictionaries of control and monitor groups
@@ -610,7 +642,7 @@ class PercivalDetector(object):
         status_msg = {}
         if self._global_monitoring:
             response = self._board_values[const.BoardTypes.carrier].read_values()
-            time_now = datetime.today()
+            time_now = datetime.today() - timedelta(hours=1)
             self._log.debug(response)
             read_maps = generate_register_maps(response)
             self._log.debug(read_maps)
