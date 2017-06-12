@@ -219,6 +219,7 @@ class MAX31730(object):
         self._name = name
         self._channel = channel
         self._device = DeviceFamily.MAX31730
+        self._raw_value = 0
         self._temperature = 0.0
         self._low_threshold = 0
         self._extreme_low_threshold = 0
@@ -226,6 +227,7 @@ class MAX31730(object):
         self._extreme_high_threshold = 0
         self._safety_exception = 0
         self._i2c_comms_error = 0
+        self._sample_number = 0
         self._offset = float(self._channel._channel_ini.Offset)
         self._divider = float(self._channel._channel_ini.Divider)
         self._multiplier = float(self._channel._channel_ini.Multiplier)
@@ -253,7 +255,9 @@ class MAX31730(object):
             :type data:  :obj:`percival.carrier.registers.ReadValueMap`
         """
         self._i2c_comms_error = data.i2c_communication_error
+        self._raw_value = data.read_value
         self._temperature = (float(data.read_value) - self._offset) / self._divider * self._multiplier
+        self._sample_number = data.sample_number
 
     def _update_status(self, data):
         """Internal update of status items
@@ -287,6 +291,8 @@ class MAX31730(object):
         return {
             "device":                 "MAX31730",
             "temperature":            self._temperature,
+            "raw_value":              self._raw_value,
+            "sample_number":          self._sample_number,
             "low_threshold":          self._low_threshold,
             "extreme_low_threshold":  self._extreme_low_threshold,
             "high_threshold":         self._high_threshold,
@@ -305,6 +311,7 @@ class LTC2309:
         self._name = name
         self._channel = channel
         self._device = DeviceFamily.LTC2309
+        self._raw_value = 0
         self._voltage = 0.0
         self._low_threshold = 0
         self._extreme_low_threshold = 0
@@ -312,6 +319,7 @@ class LTC2309:
         self._extreme_high_threshold = 0
         self._safety_exception = 0
         self._i2c_comms_error = 0
+        self._sample_number = 0
         self._offset = float(self._channel._channel_ini.Offset)
         self._divider = float(self._channel._channel_ini.Divider)
         self._multiplier = float(self._channel._channel_ini.Multiplier)
@@ -339,7 +347,9 @@ class LTC2309:
             :type data:  :obj:`percival.carrier.registers.ReadValueMap`
         """
         self._i2c_comms_error = data.i2c_communication_error
+        self._raw_value = data.read_value
         self._voltage = (float(data.read_value) - self._offset) / self._divider * self._multiplier
+        self._sample_number = data.sample_number
 
     def _update_status(self, data):
         """Internal update of status items
@@ -373,6 +383,8 @@ class LTC2309:
         return {
             "device":                 "LTC2309",
             "voltage":                self._voltage,
+            "raw_value":              self._raw_value,
+            "sample_number":          self._sample_number,
             "low_threshold":          self._low_threshold,
             "extreme_low_threshold":  self._extreme_low_threshold,
             "high_threshold":         self._high_threshold,
