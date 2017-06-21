@@ -29,7 +29,7 @@ def main():
             for addr in scanrange:
                 msg = encode_message(addr, 0x00000000)
 
-                log.debug("Qurying address: %X ...", addr)
+                log.debug("Querying address: %X ...", addr)
                 try:
                     resp = trx.send_recv(msg, expected_bytes)
                 except RuntimeError:
