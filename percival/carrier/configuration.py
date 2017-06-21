@@ -11,6 +11,7 @@ import logging
 import os
 import errno
 import re
+from io import StringIO
 from collections import OrderedDict
 from configparser import SafeConfigParser
 from percival.carrier.const import BoardTypes
@@ -585,7 +586,13 @@ class SetpointGroupParameters(object):
     """
     def __init__(self, ini_file):
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
-        self._ini_filename = find_file(ini_file)
+        self._ini_filename = None
+        self._ini_buffer = None
+        try:
+            self._ini_filename = find_file(ini_file)
+        except:
+            # If we catch any kind of exception here then treat the parameter as the configuration
+            self._ini_buffer = StringIO(ini_file)
 
     def load_ini(self):
         """
@@ -593,9 +600,14 @@ class SetpointGroupParameters(object):
         through the property methods
         """
         self.conf = SafeConfigParser(dict_type=OrderedDict)
-        self.conf.read(self._ini_filename)
-        self.log.debug("Read Setpoint Groups INI file %s:", self._ini_filename)
-        self.log.debug("    sections: %s", self.conf.sections())
+        self.conf.optionxform = str
+        if self._ini_filename:
+            self.conf.read(self._ini_filename)
+            self.log.info("Read Setpoint Groups INI file: %s", self._ini_filename)
+        else:
+            self.conf.readfp(self._ini_buffer)
+            self.log.info("Read Setpoint Groups INI object %s", self._ini_buffer)
+        self.log.info("    sections: %s", self.conf.sections())
 
     @property
     def sections(self):
@@ -604,7 +616,7 @@ class SetpointGroupParameters(object):
     def get_name(self, section):
         name = ""
         for item in self.conf.items(section):
-            if "setpoint_name" in item[0]:
+            if "Setpoint_name" in item[0]:
                 name = item[1].replace('"', '')
                 break
         return name
@@ -612,7 +624,7 @@ class SetpointGroupParameters(object):
     def get_description(self, section):
         desc = ""
         for item in self.conf.items(section):
-            if "setpoint_description" in item[0]:
+            if "Setpoint_description" in item[0]:
                 desc = item[1].replace('"', '')
                 break
         return desc
@@ -620,6 +632,7 @@ class SetpointGroupParameters(object):
     def get_setpoints(self, section):
         sps = {}
         for item in self.conf.items(section):
-            sps[item[0]] = item[1]
+            if "Setpoint_description" not in item and "Setpoint_name" not in item:
+                sps[item[0]] = item[1]
         return sps
 
