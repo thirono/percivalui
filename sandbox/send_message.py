@@ -6,8 +6,11 @@ Created on 20 May 2016
 from __future__ import print_function
 
 import argparse
+import requests
+import getpass
 
 from percival.log import log
+from datetime import datetime
 from percival.detector.ipc_channel import IpcChannel
 from percival.detector.ipc_message import IpcMessage
 
@@ -28,13 +31,38 @@ def main():
     log.info(args)
 
     log.debug("Message")
-    msg = IpcMessage(IpcMessage.MSG_TYPE_CMD, IpcMessage.MSG_VAL_CMD_CONFIGURE)
+#    msg = IpcMessage(IpcMessage.MSG_TYPE_CMD, IpcMessage.MSG_VAL_CMD_CONFIGURE)
 #    msg.set_param("status_loop", "run")
-    msg.set_param("status_loop", "stop")
-    channel = IpcChannel(IpcChannel.CHANNEL_TYPE_PAIR)
-    channel.connect("tcp://127.0.0.1:8888")
+#    msg.set_param("status_loop", "stop")
+#    channel = IpcChannel(IpcChannel.CHANNEL_TYPE_PAIR)
+#    channel.connect("tcp://127.0.0.1:8888")
     #time.sleep(1.0)
-    channel.send(msg.encode())
+#    channel.send(msg.encode())
+
+
+    url = "http://127.0.0.1:8888/api/0.1/percival/cmd_system_command?key=value&key2=value2"
+
+
+    log.debug("Sending msg to: %s", url)
+    try:
+        result = requests.get(url,
+                              data={
+                                  'key1': 'value1',
+                                  'key2': 'value2'
+                              },
+                              headers={
+                                  'Content-Type': 'application/json',
+                                  'Accept': 'application/json',
+                                  'User': getpass.getuser(),
+                                  'Creation-Time': str(datetime.now()),
+                                  'User-Agent': 'script_send_message'
+                              }).json()
+    except requests.exceptions.RequestException:
+        result = {
+            "error": "Exception during HTTP request, check address and Odin server instance"
+        }
+        log.exception(result['error'])
+    return result
 
 
 if __name__ == '__main__':
