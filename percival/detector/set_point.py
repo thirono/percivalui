@@ -68,7 +68,7 @@ class SetPointControl(object):
         return self._sp_dict.keys()
 
     def get_description(self, set_point):
-        return self._set_point_ini.get_description(set_point)
+        return self._set_point_ini.get_description(self._sp_dict[set_point])
 
     def apply_set_point(self, set_point, device_list=None):
         self._log.info("Apply set point called with: %s", set_point)
