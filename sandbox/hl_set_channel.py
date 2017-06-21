@@ -20,11 +20,13 @@ from percival.detector.detector import PercivalParameters
 
 
 def options():
-    desc = """Apply a set-point to the Percival Carrier Board
+    desc = """Set a channel value on the Percival Carrier Board
     """
     parser = argparse.ArgumentParser(description=desc)
-    action_help = "Set-point to apply"
-    parser.add_argument("-s", "--setpoint", action="store", help=action_help)
+    channel_help = "Channel to set"
+    parser.add_argument("-c", "--channel", action="store", help=channel_help)
+    value_help = "Value to set"
+    parser.add_argument("-v", "--value", action="store", default=0, help=value_help)
     args = parser.parse_args()
     return args
 
@@ -33,22 +35,21 @@ def main():
     args = options()
     log.info(args)
 
-    set_point = args.setpoint
-
-    url = "http://127.0.0.1:8888/api/0.1/percival/cmd_apply_setpoint"
+    url = "http://127.0.0.1:8888/api/0.1/percival/cmd_set_channel"
 
     log.debug("Sending msg to: %s", url)
     try:
         result = requests.put(url,
                               data={
-                                  'setpoint': set_point
+                                  'channel': args.channel,
+                                  'value': args.value
                               },
                               headers={
                                   'Content-Type': 'application/json',
                                   'Accept': 'application/json',
                                   'User': getpass.getuser(),
                                   'Creation-Time': str(datetime.now()),
-                                  'User-Agent': 'hl_apply_setpoint.py'
+                                  'User-Agent': 'hl_set_channel.py'
                               }).json()
     except requests.exceptions.RequestException:
         result = {

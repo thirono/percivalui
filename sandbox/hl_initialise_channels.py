@@ -20,7 +20,7 @@ from percival.detector.detector import PercivalParameters
 
 
 def options():
-    desc = """Force the driver to update the monitor status values
+    desc = """Send the initialise command to channels that support it
     """
     parser = argparse.ArgumentParser(description=desc)
     args = parser.parse_args()
@@ -31,8 +31,7 @@ def main():
     args = options()
     log.info(args)
 
-    url = "http://127.0.0.1:8888/api/0.1/percival/cmd_update_monitors"
-
+    url = "http://127.0.0.1:8888/api/0.1/percival/cmd_initialise_channels"
 
     log.debug("Sending msg to: %s", url)
     try:
@@ -42,7 +41,7 @@ def main():
                                   'Accept': 'application/json',
                                   'User': getpass.getuser(),
                                   'Creation-Time': str(datetime.now()),
-                                  'User-Agent': 'hl_update_monitors.py'
+                                  'User-Agent': 'hl_initialise_channels.py'
                               }).json()
     except requests.exceptions.RequestException:
         result = {
