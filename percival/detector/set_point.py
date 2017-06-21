@@ -29,6 +29,7 @@ class SetPointControl(object):
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._detector = detector
         self._set_point_ini = None
+        self._sp_dict = {}
         self._executing = False
         self._scanning = False
         self._start_scan = threading.Event()
@@ -39,9 +40,13 @@ class SetPointControl(object):
         self._scan_steps = 0
         self._thread = None
         self._scan_points = None
+        self._log.info("SetPointControl object created")
 
     def load_ini(self, set_point_ini):
+        self._log.info("Ini loaded for setpoints: %s", set_point_ini)
         self._set_point_ini = set_point_ini
+        for section in self._set_point_ini.sections:
+            self._sp_dict[self._set_point_ini.get_name(section)] = section
 
     def start_scan_loop(self):
         if not self._executing:
@@ -60,19 +65,23 @@ class SetPointControl(object):
 
     @property
     def set_points(self):
-        return self._set_point_ini.sections
+        return self._sp_dict.keys()
 
     def get_description(self, set_point):
         return self._set_point_ini.get_description(set_point)
 
     def apply_set_point(self, set_point, device_list=None):
+        self._log.info("Apply set point called with: %s", set_point)
+        self._log.info("Set point names: %s", self.set_points)
         if set_point in self.set_points:
-            sps = self._set_point_ini.get_setpoints(set_point)
+            sps = self._set_point_ini.get_setpoints(self._sp_dict[set_point])
+            self._log.info("Set points: %s", sps)
             # If device_list is left as default then apply all values in the set_point
             if not device_list:
                 for sp in sps:
-                    self._log.debug("Applying set_point [%s] = %d", sp, sps[sp])
-                    self._detector.set_value(sp, sps[sp])
+                    value = int(float(sps[sp]))
+                    self._log.info("Applying set_point [%s] = %d", sp, value)
+                    self._detector.set_value(sp, value)
             elif isinstance(device_list, list):
                 # Iterate through the list setting the set point
                 for item in device_list:
@@ -92,14 +101,15 @@ class SetPointControl(object):
         set_point_map = {}
         for set_point in set_points:
             if set_point in self.set_points:
-                sps = self._set_point_ini.get_setpoints(set_point)
+                sps = self._set_point_ini.get_setpoints(self._sp_dict[set_point])
                 # If device_list is left as default then append all values in the set_point
                 if not device_list:
                     for sp in sps:
-                        self._log.debug("Construct scan over set_point [%s] = %d", sp, sps[sp])
+                        value = int(float(sps[sp]))
+                        self._log.info("Construct scan over set_point [%s] = %d", sp, value)
                         if sp not in set_point_map:
                             set_point_map[sp] = []
-                        set_point_map[sp].append(sps[sp])
+                        set_point_map[sp].append(value)
                 elif isinstance(device_list, list):
                     # Iterate through the list appending the set point
                     for item in device_list:
@@ -155,7 +165,7 @@ class SetPointControl(object):
             # Apply the current set of set-points
             if self._scanning:
                 for sp in self._scan_points:
-                    self._detector.set_value(sp, self._scan_points[sp][self._scan_index])
+                    self._detector.set_value(sp, int(self._scan_points[sp][self._scan_index]))
                 # Increment the scan index
                 self._scan_index += 1
                 if self._scan_index == self._scan_steps:
