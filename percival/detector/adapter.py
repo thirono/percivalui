@@ -5,8 +5,10 @@ Created on 22nd July 2016
 """
 import logging
 import time
+import traceback
 from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types, response_types
 from percival.detector.detector import PercivalDetector
+from percival.detector.command import Command
 from concurrent import futures
 from tornado.ioloop import IOLoop
 from tornado.concurrent import run_on_executor
@@ -33,7 +35,7 @@ class PercivalAdapter(ApiAdapter):
 
         self._detector = PercivalDetector(False,False)
         self._detector.set_global_monitoring(True)
-        self._auto_read = True
+        self._auto_read = False
         self.status_update(0.1)
 
     @run_on_executor
@@ -56,18 +58,18 @@ class PercivalAdapter(ApiAdapter):
         :return: ApiAdapterResponse object to be returned to the client
         """
 
-        logging.debug("%s", request)
+        #logging.debug("%s", request)
 
-        # Split the path by /
-        options = path.split("/")
-        # Pass the option to the detector to obtain the parameter
-        response = self._detector.read(options[0])
+        # Create a new Percival Command object
+        cmd = Command(request)
+        response = self._detector.execute_command(cmd)
+
         # If the driver status has been requested append the auto_read status
-        if options[0] in "driver":
+        if "driver" in cmd.command_name:
             response["auto_read"] = self._auto_read
 
         status_code = 200
-        logging.debug(response)
+        #logging.debug(response)
 
         return ApiAdapterResponse(response, status_code=status_code)
 
@@ -84,25 +86,25 @@ class PercivalAdapter(ApiAdapter):
         """
 
         logging.debug("%s", request)
+        logging.debug("%s", request.body)
 
-        # Split the path by /
-        options = path.split("/")
-        logging.debug("%s", options)
-        # Database reconnection
-        if options[0] in "influxdb" and options[1] in "connect":
-            self._detector.setup_db()
-        elif options[0] in "auto_read":
-            # Global monitoring has either been requested to start or stop
-            if options[1] in "start":
-                self._auto_read = True
-            else:
-                self._auto_read = False
-        else:
-            # Pass the option to the detector to obtain the parameter
-            self._detector.set_value(options[0], int(options[1]))
-
-        response = {'response': '{}: PUT on path {}'.format(self.name, path)}
         status_code = 200
+        response = {}
+
+        # Create a new Percival Command object
+        try:
+            cmd = Command(request)
+            if 'start' in cmd.command_name:
+                self._auto_read = True
+            elif 'stop' in cmd.command_name:
+                self._auto_read = False
+            else:
+                response = self._detector.execute_command(cmd)
+        except Exception as ex:
+            # Return an error condition with the exception message
+            status_code = 500
+            response['error'] = ex.args
+            response['trace'] = traceback.format_exc()
 
         logging.debug(response)
 
@@ -124,3 +126,7 @@ class PercivalAdapter(ApiAdapter):
         logging.debug(response)
 
         return ApiAdapterResponse(response, status_code=status_code)
+
+    def cleanup(self):
+        if self._detector:
+            self._detector.cleanup()
