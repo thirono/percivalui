@@ -43,10 +43,11 @@ class SetPointControl(object):
         self._log.info("SetPointControl object created")
 
     def load_ini(self, set_point_ini):
-        self._log.info("Ini loaded for setpoints: %s", set_point_ini)
-        self._set_point_ini = set_point_ini
-        for section in self._set_point_ini.sections:
-            self._sp_dict[self._set_point_ini.get_name(section)] = section
+        if set_point_ini:
+            self._log.info("Ini loaded for setpoints: %s", set_point_ini)
+            self._set_point_ini = set_point_ini
+            for section in self._set_point_ini.sections:
+                self._sp_dict[self._set_point_ini.get_name(section)] = section
 
     def start_scan_loop(self):
         if not self._executing:

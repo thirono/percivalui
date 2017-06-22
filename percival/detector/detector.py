@@ -46,6 +46,7 @@ class PercivalParameters(object):
     def __init__(self):
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._control_params = ControlParameters("config/percival.ini")
+        #self._control_params.load_ini()
         self._board_params = {
             const.BoardTypes.left: BoardParameters("config/Board LEFT.ini"),
             const.BoardTypes.bottom: BoardParameters("config/Board BOTTOM.ini"),
@@ -54,9 +55,13 @@ class PercivalParameters(object):
         }
         self._channel_params = ChannelParameters("config/Channel parameters.ini")
         self._buffer_params = BufferParameters("config/BufferParameters.ini")
-        self._control_group_params = ChannelGroupParameters("config/ControlGroups.ini")
-        self._monitor_group_params = ChannelGroupParameters("config/MonitorGroups.ini")
-        self._setpoint_group_params = SetpointGroupParameters("config/SetpointGroups.ini")
+        #self._control_group_params = ChannelGroupParameters("config/ControlGroups.ini")
+        #self._monitor_group_params = ChannelGroupParameters("config/MonitorGroups.ini")
+        #print(self._control_params.setpoint_ini_file)
+        #self._setpoint_group_params = SetpointGroupParameters("config/SetpointGroups.ini")
+        self._control_group_params = None
+        self._monitor_group_params = None
+        self._setpoint_group_params = None
 
     def load_ini(self):
         """
@@ -69,9 +74,31 @@ class PercivalParameters(object):
         self._board_params[const.BoardTypes.plugin].load_ini()
         self._channel_params.load_ini()
         self._buffer_params.load_ini()
+        #self._control_group_params.load_ini()
+        #self._monitor_group_params.load_ini()
+        #self._setpoint_group_params.load_ini()
+        try:
+            self.load_control_group_ini(self._control_params.control_group_ini_file)
+        except:
+            self._log.debug("No default control groups ini file to load")
+        try:
+            self.load_monitor_group_ini(self._control_params.monitor_group_ini_file)
+        except:
+            self._log.debug("No default monitor groups ini file to load")
+        try:
+            self.load_setpoint_group_ini(self._control_params.setpoint_ini_file)
+        except:
+            self._log.debug("No default setpoints ini file to load")
+
+    def load_control_group_ini(self, filename):
+        # Create the ini object from either filename or raw file
+        self._control_group_params = ChannelGroupParameters(filename)
         self._control_group_params.load_ini()
+
+    def load_monitor_group_ini(self, filename):
+        # Create the ini object from either filename or raw file
+        self._monitor_group_params = ChannelGroupParameters(filename)
         self._monitor_group_params.load_ini()
-        self._setpoint_group_params.load_ini()
 
     def load_setpoint_group_ini(self, filename):
         # Create the ini object from either filename or raw file
@@ -323,6 +350,7 @@ class PercivalDetector(object):
         """
         self._log.info("Loading detector ini files...")
         self._percival_params.load_ini()
+        self._setpoint_control.load_ini(self._percival_params.setpoint_params)
 
     def setup_control(self):
         """
@@ -446,6 +474,16 @@ class PercivalDetector(object):
         # Load in control groups from the ini file
         self._monitor_groups = Group(self._percival_params.monitor_group_params)
 
+    def load_control_groups(self, control_groups_ini):
+        self._log.debug("Loading control groups with config: %s", control_groups_ini)
+        self._percival_params.load_control_group_ini(control_groups_ini)
+        self._control_groups = Group(self._percival_params.control_group_params)
+
+    def load_monitor_groups(self, monitor_groups_ini):
+        self._log.error("Loading monitor groups with config: %s", monitor_groups_ini)
+        self._percival_params.load_monitor_group_ini(monitor_groups_ini)
+        self._monitor_groups = Group(self._percival_params.monitor_group_params)
+
     def load_setpoints(self, setpoint_ini):
         self._log.debug("Loading set-points with config: %s", setpoint_ini)
         self._percival_params.load_setpoint_group_ini(setpoint_ini)
@@ -460,8 +498,6 @@ class PercivalDetector(object):
         :return:
         """
         response = {}
-
-
         # Check if the command is a PUT command
         if 'PUT' in command.command_type:
             # Log the trace information from the command object
@@ -480,6 +516,10 @@ class PercivalDetector(object):
                         config_desc = command.get_param('config').replace('::', '=')
                         if 'setpoints' in config_type:
                             self.load_setpoints(config_desc)
+                        elif 'control_groups' in config_type:
+                            self.load_control_groups(config_desc)
+                        elif 'monitor_groups' in config_type:
+                            self.load_monitor_groups(config_desc)
                     else:
                         raise PercivalDetectorError("No config provided (file or object)")
                 else:
@@ -695,6 +735,18 @@ class PercivalDetector(object):
                     "description": self._monitor_groups.get_description(monitor_group),
                     "channels": self._monitor_groups.get_channels(monitor_group)
                 }
+
+        elif parameter == "commands":
+            reply = {}
+            reply["commands"] = []
+            for name, tmp in const.SystemCmd.__members__.items():
+                reply["commands"].append(name)
+
+        elif parameter == "setpoints":
+            reply = {}
+            reply["setpoints"] = []
+            for name in self._setpoint_control.set_points:
+                reply["setpoints"].append(name)
 
         elif parameter == "controls":
             reply = {}

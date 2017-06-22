@@ -27,9 +27,10 @@ class Group(object):
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._group_ini = group_ini
         self._groups = {}
-        for section in group_ini.sections:
-            self._groups[group_ini.get_name(section)] = {"description": group_ini.get_description(section)}
-            self._groups[group_ini.get_name(section)]["channels"] = group_ini.get_channels(section)
+        if self._group_ini:
+            for section in group_ini.sections:
+                self._groups[group_ini.get_name(section)] = {"description": group_ini.get_description(section)}
+                self._groups[group_ini.get_name(section)]["channels"] = group_ini.get_channels(section)
 
     @property
     def group_names(self):
