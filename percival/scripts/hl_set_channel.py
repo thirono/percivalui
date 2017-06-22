@@ -23,7 +23,8 @@ def options():
     desc = """Set a channel value on the Percival Carrier Board
     """
     parser = argparse.ArgumentParser(description=desc)
-    parser.add_argument("-a", "--address", action="store", default="127.0.0.1:8888", help="Odin server address")
+    parser.add_argument("-a", "--address", action="store", default="127.0.0.1:8888",
+                        help="Odin server address (default 127.0.0.1:8888)")
     channel_help = "Channel to set"
     parser.add_argument("-c", "--channel", action="store", help=channel_help)
     value_help = "Value to set"

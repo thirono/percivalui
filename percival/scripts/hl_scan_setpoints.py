@@ -23,7 +23,8 @@ def options():
     desc = """Scan over set-points.  Dwell at each point.
     """
     parser = argparse.ArgumentParser(description=desc)
-    parser.add_argument("-a", "--address", action="store", default="127.0.0.1:8888", help="Odin server address")
+    parser.add_argument("-a", "--address", action="store", default="127.0.0.1:8888",
+                        help="Odin server address (default 127.0.0.1:8888)")
     action_help = "Set-points to scan over"
     parser.add_argument("-s", "--setpoints", action="store", help=action_help)
     number_help = "Set-points to scan over"

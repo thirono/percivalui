@@ -23,7 +23,8 @@ def options():
     desc = """Send the initialise command to channels that support it
     """
     parser = argparse.ArgumentParser(description=desc)
-    parser.add_argument("-a", "--address", action="store", default="127.0.0.1:8888", help="Odin server address")
+    parser.add_argument("-a", "--address", action="store", default="127.0.0.1:8888",
+                        help="Odin server address (default 127.0.0.1:8888)")
     args = parser.parse_args()
     return args
 

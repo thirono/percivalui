@@ -17,7 +17,8 @@ from percival.detector.spreadsheet_parser import ControlGroupGenerator
 
 def options():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-a", "--address", action="store", default="127.0.0.1:8888", help="Odin server address")
+    parser.add_argument("-a", "--address", action="store", default="127.0.0.1:8888",
+                        help="Odin server address (default 127.0.0.1:8888)")
     parser.add_argument("-i", "--input", required=True, action='store', help="Input spreadsheet to parse")
     args = parser.parse_args()
     return args

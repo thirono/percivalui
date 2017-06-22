@@ -25,7 +25,8 @@ def options():
     desc = """Send a System Command to the Percival Carrier Board
     """
     parser = argparse.ArgumentParser(description=desc)
-    parser.add_argument("-a", "--address", action="store", default="127.0.0.1:8888", help="Odin server address")
+    parser.add_argument("-a", "--address", action="store", default="127.0.0.1:8888",
+                        help="Odin server address (default 127.0.0.1:8888)")
     action_help = "System command to send. Valid commands are: %s" % system_commands
     parser.add_argument("-c", "--command", action="store", default="no_operation", help=action_help)
     args = parser.parse_args()
