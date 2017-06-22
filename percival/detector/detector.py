@@ -480,7 +480,7 @@ class PercivalDetector(object):
         self._control_groups = Group(self._percival_params.control_group_params)
 
     def load_monitor_groups(self, monitor_groups_ini):
-        self._log.error("Loading monitor groups with config: %s", monitor_groups_ini)
+        self._log.debug("Loading monitor groups with config: %s", monitor_groups_ini)
         self._percival_params.load_monitor_group_ini(monitor_groups_ini)
         self._monitor_groups = Group(self._percival_params.monitor_group_params)
 
