@@ -61,6 +61,16 @@ percival_log_config = {
             'level': 'ERROR',
             'propagate': False,
         },
+        'percival.carrier.configuration.SetpointGroupParameters': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'percival.carrier.configuration.ControlParameters': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
         'percival.carrier.devices': {
             'handlers': ['console'],
             'level': 'INFO',
