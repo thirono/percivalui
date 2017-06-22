@@ -23,6 +23,7 @@ def options():
     desc = """Send the command to apply sensor DAC values (using buffer transfer)
     """
     parser = argparse.ArgumentParser(description=desc)
+    parser.add_argument("-a", "--address", action="store", default="127.0.0.1:8888", help="Odin server address")
     args = parser.parse_args()
     return args
 
@@ -31,7 +32,7 @@ def main():
     args = options()
     log.info(args)
 
-    url = "http://127.0.0.1:8888/api/0.1/percival/cmd_apply_sensor_dacs"
+    url = "http://" + args.address + "/api/0.1/percival/cmd_apply_sensor_dacs"
 
     log.debug("Sending msg to: %s", url)
     try:

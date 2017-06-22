@@ -25,8 +25,9 @@ def options():
     desc = """Send a System Command to the Percival Carrier Board
     """
     parser = argparse.ArgumentParser(description=desc)
+    parser.add_argument("-a", "--address", action="store", default="127.0.0.1:8888", help="Odin server address")
     action_help = "System command to send. Valid commands are: %s" % system_commands
-    parser.add_argument("-a", "--action", action="store", default="no_operation", help=action_help)
+    parser.add_argument("-c", "--command", action="store", default="no_operation", help=action_help)
     args = parser.parse_args()
     return args
 
@@ -36,14 +37,14 @@ def main():
     log.info(args)
 
     try:
-        system_command = const.SystemCmd[args.action.lower()]
+        system_command = const.SystemCmd[args.command.lower()]
     except KeyError:
-        log.error("Invalid command \'%s\' supplied to --action", args.action)
-        print("Invalid command: \'%s\'" % args.action)
+        log.error("Invalid command \'%s\' supplied to --command", args.command)
+        print("Invalid command: \'%s\'" % args.command)
         print("Valid commands are: \n\t%s" % system_commands)
         sys.exit(-1)
 
-    url = "http://127.0.0.1:8888/api/0.1/percival/cmd_system_command"
+    url = "http://" + args.address + "/api/0.1/percival/cmd_system_command"
 
 
     log.debug("Sending msg to: %s", url)

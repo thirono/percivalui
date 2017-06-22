@@ -21,6 +21,7 @@ from percival.detector.spreadsheet_parser import SetpointGroupGenerator
 
 def options():
     parser = argparse.ArgumentParser()
+    parser.add_argument("-a", "--address", action="store", default="127.0.0.1:8888", help="Odin server address")
     parser.add_argument("-i", "--input", required=True, action='store', help="Input spreadsheet to parse")
     parser.add_argument("-d", "--directory", action='store', default=".",
                         help="Output directory to write config ini files to")
@@ -38,7 +39,7 @@ def main():
     ini_str = sgg.generate_ini()
     log.info("Sending ini: %s", ini_str)
 
-    url = "http://127.0.0.1:8888/api/0.1/percival/cmd_load_config"
+    url = "http://" + args.address + "/api/0.1/percival/cmd_load_config"
 
     log.debug("Sending msg to: %s", url)
     try:

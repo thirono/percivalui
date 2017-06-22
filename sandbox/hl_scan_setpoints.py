@@ -23,6 +23,7 @@ def options():
     desc = """Scan over set-points.  Dwell at each point.
     """
     parser = argparse.ArgumentParser(description=desc)
+    parser.add_argument("-a", "--address", action="store", default="127.0.0.1:8888", help="Odin server address")
     action_help = "Set-points to scan over"
     parser.add_argument("-s", "--setpoints", action="store", help=action_help)
     number_help = "Set-points to scan over"
@@ -41,7 +42,7 @@ def main():
 
     set_points = args.setpoints
 
-    url = "http://127.0.0.1:8888/api/0.1/percival/cmd_scan_setpoints"
+    url = "http://" + args.address + "/api/0.1/percival/cmd_scan_setpoints"
 
     log.debug("Sending msg to: %s", url)
     try:

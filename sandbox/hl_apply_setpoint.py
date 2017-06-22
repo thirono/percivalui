@@ -23,6 +23,7 @@ def options():
     desc = """Apply a set-point to the Percival Carrier Board
     """
     parser = argparse.ArgumentParser(description=desc)
+    parser.add_argument("-a", "--address", action="store", default="127.0.0.1:8888", help="Odin server address")
     action_help = "Set-point to apply"
     parser.add_argument("-s", "--setpoint", action="store", help=action_help)
     args = parser.parse_args()
@@ -35,7 +36,7 @@ def main():
 
     set_point = args.setpoint
 
-    url = "http://127.0.0.1:8888/api/0.1/percival/cmd_apply_setpoint"
+    url = "http://" + args.address + "/api/0.1/percival/cmd_apply_setpoint"
 
     log.debug("Sending msg to: %s", url)
     try:
