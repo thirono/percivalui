@@ -210,6 +210,7 @@ $( document ).ready(function()
 
   setInterval(update_server_setup, 1000);
   setInterval(update_api_read_monitors, 1000);
+  setInterval(update_api_read_controls, 1000);
   setInterval(update_api_read_status, 100);
 
   $('#server-db-reconnect').click(function(){
@@ -220,6 +221,18 @@ $( document ).ready(function()
   });
   $('#server-ar-stop').click(function(){
     auto_read('stop');
+  });
+  $('#server-sys-cmd').click(function(){
+    send_system_command();
+  });
+  $('#server-init-cmd').click(function(){
+    send_init_command();
+  });
+  $('#server-set-channel-cmd').click(function(){
+    send_set_channel_command();
+  });
+  $('#server-set-point-cmd').click(function(){
+    send_set_point_command();
   });
 
   $(window).on('hashchange', function(){
@@ -237,6 +250,30 @@ function reconnect_db()
 function auto_read(action)
 {
     $.put('/api/' + api_version + '/percival/auto_read/' + action, function(response){});
+}
+
+function send_system_command()
+{
+    cmd_name = $('#select-sys-cmd').find(":selected").text();
+    $.put('/api/' + api_version + '/percival/cmd_system_command?name=' + cmd_name, function(response){});
+}
+
+function send_init_command()
+{
+    $.put('/api/' + api_version + '/percival/cmd_initialise_channels', function(response){});
+}
+
+function send_set_channel_command()
+{
+    set_name = $('#control-set-channel').find(":selected").text();
+    set_value = $('#server-set-channel-val').val();
+    $.put('/api/' + api_version + '/percival/cmd_set_channel?channel=' + set_name + '&value=' + set_value, function(response){});
+}
+
+function send_set_point_command()
+{
+    set_name = $('#select-set-point').find(":selected").text();
+    $.put('/api/' + api_version + '/percival/cmd_apply_setpoint?setpoint=' + set_name, function(response){});
 }
 
 function update_api_version() {
@@ -316,6 +353,26 @@ function update_server_setup() {
             $('#control-set-channel').html(html);
         }
     });
+    $.getJSON('/api/' + api_version + '/percival/commands/', function(response) {
+        percival.sys_commands = response.commands
+		html = "";
+		for (var index=0; index < percival.sys_commands.length; index++){
+            html += "<option role=\"presentation\">" + percival.sys_commands[index] + "</option>";
+        }
+        if (html != $('#select-sys-cmd').html()){
+            $('#select-sys-cmd').html(html);
+        }
+    });
+    $.getJSON('/api/' + api_version + '/percival/setpoints/', function(response) {
+        percival.set_points = response.setpoints
+		html = "";
+		for (var index=0; index < percival.set_points.length; index++){
+            html += "<option role=\"presentation\">" + percival.set_points[index] + "</option>";
+        }
+        if (html != $('#select-set-point').html()){
+            $('#select-set-point').html(html);
+        }
+    });
 }
 
 function update_visible_monitors(group)
@@ -371,22 +428,8 @@ function update_api_read_controls() {
 
     $.getJSON('/api/' + api_version + '/percival/controls/', function(response) {
         percival.control_names = response["controls"];
-        ctrl_list = response["controls"];
-        $('#overall-controls').tabulator({height:"220px",
-                                          pagination:"local",
-                                          columns:[
-                                          {title:"Name", field:"name", sorter:"string", width:"50%"},
-                                          {title:"Type", field:"type", sorter:"string", width:"50%"}
-                                          ]
-                                        });
-        var len = ctrl_list.length;
-        var tableData = [];
-        for (var index = 0; index < len; index++){
-          tableData[index] = { id: index, 
-                               name:ctrl_list[index],
-                               type:response[ctrl_list[index]] };
-        }
-        $('#overall-controls').tabulator("setData", tableData);
+        percival.control_desc = response;
+        percival.control_count = percival.control_names.length;
     });
 }
 
@@ -401,6 +444,23 @@ function update_api_read_monitors()
 
 function render_config_view()
 {
+
+    $('#overall-controls').tabulator({height:"220px",
+                                      pagination:"local",
+                                      columns:[
+                                      {title:"Name", field:"name", sorter:"string", width:"50%"},
+                                      {title:"Type", field:"type", sorter:"string", width:"50%"}
+                                      ]
+                                    });
+    var len = percival.control_names.length;
+    var tableData = [];
+    for (var index = 0; index < len; index++){
+        tableData[index] = { id: index,
+                             name:percival.control_names[index],
+                             type:percival.control_desc[percival.control_names[index]] };
+    }
+    $('#overall-controls').tabulator("setData", tableData);
+
     //$('#overall-monitors').html("");
     $('#overall-monitors').tabulator({height:"220px",
                                       pagination:"local",
@@ -467,7 +527,6 @@ function render(url)
   } else if (temp == ".configuration-view"){
     // Re-request the configuration
     update_api_read_boards();
-    update_api_read_controls();
     render_config_view();
   }
 }
