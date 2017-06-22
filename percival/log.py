@@ -1,4 +1,5 @@
 #import logging.config
+import os
 
 percival_log_config = {
     'version': 1,
@@ -60,6 +61,16 @@ percival_log_config = {
             'level': 'ERROR',
             'propagate': False,
         },
+        'percival.carrier.configuration.SetpointGroupParameters': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'percival.carrier.configuration.ControlParameters': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
         'percival.carrier.devices': {
             'handlers': ['console'],
             'level': 'INFO',
@@ -100,6 +111,11 @@ percival_log_config = {
             'level': 'DEBUG',
             'propagate': False,
         },
+        'percival.detector.set_point.SetPointControl': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
         'percival.detector.detector.PercivalParameters': {
             'handlers': ['console'],
             'level': 'DEBUG',
@@ -107,7 +123,7 @@ percival_log_config = {
         },
         'percival.detector.detector.PercivalDetector': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'propagate': False,
         },
         'BoardSettings': {
@@ -147,9 +163,10 @@ def get_exclusive_file_logger(filename):
         :returns: A logger object with an attached file handler
         :rtype logging.logger:
     """
+    check_create_path(filename)
     ch = logging.FileHandler(str(filename), )
     ch.setLevel(log.getEffectiveLevel())
-    fmt = logging.Formatter(percival_log_config['formatters']['verbose']['format'])
+    fmt = logging.Formatter(percival_log_config['formatters']['simple']['format'])
     ch.setFormatter(fmt)
     log.addHandler(ch)
 
@@ -158,3 +175,9 @@ def get_exclusive_file_logger(filename):
     for hndlr in console_handlers:
         log.removeHandler(hndlr)
     return log
+
+
+def check_create_path(path):
+    dir = os.path.dirname(path)
+    if not os.path.exists(dir):
+        os.makedirs(dir)

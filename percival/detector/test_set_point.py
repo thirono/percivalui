@@ -11,32 +11,42 @@ class TestSetPointControl(unittest.TestCase):
     def test_set_point(self):
         ini = MagicMock()
         sections = ["sp1", "sp2"]
+        sp_names = ["sp_name_1", "sp_name_2"]
+        sp_dict = {sp_names[0]: sections[0],
+                   sp_names[1]: sections[1]}
         ini.sections = sections
         ini.get_description = MagicMock(return_value="Test Desc 1")
         ini.get_setpoints = MagicMock(return_value={"device1": 1.0, "device2": 2.0, "device3": 3.0})
+        ini.get_name = MagicMock()
+        ini.get_name.side_effect = sp_names
         self._spc.load_ini(ini)
-        self.assertEqual(self._spc.set_points, sections)
-        self.assertEqual(self._spc.get_description("sp1"), "Test Desc 1")
+        self.assertEqual(self._spc.set_points, sp_dict.keys())
+        self.assertEqual(self._spc.get_description("sp_name_1"), "Test Desc 1")
         ini.get_description.assert_called_once_with("sp1")
 
         self._detector.set_value = MagicMock()
-        self._spc.apply_set_point("sp1")
+        self._spc.apply_set_point("sp_name_1")
         calls = [call("device1", 1.0), call("device2", 2.0), call("device3", 3.0)]
         self._detector.set_value.assert_has_calls(calls, any_order=True)
 
         self._detector.set_value.reset_mock()
-        self._spc.apply_set_point("sp1", "device2")
+        self._spc.apply_set_point("sp_name_1", "device2")
         calls = [call("device2", 2.0)]
         self._detector.set_value.assert_has_calls(calls, any_order=True)
 
         self._detector.set_value.reset_mock()
-        self._spc.apply_set_point("sp1", ["device2", "device3"])
+        self._spc.apply_set_point("sp_name_1", ["device2", "device3"])
         calls = [call("device2", 2.0), call("device3", 3.0)]
         self._detector.set_value.assert_has_calls(calls, any_order=True)
 
     def test_scan_setpoints(self):
         ini = MagicMock()
         sections = ["sp1", "sp2"]
+        sp_names = ["sp_name_1", "sp_name_2"]
+        sp_dict = {sp_names[0]: sections[0],
+                   sp_names[1]: sections[1]}
+        ini.get_name = MagicMock()
+        ini.get_name.side_effect = sp_names
         ini.sections = sections
         ini.get_description = MagicMock(return_value="Test Desc 1")
         ini.get_setpoints = MagicMock()
@@ -44,7 +54,7 @@ class TestSetPointControl(unittest.TestCase):
                                          {"device1": 10.0, "device2": 20.0, "device3": 30.0}]
         self._spc.load_ini(ini)
         self._spc.start_scan_loop()
-        self._spc.scan_set_points(["sp1", "sp2"], 10, 100)
+        self._spc.scan_set_points(["sp_name_1", "sp_name_2"], 10, 100)
         # Wait for 2 seconds
         time.sleep(2.0)
 
@@ -86,7 +96,7 @@ class TestSetPointControl(unittest.TestCase):
                                          {"device1": 10.0, "device2": 20.0, "device3": 30.0}]
         self._detector.set_value.reset_mock()
 
-        self._spc.scan_set_points(["sp1", "sp2"], 10, 100, "device2")
+        self._spc.scan_set_points(["sp_name_1", "sp_name_2"], 10, 100, "device2")
         # Wait for 2 seconds
         time.sleep(2.0)
         # Stop the scan

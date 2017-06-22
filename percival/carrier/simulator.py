@@ -189,8 +189,8 @@ class Simulator(object):
             log.warning("Simulation thread is still running. This should not happen")
 
     def start(self, forever=False, blocking=False):
-        self.sim_value_thread = Thread(target=self._update_sim_values)
-        self.sim_value_thread.start()
+        #self.sim_value_thread = Thread(target=self._update_sim_values)
+        #self.sim_value_thread.start()
         if forever and blocking:
             self._serve_forever()
         elif forever and not blocking:

@@ -6,6 +6,7 @@ Created on 20 May 2016
 from __future__ import print_function
 import os
 import logging
+from percival.log import get_exclusive_file_logger
 from datetime import datetime, timedelta
 import getpass
 
@@ -22,7 +23,10 @@ from percival.carrier.txrx import TxRx
 from percival.carrier.values import BoardValues
 from percival.carrier.configuration import ChannelParameters, BoardParameters, \
     ControlParameters, ChannelGroupParameters, SetpointGroupParameters, BufferParameters, env_carrier_ip
+from percival.detector.errors import PercivalDetectorError
 from percival.detector.groups import Group
+from percival.detector.command import PercivalCommandNames
+from percival.detector.set_point import SetPointControl
 
 
 class PercivalParameters(object):
@@ -42,6 +46,7 @@ class PercivalParameters(object):
     def __init__(self):
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._control_params = ControlParameters("config/percival.ini")
+        #self._control_params.load_ini()
         self._board_params = {
             const.BoardTypes.left: BoardParameters("config/Board LEFT.ini"),
             const.BoardTypes.bottom: BoardParameters("config/Board BOTTOM.ini"),
@@ -50,9 +55,13 @@ class PercivalParameters(object):
         }
         self._channel_params = ChannelParameters("config/Channel parameters.ini")
         self._buffer_params = BufferParameters("config/BufferParameters.ini")
-        self._control_group_params = ChannelGroupParameters("config/ControlGroups.ini")
-        self._monitor_group_params = ChannelGroupParameters("config/MonitorGroups.ini")
-        self._setpoint_group_params = SetpointGroupParameters("config/SetpointGroups.ini")
+        #self._control_group_params = ChannelGroupParameters("config/ControlGroups.ini")
+        #self._monitor_group_params = ChannelGroupParameters("config/MonitorGroups.ini")
+        #print(self._control_params.setpoint_ini_file)
+        #self._setpoint_group_params = SetpointGroupParameters("config/SetpointGroups.ini")
+        self._control_group_params = None
+        self._monitor_group_params = None
+        self._setpoint_group_params = None
 
     def load_ini(self):
         """
@@ -65,8 +74,35 @@ class PercivalParameters(object):
         self._board_params[const.BoardTypes.plugin].load_ini()
         self._channel_params.load_ini()
         self._buffer_params.load_ini()
+        #self._control_group_params.load_ini()
+        #self._monitor_group_params.load_ini()
+        #self._setpoint_group_params.load_ini()
+        try:
+            self.load_control_group_ini(self._control_params.control_group_ini_file)
+        except:
+            self._log.debug("No default control groups ini file to load")
+        try:
+            self.load_monitor_group_ini(self._control_params.monitor_group_ini_file)
+        except:
+            self._log.debug("No default monitor groups ini file to load")
+        try:
+            self.load_setpoint_group_ini(self._control_params.setpoint_ini_file)
+        except:
+            self._log.debug("No default setpoints ini file to load")
+
+    def load_control_group_ini(self, filename):
+        # Create the ini object from either filename or raw file
+        self._control_group_params = ChannelGroupParameters(filename)
         self._control_group_params.load_ini()
+
+    def load_monitor_group_ini(self, filename):
+        # Create the ini object from either filename or raw file
+        self._monitor_group_params = ChannelGroupParameters(filename)
         self._monitor_group_params.load_ini()
+
+    def load_setpoint_group_ini(self, filename):
+        # Create the ini object from either filename or raw file
+        self._setpoint_group_params = SetpointGroupParameters(filename)
         self._setpoint_group_params.load_ini()
 
     @property
@@ -256,6 +292,10 @@ class PercivalParameters(object):
     def monitor_group_params(self):
         return self._monitor_group_params
 
+    @property
+    def setpoint_params(self):
+        return self._setpoint_group_params
+
 
 class PercivalDetector(object):
     """
@@ -269,6 +309,12 @@ class PercivalDetector(object):
     """
     def __init__(self, download_config=True, initialise_hardware=True):
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+        self._trace_log = logging.getLogger("percival_trace")
+        self._trace_log = get_exclusive_file_logger('./logs/percival_trace_{}.log'.format(datetime.now()
+                                                                                          .isoformat()
+                                                                                          .replace(':', '_')
+                                                                                          .replace('-', '_')))
+        self._trace_log.info("Percival execution trace logging")
         self._start_time = datetime.now()
         self._username = getpass.getuser()
         self._txrx = None
@@ -284,6 +330,8 @@ class PercivalDetector(object):
         self._sensor = None
         self._control_groups = None
         self._monitor_groups = None
+        self._setpoint_control = SetPointControl(self)
+        self._setpoint_control.start_scan_loop()
         self.load_ini()
         self.setup_db()
         self.setup_control()
@@ -293,12 +341,16 @@ class PercivalDetector(object):
         if initialise_hardware:
             self.initialize_channels()
 
+    def cleanup(self):
+        self._setpoint_control.stop_scan_loop()
+
     def load_ini(self):
         """
         Load the initialisation files for the detector
         """
         self._log.info("Loading detector ini files...")
         self._percival_params.load_ini()
+        self._setpoint_control.load_ini(self._percival_params.setpoint_params)
 
     def setup_control(self):
         """
@@ -422,33 +474,142 @@ class PercivalDetector(object):
         # Load in control groups from the ini file
         self._monitor_groups = Group(self._percival_params.monitor_group_params)
 
-    def parse_command(self, command):
+    def load_control_groups(self, control_groups_ini):
+        self._log.debug("Loading control groups with config: %s", control_groups_ini)
+        self._percival_params.load_control_group_ini(control_groups_ini)
+        self._control_groups = Group(self._percival_params.control_group_params)
+
+    def load_monitor_groups(self, monitor_groups_ini):
+        self._log.debug("Loading monitor groups with config: %s", monitor_groups_ini)
+        self._percival_params.load_monitor_group_ini(monitor_groups_ini)
+        self._monitor_groups = Group(self._percival_params.monitor_group_params)
+
+    def load_setpoints(self, setpoint_ini):
+        self._log.debug("Loading set-points with config: %s", setpoint_ini)
+        self._percival_params.load_setpoint_group_ini(setpoint_ini)
+        self._setpoint_control.load_ini(self._percival_params.setpoint_params)
+
+    def execute_command(self, command):
         """
-        Parses command object to execute commands
+        Log the execution of the command (use command trace)
+        Apply the command trace to the detector
+        Check for the specific command type and call the correct method
         :param command:
         :return:
         """
-        # TODO: Log the details of the command
-        # Expect command object to contain user, source IP, source type[script|web]
-        # Check for the command options
-        params = {}
-        if "params" in command:
-            params = command["params"]
-        if "command" in command:
-            if command["command"] in "connect_influxdb":
+        response = {}
+        # Check if the command is a PUT command
+        if 'PUT' in command.command_type:
+            # Log the trace information from the command object
+            self._trace_log.info("Command {} [{}] executed".format(command.command_type, command.command_name))
+            self._trace_log.info(command.format_trace)
+            # Check if the command is a connection request to the DB
+            if command.command_name in str(PercivalCommandNames.cmd_connect_db):
+                # No parameters required for this command
                 self.setup_db()
-            elif command["command"] in "auto_read":
-                # Global monitoring has either been requested to start or stop
-                if "state" in params:
-                    if "start" in params["state"]:
-                        self._auto_read = True
-                    elif "stop" in params["state"]:
-                        self._auto_read = False
+            elif command.command_name in str(PercivalCommandNames.cmd_load_config):
+                # Parameter [config_type] one of setpoint, ctrl_group, mon_group, channels
+                # Parameter [config] path to config file or the configuration contents
+                if command.has_param('config_type'):
+                    if command.has_param('config'):
+                        config_type = command.get_param('config_type')
+                        config_desc = command.get_param('config').replace('::', '=')
+                        if 'setpoints' in config_type:
+                            self.load_setpoints(config_desc)
+                        elif 'control_groups' in config_type:
+                            self.load_control_groups(config_desc)
+                        elif 'monitor_groups' in config_type:
+                            self.load_monitor_groups(config_desc)
+                    else:
+                        raise PercivalDetectorError("No config provided (file or object)")
+                else:
+                    raise PercivalDetectorError("No config_type specified")
+            elif command.command_name in str(PercivalCommandNames.cmd_set_channel):
+                # Parameter [channel] is the name of the channel to apply to
+                # Parameter [value] is the value to apply
+                if command.has_param('channel'):
+                    channel = command.get_param('channel')
+                    if command.has_param('value'):
+                        value = int(float(command.get_param('value')))
+                        self.set_value(channel, value)
+                    else:
+                        raise PercivalDetectorError("No value supplied to set channel command")
+                else:
+                    raise PercivalDetectorError("No channel supplied for set channel command")
+            elif command.command_name in str(PercivalCommandNames.cmd_apply_setpoint):
+                # Parameter [setpoint] is the name of the setpoint to apply
+                if command.has_param('setpoint'):
+                    self._setpoint_control.apply_set_point(command.get_param('setpoint'))
+            elif command.command_name in str(PercivalCommandNames.cmd_scan_setpoints):
+                # Parameter [setpoints] is a list of setpoints to scan
+                # Parameter [dwell] is the dwell time in ms at each point
+                # Parameter [steps] is the number of steps between the points
+                if command.has_param('setpoints'):
+                    # Check there are at least two setpoints
+                    setpoints = command.get_param('setpoints')
+                    if len(setpoints) < 2:
+                        raise PercivalDetectorError("Scanning requires two setpoints")
+                    if command.has_param('dwell'):
+                        dwell = int(command.get_param('dwell'))
+                        if command.has_param('steps'):
+                            steps = int(command.get_param('steps'))
+                            self._setpoint_control.scan_set_points(setpoints, steps, dwell)
+                        else:
+                            raise PercivalDetectorError("Number of scan steps required to scan")
+                    else:
+                        raise PercivalDetectorError("Dwell time (ms) required to scan")
+                else:
+                    raise PercivalDetectorError("No setpoints defined to scan between")
+            elif command.command_name in str(PercivalCommandNames.cmd_update_monitors):
+                # Force a read of the monitors.  This will result in values being written to db
+                self.update_status()
+            elif command.command_name in str(PercivalCommandNames.cmd_initialise_channels):
+                # Initialise the channels on the Percival hardware
+                self.initialize_channels()
+            elif command.command_name in str(PercivalCommandNames.cmd_apply_sensor_dacs):
+                # Apply the current set of sensor DAC values
+                self.apply_sensor_dac_values()
+            # Check if the command is a system_command
+            elif command.command_name in str(PercivalCommandNames.cmd_system_command):
+                # We expect a single parameter which is the command
+                if command.has_param('name'):
+                    # Execute the system command
+                    self.system_command(command.get_param('name'))
 
-            elif command["command"] in "write":
-                if "channel" in params and "value" in params:
-                    # Pass the option to the detector to obtain the parameter
-                    self.set_value(params["channel"], int(params["value"]))
+        # Check if the command is a GET command
+        elif 'GET' in command.command_type:
+            # Request for reading information
+            response = self.read(command.command_name)
+
+        return response
+
+#    def parse_command(self, command):
+#        """
+#        Parses command object to execute commands
+#        :param command:
+#        :return:
+#        """
+#        # TODO: Log the details of the command
+#        # Expect command object to contain user, source IP, source type[script|web]
+#        # Check for the command options
+#        params = {}
+#        if "params" in command:
+#            params = command["params"]
+#        if "command" in command:
+#            if command["command"] in "connect_influxdb":
+#                self.setup_db()
+#            elif command["command"] in "auto_read":
+#                # Global monitoring has either been requested to start or stop
+#                if "state" in params:
+#                    if "start" in params["state"]:
+#                        self._auto_read = True
+#                    elif "stop" in params["state"]:
+#                        self._auto_read = False
+#
+#            elif command["command"] in "write":
+#                if "channel" in params and "value" in params:
+#                    # Pass the option to the detector to obtain the parameter
+#                    self.set_value(params["channel"], int(params["value"]))
 
     def download_configuration(self):
         self.load_configuration()
@@ -509,6 +670,7 @@ class PercivalDetector(object):
         :param timeout: Timeout for the set operation
         :type timeout: double
         """
+        self._log.info("Setting %s to %d", device, value)
         if device in self._controls:
             self._controls[device].set_value(value, timeout)
 
@@ -520,6 +682,10 @@ class PercivalDetector(object):
             # Get the list of channels and apply the value for each one
             for channel in self._control_groups.get_channels(device):
                 self._controls[channel].set_value(value, timeout)
+
+        else:
+            self._log.info("Device  %s not found", device)
+            raise PercivalDetectorError("Cannot set value, device {} does not exist".format(device))
 
     def apply_sensor_dac_values(self):
         self._sensor.apply_dac_values()
@@ -569,6 +735,18 @@ class PercivalDetector(object):
                     "description": self._monitor_groups.get_description(monitor_group),
                     "channels": self._monitor_groups.get_channels(monitor_group)
                 }
+
+        elif parameter == "commands":
+            reply = {}
+            reply["commands"] = []
+            for name, tmp in const.SystemCmd.__members__.items():
+                reply["commands"].append(name)
+
+        elif parameter == "setpoints":
+            reply = {}
+            reply["setpoints"] = []
+            for name in self._setpoint_control.set_points:
+                reply["setpoints"].append(name)
 
         elif parameter == "controls":
             reply = {}
@@ -620,7 +798,6 @@ class PercivalDetector(object):
         elif parameter == "status":
             reply = {}
             for monitor in self._monitors:
-                self._log.debug("Monitor: %s", monitor)
                 reply[monitor] = self._monitors[monitor].status
 
         # Check to see if the parameter is a monitoring device that we own
@@ -642,7 +819,8 @@ class PercivalDetector(object):
         status_msg = {}
         if self._global_monitoring:
             response = self._board_values[const.BoardTypes.carrier].read_values()
-            time_now = datetime.today() - timedelta(hours=1)
+            #time_now = datetime.today() - timedelta(hours=1)
+            time_now = datetime.utcnow()
             self._log.debug(response)
             read_maps = generate_register_maps(response)
             self._log.debug(read_maps)

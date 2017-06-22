@@ -117,8 +117,8 @@ class SystemCmd(Enum):
     fast_disable_control_standby = 18
     enable_startup_mode = 19
     disable_startup_mode = 20
-		   
-		   
+
+
 @unique
 class BoardTypes(Enum):
     """Enumeration of the board types"
