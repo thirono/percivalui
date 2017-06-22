@@ -65,52 +65,54 @@ class ControlGroupGenerator(object):
     def __init__(self, workbook):
         self._workbook = workbook
 
-    def generate_ini_file(self, filename):
+    def generate_ini(self):
+        ini_str = ""
         if "control_groups" in self._workbook.sheet_names():
             parser = WorksheetParser(self._workbook.sheet_by_name("control_groups"))
             groups = parser.parse(['Group_ID', 'Description'])
 
             # Now produce an ini file with the group information stored
             group_no = 0
-            with open(filename, "w") as file:
-                for group in groups:
-                    file.write("[Control_Group<{:04d}>]\n".format(group_no))
-                    file.write("Group_name = \"{}\"\n".format(group['Group_ID']))
-                    file.write("Group_description = \"{}\"\n".format(group['Description']))
-                    channel_no = 0
-                    for channel in group["channels"]:
-                        if group["channels"][channel] == 1:
-                            file.write("Channel_name<{:04d}> = \"{}\"\n".format(channel_no, channel))
-                            channel_no += 1
+            for group in groups:
+                ini_str +=  "[Control_Group<{:04d}>]\n".format(group_no)
+                ini_str += "Group_name = \"{}\"\n".format(group['Group_ID'])
+                ini_str += "Group_description = \"{}\"\n".format(group['Description'])
+                channel_no = 0
+                for channel in group["channels"]:
+                    if group["channels"][channel] == 1:
+                        ini_str += "Channel_name<{:04d}> = \"{}\"\n".format(channel_no, channel)
+                        channel_no += 1
 
-                    file.write("\n")
-                    group_no += 1
+                ini_str += "\n"
+                group_no += 1
+        return ini_str
 
 
 class MonitorGroupGenerator(object):
     def __init__(self, workbook):
         self._workbook = workbook
 
-    def generate_ini_file(self, filename):
+    def generate_ini(self):
+        ini_str = ""
         if "monitor_groups" in self._workbook.sheet_names():
             parser = WorksheetParser(self._workbook.sheet_by_name("monitor_groups"))
             groups = parser.parse(['Group_ID', 'Description'])
 
             # Now produce an ini file with the group information stored
             group_no = 0
-            with open(filename, "w") as file:
-                for group in groups:
-                    file.write("[Monitor_Group<{:04d}>]\n".format(group_no))
-                    file.write("Group_name = \"{}\"\n".format(group['Group_ID']))
-                    file.write("Group_description = \"{}\"\n".format(group['Description']))
-                    channel_no = 0
-                    for channel in group["channels"]:
-                        if group["channels"][channel] == 1:
-                            file.write("Channel_name<{:04d}> = \"{}\"\n".format(channel_no, channel))
-                            channel_no += 1
+            for group in groups:
+                ini_str += "[Monitor_Group<{:04d}>]\n".format(group_no)
+                ini_str += "Group_name = \"{}\"\n".format(group['Group_ID'])
+                ini_str += "Group_description = \"{}\"\n".format(group['Description'])
+                channel_no = 0
+                for channel in group["channels"]:
+                    if group["channels"][channel] == 1:
+                        ini_str += "Channel_name<{:04d}> = \"{}\"\n".format(channel_no, channel)
+                        channel_no += 1
 
-                    file.write("\n")
-                    group_no += 1
+                ini_str += "\n"
+                group_no += 1
+        return ini_str
 
 
 class SetpointGroupGenerator(object):
