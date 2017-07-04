@@ -20,10 +20,38 @@ System dependencies:
 * pip - python package manager
 * HDF5 libraries (development package)
 * ZeroMQ (development package)
+* InfluxDB - time series database
+* Grafana - analytics and monitoring
 
 Building with setuptools will attempt to use pip to download and install dependencies locally first. The python dependencies are listed in requirements.txt
 
 ## Installation ##
+
+### Installing InfluxDB ###
+
+Full instructions for installing InfluxDB can be found [here](https://portal.influxdata.com/downloads).  It is recommended that the database be installed as a package for your specific OS.  To install on CentOS the following steps are appropriate:
+
+    cd ~
+    mkdir -p packages
+    cd packages
+    wget https://dl.influxdata.com/influxdb/releases/influxdb-1.2.4.x86_64.rpm
+    sudo yum localinstall influxdb-1.2.4.x86_64.rpm
+
+The database is run as a service and can be set to automatically run when the machine boots.  It is also possible to install linux binaries or install from source, visit the link for further information and instructions.
+
+### Installing Grafana ###
+
+Full instructions for installing Grafana can be found [here](https://grafana.com/grafana/download).  It is recommended that the analytics platform be installed as a package for you specific OS.  To install on CentOS the following steps are appropriate:
+
+    cd ~
+    mkdir -p packages
+    cd packages
+    wget https://s3-us-west-2.amazonaws.com/grafana-releases/release/grafana-4.3.2-1.x86_64.rpm
+    sudo yum localinstall grafana-4.3.2-1.x86_64.rpm
+
+The platform is run as a service and can be set to automatically run when the machine boots.  It is also possible to install linux binaries or install from source, visit the link for further information and instructions.
+
+### Installing Percival Control Software ###
 
 Download the sources of this repository using git. If your site network goes through a HTTP(S) proxy server, you may need to set the environment variables http_proxy and https_proxy:
 
@@ -82,6 +110,60 @@ Updating the sources when the repository has new changes/fixes is then trivial:
     git pull origin
     
     python setup.py develop
+
+## Execution ##
+
+Before attempting to execute ensure that the installation steps above have been completed successfully.
+
+### Configuration Files ###
+
+The configuration file "./config/percival.ini" contains the IP address of the detector hardware as well as the connection details for the InfluxDB database.  This file should be edited and the values set correctly before executing the software.
+The file is in a human readable ini format, an example is provided below:
+
+    [Control]
+    carrier_ip = "127.0.0.1"
+
+    [Database]
+    address = "127.0.0.1"
+    port = 8086
+    name = "percival"
+
+    [Configuration]
+    #setpoints = "config/SetpointGroups.ini"
+    #control_groups = "config/ControlGroups.ini"
+    #monitor_groups = "config/MonitorGroups.ini"
+
+The configuration file "./percival_test.cfg" is used to configure the Odin server instance, containing the information required to load the Percival control plugin into the server.  The file is also used to specify which port the Odin server will serve HTTP requests on.  Currently it is not expected that this file should be changed, the contents are shown below:
+
+    [server]
+    debug_mode = 1
+    http_port  = 8888
+    http_addr  = 0.0.0.0
+    static_path = ./static
+    adapters   = percival
+
+    [tornado]
+    logging = debug
+
+    [adapter.percival]
+    module = percival.detector.adapter.PercivalAdapter
+
+### Running the Odin Server
+
+Once installation is complete running the Odin server requires only the setting up of the Python virtual environment followed by the execution of the Odin instance:
+
+    # cd to the correct location
+    cd percivalui
+
+	# activate your virtual python environment
+	source venv27/bin/activate
+
+	# Execute the Odin server
+	odin_server --config=percival_test.cfg
+
+Once the server is up and running you can open a web browser and browse to the correct address of the odin server (e.g. 127.0.0.1:8888).  You will be presented with the home page shown below:
+
+![alt text](docs/images/odin_percival_server.png "Odin Server Web Interface")
 
 ## Docs ##
 
