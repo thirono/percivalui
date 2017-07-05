@@ -449,6 +449,84 @@ class ControlParameters(object):
         return self.conf.get("Database", "name").strip("\"")
 
     @property
+    def system_settings_ini_file(self):
+        if "Configuration" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.get("Configuration", "system_settings_file").strip("\"")
+
+    @property
+    def system_settings_download(self):
+        if "Configuration" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
+        item = self.conf.get("Configuration", "download_system_settings").strip("\"")
+        if isinstance(item, str):
+            if 'false' in item.lower():
+                item = False
+            elif 'true' in item.lower():
+                item = True
+        else:
+            item = bool(item)
+
+        return item
+
+    @property
+    def chip_readout_settings_ini_file(self):
+        if "Configuration" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.get("Configuration", "chip_readout_settings_file").strip("\"")
+
+    @property
+    def chip_readout_settings_download(self):
+        if "Configuration" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
+        item = self.conf.get("Configuration", "download_chip_readout_settings").strip("\"")
+        if isinstance(item, str):
+            if 'false' in item.lower():
+                item = False
+            elif 'true' in item.lower():
+                item = True
+        else:
+            item = bool(item)
+
+        return item
+
+    @property
+    def board_bottom_settings_ini_file(self):
+        if "Configuration" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.get("Configuration", "board_bottom_settings_file").strip("\"")
+
+    @property
+    def board_carrier_settings_ini_file(self):
+        if "Configuration" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.get("Configuration", "board_carrier_settings_file").strip("\"")
+
+    @property
+    def board_left_settings_ini_file(self):
+        if "Configuration" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.get("Configuration", "board_left_settings_file").strip("\"")
+
+    @property
+    def board_plugin_settings_ini_file(self):
+        if "Configuration" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.get("Configuration", "board_plugin_settings_file").strip("\"")
+
+    @property
+    def channel_settings_ini_file(self):
+        if "Configuration" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.get("Configuration", "channel_settings_file").strip("\"")
+
+    @property
+    def buffer_settings_ini_file(self):
+        if "Configuration" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.get("Configuration", "buffer_settings_file").strip("\"")
+
+    @property
     def control_group_ini_file(self):
         if "Configuration" not in self.conf.sections():
             raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))

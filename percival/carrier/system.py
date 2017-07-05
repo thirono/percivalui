@@ -90,17 +90,19 @@ class SystemCommand(object):
 
 
 class SystemSettings(object):
-    def __init__(self, txrx, settings_ini=None):
+    def __init__(self, settings_ini=None):
         """
         Constructor
 
         :param txrx: Percival communication context
         :type  txrx: TxRx
         """
-        self.log = logging.getLogger(self.__class__.__name__)
-        self._txrx = txrx
+        self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._reg_command = UARTRegister(const.SYSTEM_SETTINGS)
-        self._reg_command.initialize_map([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+        self._reg_command.initialize_map([0, 0, 0, 0, 0, 0, 0, 0,
+                                          0, 0, 0, 0, 0, 0, 0, 0,
+                                          0, 0])
+        self._txrx = None
         self._settings_ini = None
         if settings_ini:
             self.load_ini(settings_ini)
@@ -111,26 +113,32 @@ class SystemSettings(object):
         :param settings_ini:
         :return:
         """
-        self._settings_ini = settings_ini
-        map = self._settings_ini.value_map
-        self.log.info(map)
-        # First replace any true or false with 1 or 0
-        for item in map:
-            if isinstance(map[item], str):
-                if 'false' in map[item].lower():
-                    map[item] = 0
-                elif 'true' in map[item].lower():
-                    map[item] = 1
-        # Now set the attributes within the UART Register
-        for item in map:
-            try:
-                if hasattr(self._reg_command.fields, item):
-                    setattr(self._reg_command.fields, item, int(map[item]))
-                else:
-                    self.log.debug("No register found for ini file setting %s", item)
-            except:
-                self.log.error("Failed to set iten %s from ini file", item)
-                raise
+        if settings_ini:
+            self._settings_ini = settings_ini
+            map = self._settings_ini.value_map
+            self._log.info("Full description of ini %s", map)
+            # First replace any true or false with 1 or 0
+            for item in map:
+                if isinstance(map[item], str):
+                    if 'false' in map[item].lower():
+                        map[item] = 0
+                    elif 'true' in map[item].lower():
+                        map[item] = 1
+            # Now set the attributes within the UART Register
+            for item in map:
+                try:
+                    if hasattr(self._reg_command.fields, item):
+                        setattr(self._reg_command.fields, item, int(map[item]))
+                    else:
+                        self._log.debug("No register found for ini file setting %s", item)
+                except:
+                    self._log.error("Failed to set iten %s from ini file", item)
+                    raise
+        else:
+            self._log.debug("Attempted to load a none type ini object")
+
+    def set_txrx(self, txrx):
+        self._txrx = txrx
 
     def _send_to_carrier(self):
         """
@@ -151,7 +159,8 @@ class SystemSettings(object):
             self._txrx.send_recv_message(cmd_msg)
 
     def download_settings(self):
-        self._send_to_carrier()
+        if self._settings_ini:
+            self._send_to_carrier()
 
     def set_number_of_frames(self, no_of_frames):
         self._reg_command.fields.ACQUISITION_Number_of_frames = no_of_frames

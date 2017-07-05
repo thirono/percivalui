@@ -18,11 +18,17 @@ from percival.carrier.database import InfluxDB
 from percival.carrier.registers import generate_register_maps, BoardValueRegisters
 from percival.carrier.sensor import Sensor
 from percival.carrier.settings import BoardSettings
-from percival.carrier.system import SystemCommand
+from percival.carrier.system import SystemCommand, SystemSettings
 from percival.carrier.txrx import TxRx
 from percival.carrier.values import BoardValues
-from percival.carrier.configuration import ChannelParameters, BoardParameters, \
-    ControlParameters, ChannelGroupParameters, SetpointGroupParameters, BufferParameters, env_carrier_ip
+from percival.carrier.configuration import SystemSettingsParameters, \
+    ChannelParameters,\
+    BoardParameters, \
+    ControlParameters,\
+    ChannelGroupParameters,\
+    SetpointGroupParameters,\
+    BufferParameters,\
+    env_carrier_ip
 from percival.detector.errors import PercivalDetectorError
 from percival.detector.groups import Group
 from percival.detector.command import PercivalCommandNames
@@ -43,22 +49,38 @@ class PercivalParameters(object):
 
     All ini settings are stored and can be accessed through this class.
     """
-    def __init__(self):
+    def __init__(self, ini_file=None):
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
-        self._control_params = ControlParameters("config/percival.ini")
-        #self._control_params.load_ini()
-        self._board_params = {
-            const.BoardTypes.left: BoardParameters("config/Board LEFT.ini"),
-            const.BoardTypes.bottom: BoardParameters("config/Board BOTTOM.ini"),
-            const.BoardTypes.carrier: BoardParameters("config/Board CARRIER.ini"),
-            const.BoardTypes.plugin: BoardParameters("config/Board PLUGIN.ini")
-        }
-        self._channel_params = ChannelParameters("config/Channel parameters.ini")
-        self._buffer_params = BufferParameters("config/BufferParameters.ini")
+        # Check for master ini file
+        if ini_file:
+            self._control_params = ControlParameters(ini_file)
+        else:
+            # Try to load a default file
+            try:
+                self._control_params = ControlParameters("config/percival.ini")
+            except:
+                raise PercivalDetectorError("Could not process the Percival initialisation file")
+
+        self._board_params = None
+
+        #self._board_params = {
+        #    const.BoardTypes.left: BoardParameters("config/Board LEFT.ini"),
+        #    const.BoardTypes.bottom: BoardParameters("config/Board BOTTOM.ini"),
+        #    const.BoardTypes.carrier: BoardParameters("config/Board CARRIER.ini"),
+        #    const.BoardTypes.plugin: BoardParameters("config/Board PLUGIN.ini")
+        #}
+
+
+        self._channel_params = None
+        self._buffer_params = None
+
+        #self._channel_params = ChannelParameters("config/Channel parameters.ini")
+        #self._buffer_params = BufferParameters("config/BufferParameters.ini")
         #self._control_group_params = ChannelGroupParameters("config/ControlGroups.ini")
         #self._monitor_group_params = ChannelGroupParameters("config/MonitorGroups.ini")
         #print(self._control_params.setpoint_ini_file)
         #self._setpoint_group_params = SetpointGroupParameters("config/SetpointGroups.ini")
+        self._system_settings_params = None
         self._control_group_params = None
         self._monitor_group_params = None
         self._setpoint_group_params = None
@@ -68,27 +90,63 @@ class PercivalParameters(object):
         Load the initialisation files for the control, four board types and for the channels
         """
         self._control_params.load_ini()
-        self._board_params[const.BoardTypes.left].load_ini()
-        self._board_params[const.BoardTypes.bottom].load_ini()
-        self._board_params[const.BoardTypes.carrier].load_ini()
-        self._board_params[const.BoardTypes.plugin].load_ini()
-        self._channel_params.load_ini()
-        self._buffer_params.load_ini()
+
+        try:
+            self._board_params = {
+                const.BoardTypes.left: BoardParameters(self._control_params.board_left_settings_ini_file),
+                const.BoardTypes.bottom: BoardParameters(self._control_params.board_bottom_settings_ini_file),
+                const.BoardTypes.carrier: BoardParameters(self._control_params.board_carrier_settings_ini_file),
+                const.BoardTypes.plugin: BoardParameters(self._control_params.board_plugin_settings_ini_file)
+            }
+            self._board_params[const.BoardTypes.left].load_ini()
+            self._board_params[const.BoardTypes.bottom].load_ini()
+            self._board_params[const.BoardTypes.carrier].load_ini()
+            self._board_params[const.BoardTypes.plugin].load_ini()
+        except:
+            self._log.error("Could not initialise board configuration from ini files")
+            raise PercivalDetectorError("Could not initialise board configuration from ini files")
+
+        try:
+            self._channel_params = ChannelParameters(self._control_params.channel_settings_ini_file)
+            self._channel_params.load_ini()
+        except:
+            self._log.error("Could not initialise channel parameters from ini file")
+            raise PercivalDetectorError("Could not initialise channel parameters from ini file")
+
+        try:
+            self._buffer_params = BufferParameters(self._control_params.buffer_settings_ini_file)
+            self._buffer_params.load_ini()
+        except:
+            self._log.error("Could not initialise buffer parameters from ini file")
+            raise PercivalDetectorError("Could not initialise buffer parameters from ini file")
+
         #self._control_group_params.load_ini()
         #self._monitor_group_params.load_ini()
         #self._setpoint_group_params.load_ini()
         try:
+            self.load_system_settings_ini(self._control_params.system_settings_ini_file)
+        except:
+            self._log.debug("No default system settings ini file to load")
+
+        try:
             self.load_control_group_ini(self._control_params.control_group_ini_file)
         except:
             self._log.debug("No default control groups ini file to load")
+
         try:
             self.load_monitor_group_ini(self._control_params.monitor_group_ini_file)
         except:
             self._log.debug("No default monitor groups ini file to load")
+
         try:
             self.load_setpoint_group_ini(self._control_params.setpoint_ini_file)
         except:
             self._log.debug("No default setpoints ini file to load")
+
+    def load_system_settings_ini(self, filename):
+        # Create the ini object from either filename or raw file
+        self._system_settings_params = SystemSettingsParameters(filename)
+        self._system_settings_params.load_ini()
 
     def load_control_group_ini(self, filename):
         # Create the ini object from either filename or raw file
@@ -150,6 +208,10 @@ class PercivalParameters(object):
             db["name"] = "percival"
 
         return db
+
+    @property
+    def download_system_settings(self):
+        return self._control_params.system_settings_download
 
     def board_name(self, board):
         """
@@ -285,6 +347,10 @@ class PercivalParameters(object):
         return self._buffer_params.dac_channels
 
     @property
+    def system_settings_params(self):
+        return self._system_settings_params
+
+    @property
     def control_group_params(self):
         return self._control_group_params
 
@@ -307,7 +373,7 @@ class PercivalDetector(object):
 
     This class has no threading internally but should be considered thread safe (needs checking)
     """
-    def __init__(self, download_config=True, initialise_hardware=True):
+    def __init__(self, ini_file=None, download_config=True, initialise_hardware=True):
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._trace_log = logging.getLogger("percival_trace")
         self._trace_log = get_exclusive_file_logger('./logs/percival_trace_{}.log'.format(datetime.now()
@@ -320,7 +386,7 @@ class PercivalDetector(object):
         self._txrx = None
         self._db = None
         self._global_monitoring = False
-        self._percival_params = PercivalParameters()
+        self._percival_params = PercivalParameters(ini_file)
         self._board_settings = {}
         self._board_values ={}
         self._monitors = {}
@@ -330,11 +396,13 @@ class PercivalDetector(object):
         self._sensor = None
         self._control_groups = None
         self._monitor_groups = None
+        self._system_settings = SystemSettings()
         self._setpoint_control = SetPointControl(self)
         self._setpoint_control.start_scan_loop()
         self.load_ini()
         self.setup_db()
         self.setup_control()
+        self.auto_download()
         if download_config:
             self.load_configuration()
         self.load_channels()
@@ -350,6 +418,7 @@ class PercivalDetector(object):
         """
         self._log.info("Loading detector ini files...")
         self._percival_params.load_ini()
+        self._system_settings.load_ini(self._percival_params.system_settings_params)
         self._setpoint_control.load_ini(self._percival_params.setpoint_params)
 
     def setup_control(self):
@@ -368,9 +437,16 @@ class PercivalDetector(object):
         self._board_settings[const.BoardTypes.carrier] = BoardSettings(self._txrx, const.BoardTypes.carrier)
         self._board_settings[const.BoardTypes.plugin] = BoardSettings(self._txrx, const.BoardTypes.plugin)
         self._board_values[const.BoardTypes.carrier] = BoardValues(self._txrx, const.BoardTypes.carrier)
+        self._system_settings.set_txrx(self._txrx)
         self._sys_cmd = SystemCommand(self._txrx)
         self._sensor_buffer_cmd = SensorBufferCommand(self._txrx)
         self._sensor = Sensor(self._sensor_buffer_cmd)
+
+    def auto_download(self):
+        # Check if we are asked to auto download the settings ini file
+        if self._percival_params.download_system_settings:
+            self._log.info("Auto-downloading system settings from default ini file")
+            self.download_system_settings()
 
     def setup_db(self):
         """
@@ -399,6 +475,7 @@ class PercivalDetector(object):
         Download the configuration from ini files to the hardware.
         """
         self._log.info("Downloading configuration to hardware")
+
         cmd_msgs = self._board_settings[const.BoardTypes.left].initialise_board(self._percival_params)
         cmd_msgs += self._board_settings[const.BoardTypes.bottom].initialise_board(self._percival_params)
         cmd_msgs += self._board_settings[const.BoardTypes.carrier].initialise_board(self._percival_params)
@@ -409,6 +486,10 @@ class PercivalDetector(object):
             except RuntimeError:
                 self._log.exception("no response (message: %s)", cmd_msg)
             # TODO: check response resp
+
+    def download_system_settings(self):
+        self._log.info("Downloading system settings to hardware")
+        self._system_settings.download_settings()
 
     def load_channels(self):
         """
@@ -473,6 +554,11 @@ class PercivalDetector(object):
 
         # Load in control groups from the ini file
         self._monitor_groups = Group(self._percival_params.monitor_group_params)
+
+    def load_system_settings(self, system_settings_ini):
+        self._log.debug("Loading system settings with config: %s", system_settings_ini)
+        self._percival_params.load_system_settings_ini(system_settings_ini)
+        self._system_settings.load_ini(self._percival_params.system_settings_params)
 
     def load_control_groups(self, control_groups_ini):
         self._log.debug("Loading control groups with config: %s", control_groups_ini)
