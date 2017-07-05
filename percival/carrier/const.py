@@ -146,6 +146,8 @@ class RegisterMapType(Enum):
     control = 1
     monitoring = 2
     command = 3
+    system = 4
+    chip_readout = 5
 
 
 @unique

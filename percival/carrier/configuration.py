@@ -665,3 +665,90 @@ class SetpointGroupParameters(object):
                 sps[item[0]] = item[1]
         return sps
 
+
+class SystemSettingsParameters(object):
+    """
+    Loads groups of controls description from an INI file.
+    """
+    def __init__(self, ini_file):
+        self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+        self._ini_filename = None
+        self._ini_buffer = None
+        self._conf = None
+        try:
+            self._ini_filename = find_file(ini_file)
+        except:
+            # If we catch any kind of exception here then treat the parameter as the configuration
+            self._ini_buffer = StringIO(ini_file)
+
+    def load_ini(self):
+        """
+        Loads and parses the data from INI file. The data is stored internally in the object and can be retrieved
+        through the property methods
+        For the system settings all parameter names <section>_<name>
+        """
+        self._conf = SafeConfigParser(dict_type=OrderedDict)
+        self._conf.optionxform = str
+        if self._ini_filename:
+            self._conf.read(self._ini_filename)
+            self.log.info("Read System Settings INI file: %s", self._ini_filename)
+        else:
+            self._conf.readfp(self._ini_buffer)
+            self.log.info("Read System Settings INI object %s", self._ini_buffer)
+        self.log.info("    sections: %s", self._conf.sections())
+
+    @property
+    def value_map(self):
+        # Read out the section names
+        # For each section read out the param names
+        # Create a large map of both
+        map = {}
+        for section in self._conf.sections():
+            for item in self._conf.items(section):
+                map[section+"_"+item[0]] = item[1]
+        return map
+
+
+class ChipReadoutSettingsParameters(object):
+    """
+    Loads chip readout settings from an INI file.
+    """
+    def __init__(self, ini_file):
+        self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+        self._ini_filename = None
+        self._ini_buffer = None
+        self._conf = None
+        try:
+            self._ini_filename = find_file(ini_file)
+        except:
+            # If we catch any kind of exception here then treat the parameter as the configuration
+            self._ini_buffer = StringIO(ini_file)
+
+    def load_ini(self):
+        """
+        Loads and parses the data from INI file. The data is stored internally in the object and can be retrieved
+        through the property methods
+        For the system settings all parameter names <section>_<name>
+        """
+        self._conf = SafeConfigParser(dict_type=OrderedDict)
+        self._conf.optionxform = str
+        if self._ini_filename:
+            self._conf.read(self._ini_filename)
+            self.log.info("Read Chip Readout Settings INI file: %s", self._ini_filename)
+        else:
+            self._conf.readfp(self._ini_buffer)
+            self.log.info("Read Chip Readout Settings INI object %s", self._ini_buffer)
+        self.log.info("    sections: %s", self._conf.sections())
+
+    @property
+    def value_map(self):
+        # Read out the section names
+        # For each section read out the param names
+        # Create a large map of both
+        map = {}
+        for section in self._conf.sections():
+            for item in self._conf.items(section):
+                map[section+"_"+item[0]] = item[1]
+        return map
+
+
