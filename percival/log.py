@@ -38,7 +38,7 @@ percival_log_config = {
         },
         'percival.carrier.system.SystemSettings': {
             'handlers': ['console'],
-            'level': 'ERROR',
+            'level': 'INFO',
             'propagate': False,
         },
         'percival.carrier.buffer': {
