@@ -18,10 +18,13 @@ from percival.carrier.database import InfluxDB
 from percival.carrier.registers import generate_register_maps, BoardValueRegisters
 from percival.carrier.sensor import Sensor
 from percival.carrier.settings import BoardSettings
-from percival.carrier.system import SystemCommand, SystemSettings
+from percival.carrier.system import SystemCommand, SystemSettings, ClockSettings
+from percival.carrier.chip import ChipReadoutSettings
 from percival.carrier.txrx import TxRx
 from percival.carrier.values import BoardValues
 from percival.carrier.configuration import SystemSettingsParameters, \
+    ChipReadoutSettingsParameters, \
+    ClockSettingsParameters, \
     ChannelParameters,\
     BoardParameters, \
     ControlParameters,\
@@ -81,6 +84,8 @@ class PercivalParameters(object):
         #print(self._control_params.setpoint_ini_file)
         #self._setpoint_group_params = SetpointGroupParameters("config/SetpointGroups.ini")
         self._system_settings_params = None
+        self._chip_readout_settings_params = None
+        self._clock_settings_params = None
         self._control_group_params = None
         self._monitor_group_params = None
         self._setpoint_group_params = None
@@ -129,6 +134,16 @@ class PercivalParameters(object):
             self._log.debug("No default system settings ini file to load")
 
         try:
+            self.load_chip_readout_settings_ini(self._control_params.chip_readout_settings_ini_file)
+        except:
+            self._log.debug("No default chip readout settings ini file to load")
+
+        try:
+            self.load_clock_settings_ini(self._control_params.clock_settings_ini_file)
+        except:
+            self._log.debug("No default clock settings ini file to load")
+
+        try:
             self.load_control_group_ini(self._control_params.control_group_ini_file)
         except:
             self._log.debug("No default control groups ini file to load")
@@ -147,6 +162,16 @@ class PercivalParameters(object):
         # Create the ini object from either filename or raw file
         self._system_settings_params = SystemSettingsParameters(filename)
         self._system_settings_params.load_ini()
+
+    def load_chip_readout_settings_ini(self, filename):
+        # Create the ini object from either filename or raw file
+        self._chip_readout_settings_params = ChipReadoutSettingsParameters(filename)
+        self._chip_readout_settings_params.load_ini()
+
+    def load_clock_settings_ini(self, filename):
+        # Create the ini object from either filename or raw file
+        self._clock_settings_params = ClockSettingsParameters(filename)
+        self._clock_settings_params.load_ini()
 
     def load_control_group_ini(self, filename):
         # Create the ini object from either filename or raw file
@@ -211,7 +236,30 @@ class PercivalParameters(object):
 
     @property
     def download_system_settings(self):
-        return self._control_params.system_settings_download
+        download = False
+        try:
+            download = self._control_params.system_settings_download
+        except:
+            self._log.info("Could not parse download_system_settings value from config file")
+        return download
+
+    @property
+    def download_chip_readout_settings(self):
+        download = False
+        try:
+            download = self._control_params.chip_readout_settings_download
+        except:
+            self._log.info("Could not parse download_chip_readout_settings value from config file")
+        return download
+
+    @property
+    def download_clock_settings(self):
+        download = False
+        try:
+            download = self._control_params.clock_settings_download
+        except:
+            self._log.info("Could not parse download_clock_settings value from config file")
+        return download
 
     def board_name(self, board):
         """
@@ -351,6 +399,14 @@ class PercivalParameters(object):
         return self._system_settings_params
 
     @property
+    def chip_readout_settings_params(self):
+        return self._chip_readout_settings_params
+
+    @property
+    def clock_settings_params(self):
+        return self._clock_settings_params
+
+    @property
     def control_group_params(self):
         return self._control_group_params
 
@@ -397,6 +453,8 @@ class PercivalDetector(object):
         self._control_groups = None
         self._monitor_groups = None
         self._system_settings = SystemSettings()
+        self._chip_readout_settings = ChipReadoutSettings()
+        self._clock_settings = ClockSettings()
         self._setpoint_control = SetPointControl(self)
         self._setpoint_control.start_scan_loop()
         self.load_ini()
@@ -419,6 +477,8 @@ class PercivalDetector(object):
         self._log.info("Loading detector ini files...")
         self._percival_params.load_ini()
         self._system_settings.load_ini(self._percival_params.system_settings_params)
+        self._chip_readout_settings.load_ini(self._percival_params.chip_readout_settings_params)
+        self._clock_settings.load_ini(self._percival_params.clock_settings_params)
         self._setpoint_control.load_ini(self._percival_params.setpoint_params)
 
     def setup_control(self):
@@ -438,6 +498,8 @@ class PercivalDetector(object):
         self._board_settings[const.BoardTypes.plugin] = BoardSettings(self._txrx, const.BoardTypes.plugin)
         self._board_values[const.BoardTypes.carrier] = BoardValues(self._txrx, const.BoardTypes.carrier)
         self._system_settings.set_txrx(self._txrx)
+        self._chip_readout_settings.set_txrx(self._txrx)
+        self._clock_settings.set_txrx(self._txrx)
         self._sys_cmd = SystemCommand(self._txrx)
         self._sensor_buffer_cmd = SensorBufferCommand(self._txrx)
         self._sensor = Sensor(self._sensor_buffer_cmd)
@@ -447,6 +509,14 @@ class PercivalDetector(object):
         if self._percival_params.download_system_settings:
             self._log.info("Auto-downloading system settings from default ini file")
             self.download_system_settings()
+
+        if self._percival_params.download_chip_readout_settings:
+            self._log.info("Auto-downloading chip readout settings from default ini file")
+            self.download_chip_readout_settings()
+
+        if self._percival_params.download_clock_settings:
+            self._log.info("Auto-downloading clock settings from default ini file")
+            self.download_clock_settings()
 
     def setup_db(self):
         """
@@ -490,6 +560,14 @@ class PercivalDetector(object):
     def download_system_settings(self):
         self._log.info("Downloading system settings to hardware")
         self._system_settings.download_settings()
+
+    def download_chip_readout_settings(self):
+        self._log.info("Downloading chip readout settings to hardware")
+        self._chip_readout_settings.download_settings()
+
+    def download_clock_settings(self):
+        self._log.info("Downloading clock settings to hardware")
+        self._clock_settings.download_settings()
 
     def load_channels(self):
         """
@@ -560,6 +638,16 @@ class PercivalDetector(object):
         self._percival_params.load_system_settings_ini(system_settings_ini)
         self._system_settings.load_ini(self._percival_params.system_settings_params)
 
+    def load_chip_readout_settings(self, chip_readout_settings_ini):
+        self._log.debug("Loading chip readout settings with config: %s", chip_readout_settings_ini)
+        self._percival_params.load_chip_readout_settings_ini(chip_readout_settings_ini)
+        self._chip_readout_settings.load_ini(self._percival_params.chip_readout_settings_params)
+
+    def load_clock_settings(self, clock_settings_ini):
+        self._log.debug("Loading clock settings with config: %s", clock_settings_ini)
+        self._percival_params.load_clock_settings_ini(clock_settings_ini)
+        self._clock_settings.load_ini(self._percival_params.clock_settings_params)
+
     def load_control_groups(self, control_groups_ini):
         self._log.debug("Loading control groups with config: %s", control_groups_ini)
         self._percival_params.load_control_group_ini(control_groups_ini)
@@ -606,6 +694,15 @@ class PercivalDetector(object):
                             self.load_control_groups(config_desc)
                         elif 'monitor_groups' in config_type:
                             self.load_monitor_groups(config_desc)
+                        elif 'system_settings' in config_type:
+                            self.load_system_settings(config_desc)
+                            self.download_system_settings()
+                        elif 'chip_readout_settings' in config_type:
+                            self.load_chip_readout_settings(config_desc)
+                            self.download_chip_readout_settings()
+                        elif 'clock_settings' in config_type:
+                            self.load_clock_settings(config_desc)
+                            self.download_clock_settings()
                     else:
                         raise PercivalDetectorError("No config provided (file or object)")
                 else:
@@ -668,34 +765,6 @@ class PercivalDetector(object):
             response = self.read(command.command_name)
 
         return response
-
-#    def parse_command(self, command):
-#        """
-#        Parses command object to execute commands
-#        :param command:
-#        :return:
-#        """
-#        # TODO: Log the details of the command
-#        # Expect command object to contain user, source IP, source type[script|web]
-#        # Check for the command options
-#        params = {}
-#        if "params" in command:
-#            params = command["params"]
-#        if "command" in command:
-#            if command["command"] in "connect_influxdb":
-#                self.setup_db()
-#            elif command["command"] in "auto_read":
-#                # Global monitoring has either been requested to start or stop
-#                if "state" in params:
-#                    if "start" in params["state"]:
-#                        self._auto_read = True
-#                    elif "stop" in params["state"]:
-#                        self._auto_read = False
-#
-#            elif command["command"] in "write":
-#                if "channel" in params and "value" in params:
-#                    # Pass the option to the detector to obtain the parameter
-#                    self.set_value(params["channel"], int(params["value"]))
 
     def download_configuration(self):
         self.load_configuration()

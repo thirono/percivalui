@@ -568,8 +568,8 @@ class ChipReadoutSettingsMap(RegisterMap):
                          }
 
 
-class HighFrequencyClockMap(RegisterMap):
-    """Represent a high frequency clock register bank of just one single word
+class ClockSettingsMap(RegisterMap):
+    """Represent high and low frequency clock registers
     """
     num_words = 8
 
@@ -581,15 +581,15 @@ class HighFrequencyClockMap(RegisterMap):
         for number in [0, 1, 2, 3]:
             prefix = "HIGH_FREQ_ADJ_CLOCK<{}>".format(number)
             address = number
-            self._mem_map[prefix + "_enable_clock"] =    MapField(prefix + "_enable_clock",    address,  1, 24)
-            self._mem_map[prefix + "_clkout_divider"] =  MapField(prefix + "_clkout_divider",  address,  8, 16)
+            self._mem_map[prefix + "_enable_clock"] = MapField(prefix + "_enable_clock",       address,  1, 24)
+            self._mem_map[prefix + "_clkout_divider"] = MapField(prefix + "_clkout_divider",   address,  8, 16)
             self._mem_map[prefix + "_base_multiplier"] = MapField(prefix + "_base_multiplier", address,  8,  8)
-            self._mem_map[prefix + "_base_divider"] =    MapField(prefix + "_base_divider",    address,  8,  0)
+            self._mem_map[prefix + "_base_divider"] = MapField(prefix + "_base_divider",       address,  8,  0)
         for number in [0, 1]:
             prefix = "LOW_FREQ_ADJ_CLOCK<{}>".format(number)
             address = number + 4
-            self._mem_map[prefix + "_enable_clock"] =    MapField(prefix + "_enable_clock",    address,  1, 24)
-            self._mem_map[prefix + "_cycles_value"] =    MapField(prefix + "_cycles_value",    address, 16,  0)
+            self._mem_map[prefix + "_enable_clock"] = MapField(prefix + "_enable_clock",       address,  1, 24)
+            self._mem_map[prefix + "_cycles_value"] = MapField(prefix + "_cycles_value",       address, 16,  0)
 
 
 class IRegisterMap(with_metaclass(abc.ABCMeta, IABCMeta)):
@@ -647,7 +647,8 @@ RegisterMapClasses = {
     const.RegisterMapType.monitoring:   MonitoringChannelMap,
     const.RegisterMapType.command:      CommandMap,
     const.RegisterMapType.system:       SystemSettingsMap,
-    const.RegisterMapType.chip_readout: ChipReadoutSettingsMap
+    const.RegisterMapType.chip_readout: ChipReadoutSettingsMap,
+    const.RegisterMapType.clock:        ClockSettingsMap
 }
 
 BoardRegisters = {
@@ -685,6 +686,7 @@ CarrierUARTRegisters = {
     const.READ_VALUES_PLUGIN:           ("Read monitor values plugin",  const.READBACK_READ_VALUES_PLUGIN,           ReadValueMap),
     const.SYSTEM_SETTINGS:              ("System settings",             const.READBACK_SYSTEM_SETTINGS,              SystemSettingsMap),
     const.CHIP_READOUT_SETTINGS:        ("Chip readout settings",       const.READBACK_CHIP_READOUT_SETTINGS,        ChipReadoutSettingsMap),
+    const.CLOCK_SETTINGS:               ("Clock settings",              const.READBACK_CLOCK_SETTINGS,               ClockSettingsMap),
     const.COMMAND:                      ("CommandMap",                  None,                                        CommandMap),
     const.READ_ECHO_WORD:               ("Read Echo Word",              const.READBACK_READ_ECHO_WORD,               EchoWordMap),
 }

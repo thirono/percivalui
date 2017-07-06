@@ -148,6 +148,7 @@ class RegisterMapType(Enum):
     command = 3
     system = 4
     chip_readout = 5
+    clock = 6
 
 
 @unique
