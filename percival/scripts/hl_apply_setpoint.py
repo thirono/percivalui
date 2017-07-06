@@ -5,18 +5,10 @@ Created on 17 May 2016
 '''
 from __future__ import print_function
 
-import sys
 import argparse
-import requests
-import getpass
-from datetime import datetime
 
 from percival.log import log
-
-from percival.carrier import const
-from percival.carrier.txrx import TxRxContext
-from percival.carrier.system import SystemCommand
-from percival.detector.detector import PercivalParameters
+from percival.scripts.util import PercivalClient
 
 
 def options():
@@ -37,29 +29,8 @@ def main():
 
     set_point = args.setpoint
 
-    url = "http://" + args.address + "/api/0.1/percival/cmd_apply_setpoint"
-
-    log.debug("Sending msg to: %s", url)
-    try:
-        result = requests.put(url,
-                              data={
-                                  'setpoint': set_point
-                              },
-                              headers={
-                                  'Content-Type': 'application/json',
-                                  'Accept': 'application/json',
-                                  'User': getpass.getuser(),
-                                  'Creation-Time': str(datetime.now()),
-                                  'User-Agent': 'hl_apply_setpoint.py'
-                              }).json()
-    except requests.exceptions.RequestException:
-        result = {
-            "error": "Exception during HTTP request, check address and Odin server instance"
-        }
-        log.exception(result['error'])
-
-    log.info("Response: %s", result)
-    return result
+    pc = PercivalClient(args.address)
+    pc.apply_setpoint(set_point, 'hl_apply_setpoint.py')
 
 
 if __name__ == '__main__':
