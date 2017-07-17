@@ -56,9 +56,9 @@ class TestBuffer(unittest.TestCase):
         calls = self.txrx.send_recv.mock_calls
         # Assert that the data words were written into the buffer
         self.assertEqual(calls[0], call(bytes("\x02\xFA\x00\x00\x00\x01", encoding="latin-1"), None))
-        self.assertEqual(calls[0], call(bytes("\x02\xFB\x00\x00\x00\x02", encoding="latin-1"), None))
-        self.assertEqual(calls[0], call(bytes("\x02\xFC\x00\x00\x00\x03", encoding="latin-1"), None))
-        self.assertEqual(calls[0], call(bytes("\x02\xFD\x00\x00\x00\x04", encoding="latin-1"), None))
+        self.assertEqual(calls[1], call(bytes("\x02\xFB\x00\x00\x00\x02", encoding="latin-1"), None))
+        self.assertEqual(calls[2], call(bytes("\x02\xFC\x00\x00\x00\x03", encoding="latin-1"), None))
+        self.assertEqual(calls[3], call(bytes("\x02\xFD\x00\x00\x00\x04", encoding="latin-1"), None))
 
         # Assert that the command response was es expected
         self.assertEqual(response, [(0x00000005, 0x00000006)])
