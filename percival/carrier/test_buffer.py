@@ -62,3 +62,16 @@ class TestBuffer(unittest.TestCase):
 
         # Assert that the command response was es expected
         self.assertEqual(response, [(0x00000005, 0x00000006)])
+
+        # Verify the combining of configuration values for ADCs which are operational
+        test_values = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.assertEqual(self.buffer.configuration_values_to_word(test_values), 0)
+        test_values = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        self.assertEqual(self.buffer.configuration_values_to_word(test_values), 613566756)
+        test_values = [1, 2, 3, 4, 5, 6, 7, 0, 1, 2]
+        self.assertEqual(self.buffer.configuration_values_to_word(test_values), 701216808)
+
+        # Verify too many values will generate an exception
+        with self.assertRaises(RuntimeError):
+            test_values = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            self.buffer.configuration_values_to_word(test_values)

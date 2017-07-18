@@ -158,3 +158,30 @@ class SensorBufferCommand(BufferCommand):
         # address = 1
         result = self.send_command(const.SensorBufferCmd.send_DACs_setup, 0, 1)
         return result
+
+    def send_configuration_setup_cmd(self, config):
+        # We need to verify the configuration
+        # This might currently be hardcoded for P2M
+        # TODO Verify if this method needs to be generalised
+        if 'H1' in config and 'H0' in config and 'G' in config:
+            h1_values = config['H1']
+            value = 0
+            while len(h1_values) > 9:
+                
+            if len(h1_values) == 307:
+                # Take 10 values and convert into a 32 bit word
+                value = (value << 3) + (h1_values[0] & 0x7)
+                value = (value << 3) + (h1_values[1] & 0x7)
+
+    def configuration_values_to_word(self, values):
+        self._log.debug("Combining sensor ADC values into 32 bit word")
+        # Verify values has a length of 10 or less
+        value = 0
+        if len(values) < 11:
+            for index in range(10):
+                value = (value << 3) + (values[index] & 0x7)
+            value = value << 2
+        else:
+            # We cannot combine more than 10 values, raise an error
+            raise RuntimeError("Sensor configuration, >10 values used to create 32 bit word")
+        return value

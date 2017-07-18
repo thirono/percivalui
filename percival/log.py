@@ -28,8 +28,8 @@ percival_log_config = {
         },
         'percival.carrier': {
             'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
+            'level': 'DEBUG',
+            'propagate': True,
         },
         'percival.carrier.simulator': {
             'handlers': ['console'],
