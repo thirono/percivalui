@@ -280,6 +280,318 @@ class ReadValueMap(RegisterMap):
                          }
 
 
+class SystemSettingsMap(RegisterMap):
+    """Represents the system settings block that is submitted through the buffer interface
+    """
+    num_words = 18
+
+    def __init__(self):
+        object.__setattr__(self, '_mem_map', {})  # This prevents infinite recursion when setting attributes
+        self._mem_map = {"REGION_OF_INTEREST_ROI_mode":
+                             MapField("REGION_OF_INTEREST_ROI_mode",                           0,   1,  31),
+                         "REGION_OF_INTEREST_Illumination":
+                             MapField("REGION_OF_INTEREST_Illumination",                       0,   1,  30),
+                         "REGION_OF_INTEREST_Sensor_type":
+                             MapField("REGION_OF_INTEREST_Sensor_type",                        0,   3,  27),
+                         "REGION_OF_INTEREST_Vertical_ROI_start_row_group":
+                             MapField("REGION_OF_INTEREST_Vertical_ROI_start_row_group",       0,   7,  13),
+                         "REGION_OF_INTEREST_Vertical_ROI_start_block":
+                             MapField("REGION_OF_INTEREST_Vertical_ROI_start_block",           0,   3,  10),
+                         "REGION_OF_INTEREST_Vertical_ROI_stop_row_group":
+                             MapField("REGION_OF_INTEREST_Vertical_ROI_stop_row_group",        0,   7,  3),
+                         "REGION_OF_INTEREST_Vertical_ROI_stop_block":
+                             MapField("REGION_OF_INTEREST_Vertical_ROI_stop_block",            0,   3,  0),
+                         "REGION_OF_INTEREST_Horizontal_ROI_start_column":
+                             MapField("REGION_OF_INTEREST_Horizontal_ROI_start_column",        1,   5,  13),
+                         "REGION_OF_INTEREST_Horizontal_ROI_start_block":
+                             MapField("REGION_OF_INTEREST_Horizontal_ROI_start_block",         1,   3,  10),
+                         "REGION_OF_INTEREST_Horizontal_ROI_stop_column":
+                             MapField("REGION_OF_INTEREST_Horizontal_ROI_stop_column",         1,   5,  3),
+                         "REGION_OF_INTEREST_Horizontal_ROI_stop_block":
+                             MapField("REGION_OF_INTEREST_Horizontal_ROI_stop_block",          1,   3,  0),
+                         "ACQUISITION_Continuous_acquisition":
+                             MapField("ACQUISITION_Continuous_acquisition",                    2,   1,  20),
+                         "ACQUISITION_Acquisition_mode":
+                             MapField("ACQUISITION_AcquisitionMode",                           2,   2,  18),
+                         "ACQUISITION_Number_of_frames":
+                             MapField("ACQUISITION_Number_of_frames",                          2,   18, 0),
+                         "INTEGRATION_Integration_mode":
+                             MapField("INTEGRATION_Integration_mode",                          3,   1,  16),
+                         "INTEGRATION_Integration_window_width":
+                             MapField("INTEGRATION_Integration_window_width",                  3,   16, 0),
+                         "TRIGGERING_Gate_polarity":
+                             MapField("TRIGGERING_Gate_polarity",                              4,   1,  9),
+                         "TRIGGERING_External_gate_signal":
+                             MapField("TRIGGERING_External_gate_signal",                       4,   1,  8),
+                         "TRIGGERING_Gating":
+                             MapField("TRIGGERING_Gating",                                     4,   1,  7),
+                         "TRIGGERING_Trigger_mode":
+                             MapField("TRIGGERING_Trigger_mode",                               4,   1,  6),
+                         "TRIGGERING_Trigger_edge_selection":
+                             MapField("TRIGGERING_Trigger_edge_selection",                     4,   2,  4),
+                         "TRIGGERING_External_trigger_signal":
+                             MapField("TRIGGERING_External_trigger_signal",                    4,   3,  1),
+                         "TRIGGERING_Trigger_source":
+                             MapField("TRIGGERING_Trigger_source",                             4,   1,  0),
+                         "TRIGGERING_Repetition_rate":
+                             MapField("TRIGGERING_Repetition_rate",                            5,   32, 0),
+                         "TRIGGERING_Number_of_frames_per_trigger":
+                             MapField("TRIGGERING_Number_of_frames_per_trigger",               6,   16, 16),
+                         "TRIGGERING_Trigger_acquisition_delay":
+                             MapField("TRIGGERING_Trigger_acquisition_delay",                  6,   16, 0),
+                         "ADVANCED_Custom_global_disable_duration":
+                             MapField("ADVANCED_Custom_global_disable_duration",               7,   16, 9),
+                         "ADVANCED_Custom_global_disable_before_each_new_frame":
+                             MapField("ADVANCED_Custom_global_disable_before_each_new_frame",  7,   1,  8),
+                         "SAMPLING_SR_phase_Resampling_mode":
+                             MapField("SAMPLING_SR_phase_Resampling_mode",                     7,   1,  5),
+                         "SAMPLING_S3_phase_Resampling_mode":
+                             MapField("SAMPLING_S3_phase_Resampling_mode",                     7,   1,  4),
+                         "SAMPLING_S2_phase_Resampling_mode":
+                             MapField("SAMPLING_S2_phase_Resampling_mode",                     7,   1,  3),
+                         "SAMPLING_S1_phase_Resampling_mode":
+                             MapField("SAMPLING_S1_phase_Resampling_mode",                     7,   1,  2),
+                         "SAMPLING_S0_phase_Resampling_mode":
+                             MapField("SAMPLING_S0_phase_Resampling_mode",                     7,   1,  1),
+                         "SAMPLING_Sampling_mode":
+                             MapField("SAMPLING_Sampling_mode",                                7,   1,  0),
+                         "SAMPLING_SR_phase_n_factor":
+                             MapField("SAMPLING_SR_phase_n_factor",                            8,   6,  24),
+                         "SAMPLING_S3_phase_n_factor":
+                             MapField("SAMPLING_S3_phase_n_factor",                            8,   6,  18),
+                         "SAMPLING_S2_phase_n_factor":
+                             MapField("SAMPLING_S2_phase_n_factor",                            8,   6,  12),
+                         "SAMPLING_S1_phase_n_factor":
+                             MapField("SAMPLING_S1_phase_n_factor",                            8,   6,  6),
+                         "SAMPLING_S0_phase_n_factor":
+                             MapField("SAMPLING_S0_phase_n_factor",                            8,   6,  0),
+                         "SAMPLING_SR_phase_number_of_repeats":
+                             MapField("SAMPLING_SR_phase_number_of_repeats",                   9,   16, 24),
+                         "SAMPLING_S3_phase_number_of_repeats":
+                             MapField("SAMPLING_S3_phase_number_of_repeats",                   9,   16, 18),
+                         "SAMPLING_S2_phase_number_of_repeats":
+                             MapField("SAMPLING_S2_phase_number_of_repeats",                   9,   16, 12),
+                         "SAMPLING_S1_phase_number_of_repeats":
+                             MapField("SAMPLING_S1_phase_number_of_repeats",                   9,   16, 6),
+                         "SAMPLING_S0_phase_number_of_repeats":
+                             MapField("SAMPLING_S0_phase_number_of_repeats",                   9,   16, 0),
+                         "ADVANCED_dmuxSEL_EXT_options":
+                             MapField("ADVANCED_dmuxSEL_EXT_options",                          10,  2,  18),
+                         "ADVANCED_SC_EXT_options":
+                             MapField("ADVANCED_SC_EXT_options",                               10,  2,  16),
+                         "ADVANCED_sr7SC_EXT_options":
+                             MapField("ADVANCED_sr7SC_EXT_options",                            10,  2,  14),
+                         "ADVANCED_CPNI_EXT_options":
+                             MapField("ADVANCED_CPNI_EXT_options",                             10,  2,  12),
+                         "ADVANCED_adcCPN_EXT_options":
+                             MapField("ADVANCED_adcCPN_EXT_options",                           10,  2,  10),
+                         "ADVANCED_PLLClk_EXT_options":
+                             MapField("ADVANCED_PLLClk_EXT_options",                           10,  2,  8),
+                         "ADVANCED_Enable_dmuxSEL_EXT":
+                             MapField("ADVANCED_Enable_dmuxSEL_EXT",                           10,  1,  7),
+                         "ADVANCED_Enable_SC_EXT":
+                             MapField("ADVANCED_Enable_SC_EXT",                                10,  1,  6),
+                         "ADVANCED_Enable_sr7SC_EXT":
+                             MapField("ADVANCED_Enable_sr7sc_EXT",                             10,  1,  5),
+                         "ADVANCED_Enable_CPNI_EXT":
+                             MapField("ADVANCED_Enable_CPNI_EXT",                              10,  1,  4),
+                         "ADVANCED_Enable_adcCPN_EXT":
+                             MapField("ADVANCED_Enable_adcCPN_EXT",                            10,  1,  3),
+                         "ADVANCED_Enable_PLLClk_EXT":
+                             MapField("ADVANCED_Enable_PLLClk_EXT",                            10,  1,  2),
+                         "ADVANCED_Calibration_options":
+                             MapField("ADVANCED_Calibration_options",                          10,  2,  0),
+                         "MONITORING_Monitoring_time_value_s":
+                             MapField("MONITORING_Monitoring_time_value_s",                    11,  32, 0),
+                         "MONITORING_I2C_idle_time_us":
+                             MapField("MONITORING_I2C_idle_time_us",                           12,  16,  0),
+                         "SAFETY_Priority_7_Action_select":
+                             MapField("SAFETY_Priority_7_Action_select",                       13,  4,  28),
+                         "SAFETY_Priority_6_Action_select":
+                             MapField("SAFETY_Priority_6_Action_select",                       13,  4,  24),
+                         "SAFETY_Priority_5_Action_select":
+                             MapField("SAFETY_Priority_5_Action_select",                       13,  4,  20),
+                         "SAFETY_Priority_4_Action_select":
+                             MapField("SAFETY_Priority_4_Action_select",                       13,  4,  16),
+                         "SAFETY_Priority_3_Action_select":
+                             MapField("SAFETY_Priority_3_Action_select",                       13,  4,  12),
+                         "SAFETY_Priority_2_Action_select":
+                             MapField("SAFETY_Priority_2_Action_select",                       13,  4,  8),
+                         "SAFETY_Priority_1_Action_select":
+                             MapField("SAFETY_Priority_1_Action_select",                       13,  4,  4),
+                         "SAFETY_Priority_0_Action_select":
+                             MapField("SAFETY_Priority_0_Action_select",                       13,  4,  0),
+                         "SAFETY_Priority_7_Action_global_enable":
+                             MapField("SAFETY_Priority_7_Action_global_enable",                14,  1,  7),
+                         "SAFETY_Priority_6_Action_global_enable":
+                             MapField("SAFETY_Priority_6_Action_global_enable",                14,  1,  6),
+                         "SAFETY_Priority_5_Action_global_enable":
+                             MapField("SAFETY_Priority_5_Action_global_enable",                14,  1,  5),
+                         "SAFETY_Priority_4_Action_global_enable":
+                             MapField("SAFETY_Priority_4_Action_global_enable",                14,  1,  4),
+                         "SAFETY_Priority_3_Action_global_enable":
+                             MapField("SAFETY_Priority_3_Action_global_enable",                14,  1,  3),
+                         "SAFETY_Priority_2_Action_global_enable":
+                             MapField("SAFETY_Priority_2_Action_global_enable",                14,  1,  2),
+                         "SAFETY_Priority_1_Action_global_enable":
+                             MapField("SAFETY_Priority_1_Action_global_enable",                14,  1,  1),
+                         "SAFETY_Priority_0_Action_global_enable":
+                             MapField("SAFETY_Priority_0_Action_global_enable",                14,  1,  0),
+                         "MARKER_BOARD_marker_in_3_ENABLE":
+                             MapField("MARKER_BOARD_marker_in_3_ENABLE",                       15,  1,  31),
+                         "MARKER_BOARD_marker_in_2_ENABLE":
+                             MapField("MARKER_BOARD_marker_in_2_ENABLE",                       15,  1,  30),
+                         "MARKER_BOARD_marker_in_1_ENABLE":
+                             MapField("MARKER_BOARD_marker_in_1_ENABLE",                       15,  1,  29),
+                         "MARKER_BOARD_marker_in_0_ENABLE":
+                             MapField("MARKER_BOARD_marker_in_0_ENABLE",                       15,  1,  28),
+                         "PLUGIN_BOARD_Post_trigger_train_number_capture_delay":
+                             MapField("PLUGIN_BOARD_Post_trigger_train_number_capture_delay",  15,  25, 1),
+                         "PLUGIN_BOARD_Include_train_number_in_status_record":
+                             MapField("PLUGIN_BOARD_Include_train_number_in_status_record",    15,  1,  0),
+                         "UNUSED_1":
+                             MapField("UNUSED_1",                                              16,  32, 0),
+                         "UNUSED_2":
+                             MapField("UNUSED_2",                                              17,  32, 0)
+                         }
+
+
+class ChipReadoutSettingsMap(RegisterMap):
+    """Represents the system settings block that is submitted through the buffer interface
+    """
+    num_words = 32
+
+    def __init__(self):
+        object.__setattr__(self, '_mem_map', {})  # This prevents infinite recursion when setting attributes
+        self._mem_map = {"RST_VOLTAGE_Standby":              MapField("RST_VOLTAGE_Standby",               0,  2,  0),
+                         "RST_VOLTAGE_Integration":          MapField("RST_VOLTAGE_Integration",           0,  2,  2),
+                         "RST_VOLTAGE_S0":                   MapField("RST_VOLTAGE_S0",                    0,  2,  4),
+                         "RST_VOLTAGE_S1":                   MapField("RST_VOLTAGE_S1",                    0,  2,  6),
+                         "RST_VOLTAGE_S2":                   MapField("RST_VOLTAGE_S2",                    0,  2,  8),
+                         "RST_VOLTAGE_S3":                   MapField("RST_VOLTAGE_S3",                    0,  2, 10),
+                         "RST_VOLTAGE_Reset":                MapField("RST_VOLTAGE_Reset",                 0,  2, 12),
+                         "RST_VOLTAGE_SR":                   MapField("RST_VOLTAGE_SR",                    0,  2, 14),
+                         "SEL_VOLTAGE_Standby":              MapField("SEL_VOLTAGE_Standby",               1,  2,  0),
+                         "SEL_VOLTAGE_Integration":          MapField("SEL_VOLTAGE_Integration",           1,  2,  2),
+                         "SEL_VOLTAGE_S0":                   MapField("SEL_VOLTAGE_S0",                    1,  2,  4),
+                         "SEL_VOLTAGE_S1":                   MapField("SEL_VOLTAGE_S1",                    1,  2,  6),
+                         "SEL_VOLTAGE_S2":                   MapField("SEL_VOLTAGE_S2",                    1,  2,  8),
+                         "SEL_VOLTAGE_S3":                   MapField("SEL_VOLTAGE_S3",                    1,  2, 10),
+                         "SEL_VOLTAGE_Reset":                MapField("SEL_VOLTAGE_Reset",                 1,  2, 12),
+                         "SEL_VOLTAGE_SR":                   MapField("SEL_VOLTAGE_SR",                    1,  2, 14),
+                         "SW0_VOLTAGE_Standby":              MapField("SW0_VOLTAGE_Standby",               2,  2,  0),
+                         "SW0_VOLTAGE_Integration":          MapField("SW0_VOLTAGE_Integration",           2,  2,  2),
+                         "SW0_VOLTAGE_S0":                   MapField("SW0_VOLTAGE_S0",                    2,  2,  4),
+                         "SW0_VOLTAGE_S1":                   MapField("SW0_VOLTAGE_S1",                    2,  2,  6),
+                         "SW0_VOLTAGE_S2":                   MapField("SW0_VOLTAGE_S2",                    2,  2,  8),
+                         "SW0_VOLTAGE_S3":                   MapField("SW0_VOLTAGE_S3",                    2,  2, 10),
+                         "SW0_VOLTAGE_Reset":                MapField("SW0_VOLTAGE_Reset",                 2,  2, 12),
+                         "SW0_VOLTAGE_SR":                   MapField("SW0_VOLTAGE_SR",                    2,  2, 14),
+                         "SW1_VOLTAGE_Standby":              MapField("SW1_VOLTAGE_Standby",               3,  2,  0),
+                         "SW1_VOLTAGE_Integration":          MapField("SW1_VOLTAGE_Integration",           3,  2,  2),
+                         "SW1_VOLTAGE_S0":                   MapField("SW1_VOLTAGE_S0",                    3,  2,  4),
+                         "SW1_VOLTAGE_S1":                   MapField("SW1_VOLTAGE_S1",                    3,  2,  6),
+                         "SW1_VOLTAGE_S2":                   MapField("SW1_VOLTAGE_S2",                    3,  2,  8),
+                         "SW1_VOLTAGE_S3":                   MapField("SW1_VOLTAGE_S3",                    3,  2, 10),
+                         "SW1_VOLTAGE_Reset":                MapField("SW1_VOLTAGE_Reset",                 3,  2, 12),
+                         "SW1_VOLTAGE_SR":                   MapField("SW1_VOLTAGE_SR",                    3,  2, 14),
+                         "SW2_VOLTAGE_Standby":              MapField("SW2_VOLTAGE_Standby",               4,  2,  0),
+                         "SW2_VOLTAGE_Integration":          MapField("SW2_VOLTAGE_Integration",           4,  2,  2),
+                         "SW2_VOLTAGE_S0":                   MapField("SW2_VOLTAGE_S0",                    4,  2,  4),
+                         "SW2_VOLTAGE_S1":                   MapField("SW2_VOLTAGE_S1",                    4,  2,  6),
+                         "SW2_VOLTAGE_S2":                   MapField("SW2_VOLTAGE_S2",                    4,  2,  8),
+                         "SW2_VOLTAGE_S3":                   MapField("SW2_VOLTAGE_S3",                    4,  2, 10),
+                         "SW2_VOLTAGE_Reset":                MapField("SW2_VOLTAGE_Reset",                 4,  2, 12),
+                         "SW2_VOLTAGE_SR":                   MapField("SW2_VOLTAGE_SR",                    4,  2, 14),
+                         "AB_VOLTAGE_Standby":               MapField("AB_VOLTAGE_Standby",                5,  2,  0),
+                         "AB_VOLTAGE_Integration":           MapField("AB_VOLTAGE_Integration",            5,  2,  2),
+                         "AB_VOLTAGE_S0":                    MapField("AB_VOLTAGE_S0",                     5,  2,  4),
+                         "AB_VOLTAGE_S1":                    MapField("AB_VOLTAGE_S1",                     5,  2,  6),
+                         "AB_VOLTAGE_S2":                    MapField("AB_VOLTAGE_S2",                     5,  2,  8),
+                         "AB_VOLTAGE_S3":                    MapField("AB_VOLTAGE_S3",                     5,  2, 10),
+                         "AB_VOLTAGE_Reset":                 MapField("AB_VOLTAGE_Reset",                  5,  2, 12),
+                         "AB_VOLTAGE_SR":                    MapField("AB_VOLTAGE_SR",                     5,  2, 14),
+                         "PGA_GAIN_Standby":                 MapField("PGA_VOLTAGE_Standby",               6,  2,  0),
+                         "PGA_GAIN_Integration":             MapField("PGA_VOLTAGE_Integration",           6,  2,  2),
+                         "PGA_GAIN_S0":                      MapField("PGA_GAIN_S0",                       6,  2,  4),
+                         "PGA_GAIN_S1":                      MapField("PGA_GAIN_S1",                       6,  2,  6),
+                         "PGA_GAIN_S2":                      MapField("PGA_GAIN_S2",                       6,  2,  8),
+                         "PGA_GAIN_S3":                      MapField("PGA_GAIN_S3",                       6,  2, 10),
+                         "PGA_GAIN_Reset":                   MapField("PGA_GAIN_Reset",                    6,  2, 12),
+                         "PGA_GAIN_SR":                      MapField("PGA_GAIN_SR",                       6,  2, 14),
+                         "DURATION_Sampling_prep_phase":     MapField("DURATION_Sampling_prep_phase",      7, 16,  0),
+                         "DURATION_Sampling_phase":          MapField("DURATION_Sampling_phase",           7, 16, 15),
+                         "DURATION_ADC_prep_phase":          MapField("DURATION_ADC_prep_phase",           8, 16,  0),
+                         "DURATION_Reset_phase":             MapField("DURATION_Reset_phase",              8, 16, 15),
+                         "SAMPLING_PREP_step1":              MapField("SAMPLING_PREP_step1",               9,  8,  0),
+                         "SAMPLING_PREP_step2":              MapField("SAMPLING_PREP_step2",               9,  8,  8),
+                         "SAMPLING_PREP_step3":              MapField("SAMPLING_PREP_step3",               9,  8, 16),
+                         "SAMPLING_PHASE_S":                 MapField("SAMPLING_PHASE_S",                 10, 16,  0),
+                         "SAMPLING_PHASE_PGA_GAIN":          MapField("SAMPLING_PHASE_PGA_GAIN",          10, 16, 16),
+                         "SAMPLING_PHASE_SRAMreset_rise":    MapField("SAMPLING_PHASE_SRAMreset_rise",    11, 16,  0),
+                         "SAMPLING_PHASE_PrstCol_fall":      MapField("SAMPLING_PHASE_PrstCol_fall",      11, 16, 16),
+                         "SAMPLING_PHASE_SampleRS_fall":     MapField("SAMPLING_PHASE_SampleRS_fall",     12, 16,  0),
+                         "SAMPLING_PHASE_Mem_fall":          MapField("SAMPLING_PHASE_Mem_fall",          12, 16, 16),
+                         "SAMPLING_PHASE_Write_rise":        MapField("SAMPLING_PHASE_Write_rise",        13, 16,  0),
+                         "SAMPLING_PHASE_Write_fall":        MapField("SAMPLING_PHASE_Write_fall",        13, 16, 16),
+                         "SAMPLING_PHASE_Mem_rise":          MapField("SAMPLING_PHASE_Mem_rise",          14, 16,  0),
+                         "ADC_PREP_PHASE_Drst_fall":         MapField("ADC_PREP_PHASE_Drst_fall",         15, 16,  0),
+                         "ADC_PREP_PHASE_Drst_rise":         MapField("ADC_PREP_PHASE_Drst_rise",         15, 16, 16),
+                         "ADC_PREP_PHASE_ResetADC_fall":     MapField("ADC_PREP_PHASE_ResetADC_fall",     16, 16,  0),
+                         "ADC_PREP_PHASE_ResetADC_rise":     MapField("ADC_PREP_PHASE_ResetADC_rise",     16, 16, 16),
+                         "ADC_PREP_PHASE_PreSRst_rise":      MapField("ADC_PREP_PHASE_PreSRst_rise",      17, 16,  0),
+                         "ADC_PREP_PHASE_PreSRst_fall":      MapField("ADC_PREP_PHASE_PreSRst_fall",      17, 16, 16),
+                         "ADC_PREP_PHASE_SampleADC_rise":    MapField("ADC_PREP_PHASE_SampleADC_rise",    18, 16,  0),
+                         "ADC_PREP_PHASE_SampleADC_fall":    MapField("ADC_PREP_PHASE_SampleADC_fall",    18, 16, 16),
+                         "RESET_PHASE_RST_reset_start":      MapField("RESET_PHASE_RST_reset_start",      19, 16,  0),
+                         "RESET_PHASE_RST_reset_stop":       MapField("RESET_PHASE_RST_reset_stop",       19, 16, 16),
+                         "RESET_PHASE_SW_reset_start":       MapField("RESET_PHASE_SW_reset_start",       20, 16,  0),
+                         "RESET_PHASE_SW_reset_stop":        MapField("RESET_PHASE_SW_reset_stop",        20, 16, 16),
+                         "RESET_PHASE_AB_reset_start":       MapField("RESET_PHASE_AB_reset_start",       21, 16,  0),
+                         "RESET_PHASE_AB_reset_stop":        MapField("RESET_PHASE_AB_reset_stop",        21, 16, 16),
+                         "DURATION_ADC_ramps_phase":         MapField("DURATION_ADC_ramps_phase",         22, 16,  0),
+                         "ADC_RAMPS_PHASE_CConvEn_rise":     MapField("ADC_RAMPS_PHASE_CConvEn_rise",     23, 16,  0),
+                         "ADC_RAMPS_PHASE_CConvEn_fall":     MapField("ADC_RAMPS_PHASE_CConvEn_fall",     23, 16, 16),
+                         "ADC_RAMPS_PHASE_FConvEn_rise":     MapField("ADC_RAMPS_PHASE_FConvEn_rise",     24, 16,  0),
+                         "ADC_RAMPS_PHASE_FConvEn_fall":     MapField("ADC_RAMPS_PHASE_FConvEn_fall",     24, 16, 16),
+                         "STREAMOUT_PHASE_LoadDO_rise":      MapField("STREAMOUT_PHASE_LoadDO_rise",      25, 16,  0),
+                         "STREAMOUT_PHASE_sr7CDNin_rise":    MapField("STREAMOUT_PHASE_sr7CDNin_rise",    25, 16, 16),
+                         "MISC_Force_DebugSel":              MapField("MISC_Force_DebugSel",              26,  1,  0),
+                         "MISC_PrstCol_options":             MapField("MISC_PrstCol_options",             26,  2,  1),
+                         "MISC_Switch_off_ClkADC_intg":      MapField("MISC_Switch_off_ClkADC_intg",      26,  1,  3),
+                         "MISC_Switch_off_ext_signals_intg": MapField("MISC_Switch_off_ext_signals_intg", 26,  1,  4),
+                         "UNUSED_1":                         MapField("UNUSED_1",                         27, 32,  0),
+                         "UNUSED_2":                         MapField("UNUSED_2",                         28, 32,  0),
+                         "UNUSED_3":                         MapField("UNUSED_3",                         29, 32,  0),
+                         "UNUSED_4":                         MapField("UNUSED_4",                         30, 32,  0),
+                         "UNUSED_5":                         MapField("UNUSED_5",                         31, 32,  0)
+                         }
+
+
+class ClockSettingsMap(RegisterMap):
+    """Represent high and low frequency clock registers
+    """
+    num_words = 8
+
+    def __init__(self):
+        object.__setattr__(self, '_mem_map', {})  # This prevents infinite recursion when setting attributes
+        self._mem_map = {"UNUSED_1":                         MapField("UNUSED_1",                          6, 32,  0),
+                         "UNUSED_2":                         MapField("UNUSED_2",                          7, 32,  0)
+                         }
+        for number in [0, 1, 2, 3]:
+            prefix = "HIGH_FREQ_ADJ_CLOCK<{}>".format(number)
+            address = number
+            self._mem_map[prefix + "_enable_clock"] = MapField(prefix + "_enable_clock",       address,  1, 24)
+            self._mem_map[prefix + "_clkout_divider"] = MapField(prefix + "_clkout_divider",   address,  8, 16)
+            self._mem_map[prefix + "_base_multiplier"] = MapField(prefix + "_base_multiplier", address,  8,  8)
+            self._mem_map[prefix + "_base_divider"] = MapField(prefix + "_base_divider",       address,  8,  0)
+        for number in [0, 1]:
+            prefix = "LOW_FREQ_ADJ_CLOCK<{}>".format(number)
+            address = number + 4
+            self._mem_map[prefix + "_enable_clock"] = MapField(prefix + "_enable_clock",       address,  1, 24)
+            self._mem_map[prefix + "_cycles_value"] = MapField(prefix + "_cycles_value",       address, 16,  0)
+
+
 class IRegisterMap(with_metaclass(abc.ABCMeta, IABCMeta)):
     """
     Interface to a Device Setting bitmap.
@@ -329,12 +641,14 @@ IRegisterMap.register(HeaderInfoMap)
 IRegisterMap.register(ControlChannelMap)
 IRegisterMap.register(MonitoringChannelMap)
 
-
 RegisterMapClasses = {
-    const.RegisterMapType.header:     HeaderInfoMap,
-    const.RegisterMapType.control:    ControlChannelMap,
-    const.RegisterMapType.monitoring: MonitoringChannelMap,
-    const.RegisterMapType.command:    CommandMap
+    const.RegisterMapType.header:       HeaderInfoMap,
+    const.RegisterMapType.control:      ControlChannelMap,
+    const.RegisterMapType.monitoring:   MonitoringChannelMap,
+    const.RegisterMapType.command:      CommandMap,
+    const.RegisterMapType.system:       SystemSettingsMap,
+    const.RegisterMapType.chip_readout: ChipReadoutSettingsMap,
+    const.RegisterMapType.clock:        ClockSettingsMap
 }
 
 BoardRegisters = {
@@ -370,6 +684,9 @@ CarrierUARTRegisters = {
     const.CONTROL_SETTINGS_PLUGIN:      ("Control settings plugin",     const.READBACK_CONTROL_SETTINGS_PLUGIN,      ControlChannelMap),
     const.MONITORING_SETTINGS_PLUGIN:   ("Monitoring settings plugin",  const.READBACK_MONITORING_SETTINGS_PLUGIN,   MonitoringChannelMap),
     const.READ_VALUES_PLUGIN:           ("Read monitor values plugin",  const.READBACK_READ_VALUES_PLUGIN,           ReadValueMap),
+    const.SYSTEM_SETTINGS:              ("System settings",             const.READBACK_SYSTEM_SETTINGS,              SystemSettingsMap),
+    const.CHIP_READOUT_SETTINGS:        ("Chip readout settings",       const.READBACK_CHIP_READOUT_SETTINGS,        ChipReadoutSettingsMap),
+    const.CLOCK_SETTINGS:               ("Clock settings",              const.READBACK_CLOCK_SETTINGS,               ClockSettingsMap),
     const.COMMAND:                      ("CommandMap",                  None,                                        CommandMap),
     const.READ_ECHO_WORD:               ("Read Echo Word",              const.READBACK_READ_ECHO_WORD,               EchoWordMap),
 }

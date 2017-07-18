@@ -123,13 +123,23 @@ class BufferCommand(object):
         :param address: the starting address of the target to execute the command on
         """
         self.cmd_no_operation()
-        self._command(cmd, words, address)
+        result = self._command(cmd, words, address)
+        return result
 
 
 class SensorBufferCommand(BufferCommand):
     def __init__(self, txrx):
         super(SensorBufferCommand, self).__init__(txrx, const.BufferTarget.percival_sensor)
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+
+    def cmd_no_operation(self):
+        """
+        Method to send a no_operation buffer command.
+
+        :returns: list of (address, dataword) tuples
+        """
+        result = self._command(const.SensorBufferCmd.no_operation)
+        return result
 
     def send_dacs_setup_cmd(self, words):
         # First encode the words into the correct message format and send the values
@@ -146,4 +156,5 @@ class SensorBufferCommand(BufferCommand):
         # cmd = send_DACs_setup_to_target
         # words = 0
         # address = 1
-        self.send_command(const.BufferCmd.write, 0, 1)
+        result = self.send_command(const.SensorBufferCmd.send_DACs_setup, 0, 1)
+        return result

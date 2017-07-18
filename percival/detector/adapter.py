@@ -33,7 +33,12 @@ class PercivalAdapter(ApiAdapter):
         """
         super(PercivalAdapter, self).__init__(**kwargs)
 
-        self._detector = PercivalDetector(False,False)
+        logging.debug(kwargs)
+        ini_file = None
+        if 'config_file' in kwargs:
+            ini_file = kwargs['config_file']
+
+        self._detector = PercivalDetector(ini_file, False, False)
         self._detector.set_global_monitoring(True)
         self._auto_read = False
         self.status_update(0.1)
