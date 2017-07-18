@@ -141,16 +141,21 @@ class SensorBufferCommand(BufferCommand):
         result = self._command(const.SensorBufferCmd.no_operation)
         return result
 
-    def send_dacs_setup_cmd(self, words):
-        # First encode the words into the correct message format and send the values
-        # to fill up the buffer
+    def write_words_to_buffer(self, words):
+        # Encode the words into the correct message format and send the values
         msg = encode_multi_message(const.WRITE_BUFFER.start_address, words)
-        self._log.debug("Writing buffer DAC values to address: %X ...", const.WRITE_BUFFER.start_address)
+        self._log.debug("Writing buffer words to address: %X ...", const.WRITE_BUFFER.start_address)
         try:
             for item in msg:
                 self._txrx.send_recv(item, None)
         except RuntimeError:
             self._log.exception("No response (addr: %X)", const.WRITE_BUFFER.start_address)
+
+    def send_dacs_setup_cmd(self, words):
+        # First encode the words into the correct message format and send the values
+        # to fill up the buffer
+        self._log.debug("Writing DAC values to buffer")
+        self.write_words_to_buffer(words)
 
         # Now send the command to write the buffer as sensor DAC values
         # cmd = send_DACs_setup_to_target
@@ -159,29 +164,30 @@ class SensorBufferCommand(BufferCommand):
         result = self.send_command(const.SensorBufferCmd.send_DACs_setup, 0, 1)
         return result
 
-    def send_configuration_setup_cmd(self, config):
-        # We need to verify the configuration
-        # This might currently be hardcoded for P2M
-        # TODO Verify if this method needs to be generalised
-        if 'H1' in config and 'H0' in config and 'G' in config:
-            h1_values = config['H1']
-            value = 0
-            while len(h1_values) > 9:
-                
-            if len(h1_values) == 307:
-                # Take 10 values and convert into a 32 bit word
-                value = (value << 3) + (h1_values[0] & 0x7)
-                value = (value << 3) + (h1_values[1] & 0x7)
+    def send_configuration_setup_cmd(self, words):
+        # Write the first 64 words into the buffer
+        self._log.debug("Writing the first 64 config words to the buffer")
+        self.write_words_to_buffer(words[0:64])
 
-    def configuration_values_to_word(self, values):
-        self._log.debug("Combining sensor ADC values into 32 bit word")
-        # Verify values has a length of 10 or less
-        value = 0
-        if len(values) < 11:
-            for index in range(10):
-                value = (value << 3) + (values[index] & 0x7)
-            value = value << 2
-        else:
-            # We cannot combine more than 10 values, raise an error
-            raise RuntimeError("Sensor configuration, >10 values used to create 32 bit word")
-        return value
+        # Now send the config command with base address set for iteration 1
+        self._log.debug("Sending the config command iteration 1")
+        result = self.send_command(const.SensorBufferCmd.send_CONFIGURATION_setup, 0, 1)
+        # TODO: Check result
+
+        # Write the second set of 64 words into the buffer
+        self._log.debug("Writing the second set of 64 config words to the buffer")
+        self.write_words_to_buffer(words[64:128])
+
+        # Now send the config command with base address set for iteration 2
+        self._log.debug("Sending the config command iteration 2")
+        result = self.send_command(const.SensorBufferCmd.send_CONFIGURATION_setup, 0, 2)
+        # TODO: Check result
+
+        # Write the third set of words (16 words) into the buffer
+        self._log.debug("Writing the third set of config words (16 words) to the buffer")
+        self.write_words_to_buffer(words[128:144])
+
+        # Now send the config command with base address set for iteration 2
+        self._log.debug("Sending the config command iteration 3")
+        result = self.send_command(const.SensorBufferCmd.send_CONFIGURATION_setup, 0, 3)
+        # TODO: Check result

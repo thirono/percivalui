@@ -123,3 +123,36 @@ class TestSensorClass(unittest.TestCase):
         self.buffer_cmd.send_dacs_setup_cmd = MagicMock()
         self.sensor.apply_dac_values()
         self.buffer_cmd.send_dacs_setup_cmd.assert_called_with([0x3D01800, 0x340C4])
+
+    def test_configuration_command(self):
+        # Verify the combining of configuration values for ADCs which are operational
+        test_values = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.assertEqual(self.buffer.configuration_values_to_word(test_values), 0)
+        test_values = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        self.assertEqual(self.buffer.configuration_values_to_word(test_values), 613566756)
+        test_values = [1, 2, 3, 4, 5, 6, 7, 0, 1, 2]
+        self.assertEqual(self.buffer.configuration_values_to_word(test_values), 701216808)
+
+        # Verify too many values will generate an exception
+        with self.assertRaises(RuntimeError):
+            test_values = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            self.buffer.configuration_values_to_word(test_values)
+
+        test_config = {
+            'H1': [0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+                   0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+                   0, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+                   0, 0, 0, 0, 0, 0, 0, 0, 0, 4,
+                   0, 0, 0, 0, 5],
+            'H0': [0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+                   0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+                   0, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+                   0, 0, 0, 0, 0, 0, 0, 0, 0, 4,
+                   0, 0, 5],
+            'G': [0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+                  0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+                  0, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+                  0, 0, 0, 0, 0, 0, 0, 0, 0, 4,
+                  0, 0, 0, 0, 5]
+        }
+        self.buffer.send_configuration_setup_cmd(test_config)

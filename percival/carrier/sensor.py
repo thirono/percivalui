@@ -115,3 +115,39 @@ class Sensor(object):
         self._log.debug("Applying sensor DAC values: %s", words)
         self._buffer_cmd.send_dacs_setup_cmd(words)
 
+    def send_configuration_setup_cmd(self, config):
+        # We need to verify the configuration
+        # This might currently be hardcoded for P2M
+        # TODO Verify if this method needs to be more generic
+        if 'H1' in config and 'H0' in config and 'G' in config:
+            h1_values = config['H1']
+            words = []
+            while len(h1_values) > 9:
+                words.append(self.configuration_values_to_word(h1_values[0:10]))
+                h1_values = h1_values[10:]
+            h0_values = h1_values + config['H0']
+            while len(h0_values) > 9:
+                words.append(self.configuration_values_to_word(h0_values[0:10]))
+                h0_values = h0_values[10:]
+            g_values = h0_values + config['G']
+            while len(g_values) > 9:
+                words.append(self.configuration_values_to_word(g_values[0:10]))
+                g_values = g_values[10:]
+            if len(g_values) > 0 and len(g_values) < 10:
+                g_values = (g_values + [0] * 10)[:10]
+                words.append(self.configuration_values_to_word(g_values))
+            self._log.debug("Sensor configuration words: %s", words)
+            self._buffer_cmd.send_configuration_setup_cmd(words)
+
+    def configuration_values_to_word(self, values):
+        self._log.debug("Combining sensor ADC values into 32 bit word")
+        # Verify values has a length of 10 or less
+        value = 0
+        if len(values) < 11:
+            for index in range(10):
+                value = (value << 3) + (values[index] & 0x7)
+            value = value << 2
+        else:
+            # We cannot combine more than 10 values, raise an error
+            raise RuntimeError("Sensor configuration, >10 values used to create 32 bit word")
+        return value
