@@ -150,6 +150,7 @@ class SensorBufferCommand(BufferCommand):
                 self._txrx.send_recv(item, None)
         except RuntimeError:
             self._log.exception("No response (addr: %X)", const.WRITE_BUFFER.start_address)
+            raise
 
     def send_dacs_setup_cmd(self, words):
         # First encode the words into the correct message format and send the values
@@ -165,6 +166,11 @@ class SensorBufferCommand(BufferCommand):
         return result
 
     def send_configuration_setup_cmd(self, words):
+        self._log.debug("Executing sensor configuration command with words: %s", words)
+        if len(words) != 144:
+            self._log.error("Supplied word list for sensor config is not length 144")
+            raise RuntimeError("Supplied word list for sensor config is not length 144")
+
         # Write the first 64 words into the buffer
         self._log.debug("Writing the first 64 config words to the buffer")
         self.write_words_to_buffer(words[0:64])
@@ -172,7 +178,9 @@ class SensorBufferCommand(BufferCommand):
         # Now send the config command with base address set for iteration 1
         self._log.debug("Sending the config command iteration 1")
         result = self.send_command(const.SensorBufferCmd.send_CONFIGURATION_setup, 0, 1)
-        # TODO: Check result
+        # We expect to see FFFF, ABBABAC1 followed by FFF3 ABBA3333
+        if not self.verify_response(result):
+            raise RuntimeError("Config command iteration 1 failed")
 
         # Write the second set of 64 words into the buffer
         self._log.debug("Writing the second set of 64 config words to the buffer")
@@ -181,7 +189,9 @@ class SensorBufferCommand(BufferCommand):
         # Now send the config command with base address set for iteration 2
         self._log.debug("Sending the config command iteration 2")
         result = self.send_command(const.SensorBufferCmd.send_CONFIGURATION_setup, 0, 2)
-        # TODO: Check result
+        # We expect to see FFFF, ABBABAC1 followed by FFF3 ABBA3333
+        if not self.verify_response(result):
+            raise RuntimeError("Config command iteration 2 failed")
 
         # Write the third set of words (16 words) into the buffer
         self._log.debug("Writing the third set of config words (16 words) to the buffer")
@@ -190,4 +200,17 @@ class SensorBufferCommand(BufferCommand):
         # Now send the config command with base address set for iteration 2
         self._log.debug("Sending the config command iteration 3")
         result = self.send_command(const.SensorBufferCmd.send_CONFIGURATION_setup, 0, 3)
-        # TODO: Check result
+        # We expect to see FFFF, ABBABAC1 followed by FFF3 ABBA3333
+        if not self.verify_response(result):
+            raise RuntimeError("Config command iteration 3 failed")
+
+    def verify_response(self, response):
+        # We should receive the generic acknowledge plus the sensor specific acknowledge
+        verified = False
+        if len(response) == 2:
+            if response[0] == (0xFFFF, 0xABBABAC1) and response[1] == (0xFFF3, 0xABBA3333):
+                self._log.debug("Verified sensor buffer response from hardware")
+                verified = True
+        if not verified:
+            self._log.debug("Unable to verify sensor buffer response: %s", response)
+        return verified

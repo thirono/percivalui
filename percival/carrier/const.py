@@ -245,7 +245,7 @@ class BufferCmd(Enum):
     read = 2
 
 @unique
-class SensorBufferCmd(Enum):
+class  SensorBufferCmd(Enum):
     """Enumeration of sensor specific buffer commands, only relevant to the sensor """
     no_operation = 0
     send_DACs_setup = 1
@@ -273,7 +273,7 @@ BufferCommands = {
     BufferTarget.percival_sensor: {
         SensorBufferCmd.no_operation:             {"command": int(0), "response": 1},
         SensorBufferCmd.send_DACs_setup:          {"command": int(0), "response": 1},
-        SensorBufferCmd.send_CONFIGURATION_setup: {"command": int(1), "response": 1},
+        SensorBufferCmd.send_CONFIGURATION_setup: {"command": int(1), "response": 2},
         SensorBufferCmd.send_CALIBRATION_setup:   {"command": int(2), "response": 1},
         SensorBufferCmd.send_ROI_setup:           {"command": int(3), "response": 1},
         SensorBufferCmd.send_DEBUG_setup:         {"command": int(4), "response": 1}
