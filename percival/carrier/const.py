@@ -272,10 +272,10 @@ BufferCommands = {
     },
     BufferTarget.percival_sensor: {
         SensorBufferCmd.no_operation:             {"command": int(0), "response": 1},
-        SensorBufferCmd.send_DACs_setup:          {"command": int(0), "response": 1},
+        SensorBufferCmd.send_DACs_setup:          {"command": int(0), "response": 2},
         SensorBufferCmd.send_CONFIGURATION_setup: {"command": int(1), "response": 2},
-        SensorBufferCmd.send_CALIBRATION_setup:   {"command": int(2), "response": 1},
-        SensorBufferCmd.send_ROI_setup:           {"command": int(3), "response": 1},
-        SensorBufferCmd.send_DEBUG_setup:         {"command": int(4), "response": 1}
+        SensorBufferCmd.send_CALIBRATION_setup:   {"command": int(2), "response": 2},
+        SensorBufferCmd.send_ROI_setup:           {"command": int(3), "response": 2},
+        SensorBufferCmd.send_DEBUG_setup:         {"command": int(4), "response": 2}
     }
 }

@@ -152,6 +152,17 @@ class SensorBufferCommand(BufferCommand):
             self._log.exception("No response (addr: %X)", const.WRITE_BUFFER.start_address)
             raise
 
+    def verify_response(self, response):
+        # We should receive the generic acknowledge plus the sensor specific acknowledge
+        verified = False
+        if len(response) == 2:
+            if response[0] == (0xFFFF, 0xABBABAC1) and response[1] == (0xFFF3, 0xABBA3333):
+                self._log.debug("Verified sensor buffer response from hardware")
+                verified = True
+        if not verified:
+            self._log.debug("Unable to verify sensor buffer response: %s", response)
+        return verified
+
     def send_dacs_setup_cmd(self, words):
         # First encode the words into the correct message format and send the values
         # to fill up the buffer
@@ -163,7 +174,9 @@ class SensorBufferCommand(BufferCommand):
         # words = 0
         # address = 1
         result = self.send_command(const.SensorBufferCmd.send_DACs_setup, 0, 1)
-        return result
+        # We expect to see FFFF, ABBABAC1 followed by FFF3 ABBA3333
+        if not self.verify_response(result):
+            raise RuntimeError("Sensor DAC command failed")
 
     def send_configuration_setup_cmd(self, words):
         self._log.debug("Executing sensor configuration command with words: %s", words)
@@ -204,13 +217,43 @@ class SensorBufferCommand(BufferCommand):
         if not self.verify_response(result):
             raise RuntimeError("Config command iteration 3 failed")
 
-    def verify_response(self, response):
-        # We should receive the generic acknowledge plus the sensor specific acknowledge
-        verified = False
-        if len(response) == 2:
-            if response[0] == (0xFFFF, 0xABBABAC1) and response[1] == (0xFFF3, 0xABBA3333):
-                self._log.debug("Verified sensor buffer response from hardware")
-                verified = True
-        if not verified:
-            self._log.debug("Unable to verify sensor buffer response: %s", response)
-        return verified
+    def send_calibration_setup_cmd(self, words):
+        self._log.debug("Executing sensor calibration command with words: %s", words)
+        if len(words) != 3240:
+            self._log.error("Supplied word list for sensor calibration is not length 3240")
+            raise RuntimeError("Supplied word list for sensor config is not length 3240")
+
+        # Now perform 90 iterations, each time writing 36 words to the buffer and then sending the
+        # configuration command words
+        for index in range(0, 90):
+            # Write the first 64 words into the buffer
+            first_word = index * 36
+            last_word = first_word + 36
+            self._log.debug("Writing calibration words [%d:%d] to the buffer", first_word, last_word)
+            self.write_words_to_buffer(words[first_word:last_word])
+
+            # Now send the command
+            iteration = index + 1
+            self._log.debug("Sending the sensor calibration command iteration %d", iteration)
+            result = self.send_command(const.SensorBufferCmd.send_CALIBRATION_setup, 0, iteration)
+            # We expect to see FFFF, ABBABAC1 followed by FFF3 ABBA3333
+            if not self.verify_response(result):
+                raise RuntimeError("Sensor calibration command iteration %d failed", iteration)
+
+    def send_debug_setup_cmd(self, words):
+        self._log.debug("Executing sensor debug command with words: %s", words)
+        if len(words) != 9:
+            self._log.error("Supplied word list for sensor debug is not length 9")
+            raise RuntimeError("Supplied word list for sensor debug is not length 9")
+
+        # Write the words into the buffer
+        self._log.debug("Writing the debug words to the buffer")
+        self.write_words_to_buffer(words)
+
+        # Now send the debug command with base address set as 1
+        self._log.debug("Sending the sensor debug command")
+        result = self.send_command(const.SensorBufferCmd.send_DEBUG_setup, 0, 1)
+        # We expect to see FFFF, ABBABAC1 followed by FFF3 ABBA3333
+        if not self.verify_response(result):
+            raise RuntimeError("Sensor debug command failed")
+
