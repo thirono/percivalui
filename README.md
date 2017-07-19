@@ -133,6 +133,13 @@ The file is in a human readable ini format, an example is provided below:
     #control_groups = "config/ControlGroups.ini"
     #monitor_groups = "config/MonitorGroups.ini"
 
+|Section|Parameter|Description|
+|Control|carrier_ip|IP address of Percival control board.  The value of "127.0.0.1" shown above is for use when executing the Odin server against a software simulation of the hardware and should be updated for production systems|
+|Database|address|IP address of InfluxDB server.  If the database server is running on the same machine as the Odin server then this value can be set to 127.0.0.1|
+|Database|port|Port number of the InfluxDB server.  The default value of 8086 should not normally need to be changed|
+|Database|name|Name of the database to use for recording data.  If the database does not exist then it is created.  This should not need to be changed from the default value "percival"|
+
+
 The configuration file "./percival_test.cfg" is used to configure the Odin server instance, containing the information required to load the Percival control plugin into the server.  The file is also used to specify which port the Odin server will serve HTTP requests on.  Currently it is not expected that this file should be changed, the contents are shown below:
 
     [server]
@@ -147,6 +154,16 @@ The configuration file "./percival_test.cfg" is used to configure the Odin serve
 
     [adapter.percival]
     module = percival.detector.adapter.PercivalAdapter
+
+|Section|Parameter|Description|
+|server|debug_mode|Debugging mode for the Odin server application|
+|server|http_port|Port number that Odin uses to serve the HTTP requests|
+|server|http_addr|Address that Odin binds to for serving HTTP requests|
+|server|static_path|Path that is used by Odin to serve the GUI webpages|
+|tornado|logging|Log level for the tornado web server that Odin is built onto|
+|adapter.percival|module|Name of module to load into the Odin server, set to percival.detector.adapter.PercivalAdapter|
+
+NOTE: The above configuration file "percival_test.cfg" should not need to be changed for the Percival control application.  All of the default values are setup for the Percival control software.
 
 ### Running the Odin Server
 
