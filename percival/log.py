@@ -24,12 +24,12 @@ percival_log_config = {
         'percival': {
             'handlers': ['console'],
             'propagate': False,
-            'level': 'DEBUG',
+            'level': 'ERROR',
         },
         'percival.carrier': {
             'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
+            'level': 'ERROR',
+            'propagate': False,
         },
         'percival.carrier.simulator': {
             'handlers': ['console'],
@@ -83,7 +83,7 @@ percival_log_config = {
         },
         'percival.carrier.encoding': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': 'ERROR',
             'propagate': False,
         },
         'percival.carrier.txrx': {
@@ -93,7 +93,7 @@ percival_log_config = {
         },
         'percival.carrier.txrx.TxRx': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'propagate': False,
         },
         'percival.control': {
