@@ -115,39 +115,46 @@ class Sensor(object):
         self._log.debug("Applying sensor DAC values: %s", words)
         self._buffer_cmd.send_dacs_setup_cmd(words)
 
-    def send_configuration_setup_cmd(self, config):
+    def apply_configuration(self, config):
         # We need to verify the configuration
-        # This might currently be hardcoded for P2M
-        # TODO Verify if this method needs to be more generic
         if 'H1' in config and 'H0' in config and 'G' in config:
             h1_values = config['H1']
             words = []
             while len(h1_values) > 9:
-                words.append(self.configuration_values_to_word(h1_values[0:10]))
+                words.append(self.configuration_values_to_word(3, h1_values[0:10]))
                 h1_values = h1_values[10:]
             h0_values = h1_values + config['H0']
             while len(h0_values) > 9:
-                words.append(self.configuration_values_to_word(h0_values[0:10]))
+                words.append(self.configuration_values_to_word(3, h0_values[0:10]))
                 h0_values = h0_values[10:]
             g_values = h0_values + config['G']
             while len(g_values) > 9:
-                words.append(self.configuration_values_to_word(g_values[0:10]))
+                words.append(self.configuration_values_to_word(3, g_values[0:10]))
                 g_values = g_values[10:]
-            if len(g_values) > 0 and len(g_values) < 10:
-                g_values = (g_values + [0] * 10)[:10]
-                words.append(self.configuration_values_to_word(g_values))
+            if len(g_values) > 0:
+                words.append(self.configuration_values_to_word(3, g_values))
             self._log.debug("Sensor configuration words: %s", words)
             self._buffer_cmd.send_configuration_setup_cmd(words)
 
-    def configuration_values_to_word(self, values):
-        self._log.debug("Combining sensor ADC values into 32 bit word")
-        # Verify values has a length of 10 or less
+    def configuration_values_to_word(self, size, values):
+        self._log.debug("Combining sensor values into 32 bit word")
+        # Check how many values can be combined
+        self._log.debug("Size of each value: %d", size)
+        qty_values = 32 // size
+        self._log.debug("Number of values that can fit into 32 bits: %d", qty_values)
+        extra_shift = 32 % size
+        self._log.debug("Extra shift required: %d", extra_shift)
+        mask = 2**size - 1
+        self._log.debug("Mask for values: %d", mask)
+        if len(values) > qty_values:
+            self._log.error("Too many sensor values to be stored in a 32 bit word")
+            raise RuntimeError("Too many sensor values to be stored in a 32 bit word")
+        # Extend the values if necessary
+        if len(values) < qty_values:
+            values = (values + [0] * qty_values)[:qty_values]
+
         value = 0
-        if len(values) < 11:
-            for index in range(10):
-                value = (value << 3) + (values[index] & 0x7)
-            value = value << 2
-        else:
-            # We cannot combine more than 10 values, raise an error
-            raise RuntimeError("Sensor configuration, >10 values used to create 32 bit word")
+        for index in range(qty_values):
+            value = (value << size) + (values[index] & mask)
+        value <<= extra_shift
         return value

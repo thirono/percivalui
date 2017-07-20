@@ -124,35 +124,63 @@ class TestSensorClass(unittest.TestCase):
         self.sensor.apply_dac_values()
         self.buffer_cmd.send_dacs_setup_cmd.assert_called_with([0x3D01800, 0x340C4])
 
-    # def test_configuration_command(self):
-    #     # Verify the combining of configuration values for ADCs which are operational
-    #     test_values = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    #     self.assertEqual(self.buffer.configuration_values_to_word(test_values), 0)
-    #     test_values = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-    #     self.assertEqual(self.buffer.configuration_values_to_word(test_values), 613566756)
-    #     test_values = [1, 2, 3, 4, 5, 6, 7, 0, 1, 2]
-    #     self.assertEqual(self.buffer.configuration_values_to_word(test_values), 701216808)
-    #
-    #     # Verify too many values will generate an exception
-    #     with self.assertRaises(RuntimeError):
-    #         test_values = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-    #         self.buffer.configuration_values_to_word(test_values)
-    #
-    #     test_config = {
-    #         'H1': [0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    #                0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
-    #                0, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-    #                0, 0, 0, 0, 0, 0, 0, 0, 0, 4,
-    #                0, 0, 0, 0, 5],
-    #         'H0': [0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    #                0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
-    #                0, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-    #                0, 0, 0, 0, 0, 0, 0, 0, 0, 4,
-    #                0, 0, 5],
-    #         'G': [0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    #               0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
-    #               0, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-    #               0, 0, 0, 0, 0, 0, 0, 0, 0, 4,
-    #               0, 0, 0, 0, 5]
-    #     }
-    #     self.buffer.send_configuration_setup_cmd(test_config)
+    def test_values_to_data_word(self):
+        # Verify the combining of configuration values for ADCs which are operational
+        test_values = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.assertEqual(self.sensor.configuration_values_to_word(3, test_values), 0)
+        test_values = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        self.assertEqual(self.sensor.configuration_values_to_word(3, test_values), 613566756)
+        test_values = [1, 2, 3, 4, 5, 6, 7, 0, 1, 2]
+        self.assertEqual(self.sensor.configuration_values_to_word(3, test_values), 701216808)
+
+        # Verify too many values will generate an exception
+        with self.assertRaises(RuntimeError):
+            test_values = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            self.sensor.configuration_values_to_word(3, test_values)
+
+        # Try 6 bit values
+        test_values = [0, 0, 0, 0, 0]
+        self.assertEqual(self.sensor.configuration_values_to_word(6, test_values), 0)
+        test_values = [1, 1, 1, 1, 1]
+        self.assertEqual(self.sensor.configuration_values_to_word(6, test_values), 68174084)
+
+        # Verify too many values will generate an exception
+        with self.assertRaises(RuntimeError):
+            test_values = [1, 1, 1, 1, 1, 1]
+            self.sensor.configuration_values_to_word(6, test_values)
+
+    def test_apply_configuration(self):
+        self.buffer_cmd.send_configuration_setup_cmd = MagicMock()
+        test_config = {
+            'H1': [0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+                   0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+                   0, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+                   0, 0, 0, 0, 0, 0, 0, 0, 0, 4,
+                   0, 0, 0, 0, 5],
+            'H0': [0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+                   0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+                   0, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+                   0, 0, 0, 0, 0, 0, 0, 0, 0, 4,
+                   0, 0, 5],
+            'G': [0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+                  0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+                  0, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+                  0, 0, 0, 0, 0, 0, 0, 0, 0, 4,
+                  0, 0, 0, 0, 5]
+        }
+        self.sensor.apply_configuration(test_config)
+        # Verify that the buffer command was called with the correct words
+        self.buffer_cmd.send_configuration_setup_cmd.assert_called_with([0x04,
+                                                                         0x08,
+                                                                         0x0C,
+                                                                         0x10,
+                                                                         0xA0000,
+                                                                         0x20000,
+                                                                         0x40000,
+                                                                         0x60000,
+                                                                         0x80500,
+                                                                         0x100,
+                                                                         0x200,
+                                                                         0x300,
+                                                                         0x400,
+                                                                         0x2800000])
