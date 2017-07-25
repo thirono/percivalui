@@ -88,12 +88,12 @@ percival_log_config = {
         },
         'percival.carrier.txrx': {
             'handlers': ['console'],
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'propagate': False,
         },
         'percival.carrier.txrx.TxRx': {
             'handlers': ['console'],
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'propagate': False,
         },
         'percival.control': {
