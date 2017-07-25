@@ -33,7 +33,7 @@ percival_log_config = {
         },
         'percival.carrier.simulator': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propagate': False,
         },
         'percival.carrier.system.SystemSettings': {
@@ -98,7 +98,7 @@ percival_log_config = {
         },
         'percival.carrier.txrx.TxRx': {
             'handlers': ['console'],
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'propagate': False,
         },
         'percival.control': {
