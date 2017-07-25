@@ -139,26 +139,27 @@ class Sensor(object):
         self._buffer_cmd.send_dacs_setup_cmd(words)
 
     def apply_configuration(self, config):
-        self._log.debug("Applying sensor configuration: %s", config)
-        # We need to verify the configuration
-        if 'H1' in config and 'H0' in config and 'G' in config:
-            h1_values = config['H1']
-            words = []
-            while len(h1_values) > 9:
-                words.append(self.configuration_values_to_word(3, h1_values[0:10]))
-                h1_values = h1_values[10:]
-            h0_values = h1_values + config['H0']
-            while len(h0_values) > 9:
-                words.append(self.configuration_values_to_word(3, h0_values[0:10]))
-                h0_values = h0_values[10:]
-            g_values = h0_values + config['G']
-            while len(g_values) > 9:
-                words.append(self.configuration_values_to_word(3, g_values[0:10]))
-                g_values = g_values[10:]
-            if len(g_values) > 0:
-                words.append(self.configuration_values_to_word(3, g_values))
-            self._log.debug("Sensor configuration words: %s", words)
-            self._buffer_cmd.send_configuration_setup_cmd(words)
+        if config:
+            self._log.debug("Applying sensor configuration: %s", config)
+            # We need to verify the configuration
+            if 'H1' in config and 'H0' in config and 'G' in config:
+                h1_values = config['H1']
+                words = []
+                while len(h1_values) > 9:
+                    words.append(self.configuration_values_to_word(3, h1_values[0:10]))
+                    h1_values = h1_values[10:]
+                h0_values = h1_values + config['H0']
+                while len(h0_values) > 9:
+                    words.append(self.configuration_values_to_word(3, h0_values[0:10]))
+                    h0_values = h0_values[10:]
+                g_values = h0_values + config['G']
+                while len(g_values) > 9:
+                    words.append(self.configuration_values_to_word(3, g_values[0:10]))
+                    g_values = g_values[10:]
+                if len(g_values) > 0:
+                    words.append(self.configuration_values_to_word(3, g_values))
+                self._log.debug("Sensor configuration words: %s", words)
+                self._buffer_cmd.send_configuration_setup_cmd(words)
 
     def apply_debug(self, debug):
         self._log.debug("Applying sensor debug: %s", debug)

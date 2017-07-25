@@ -512,6 +512,69 @@ class ControlParameters(object):
         return item
 
     @property
+    def sensor_configuration_ini_file(self):
+        if "Configuration" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.get("Configuration", "sensor_configuration_file").strip("\"")
+
+    @property
+    def sensor_configuration_download(self):
+        if "Configuration" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
+        item = self.conf.get("Configuration", "download_sensor_configuration").strip("\"")
+        if isinstance(item, str):
+            if 'false' in item.lower():
+                item = False
+            elif 'true' in item.lower():
+                item = True
+        else:
+            item = bool(item)
+
+        return item
+
+    @property
+    def sensor_calibration_ini_file(self):
+        if "Configuration" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.get("Configuration", "sensor_calibration_file").strip("\"")
+
+    @property
+    def sensor_calibration_download(self):
+        if "Configuration" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
+        item = self.conf.get("Configuration", "download_sensor_calibration").strip("\"")
+        if isinstance(item, str):
+            if 'false' in item.lower():
+                item = False
+            elif 'true' in item.lower():
+                item = True
+        else:
+            item = bool(item)
+
+        return item
+
+    @property
+    def sensor_debug_ini_file(self):
+        if "Configuration" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
+        return self.conf.get("Configuration", "sensor_debug_file").strip("\"")
+
+    @property
+    def sensor_debug_download(self):
+        if "Configuration" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
+        item = self.conf.get("Configuration", "download_sensor_debug").strip("\"")
+        if isinstance(item, str):
+            if 'false' in item.lower():
+                item = False
+            elif 'true' in item.lower():
+                item = True
+        else:
+            item = bool(item)
+
+        return item
+
+    @property
     def board_bottom_settings_ini_file(self):
         if "Configuration" not in self.conf.sections():
             raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
@@ -894,3 +957,52 @@ class ClockSettingsParameters(object):
         return map
 
 
+class SensorConfigurationParameters(object):
+    """
+    Loads sensor configuration parameters from an INI file
+    """
+    def __init__(self, ini_file):
+        self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+        self._ini_filename = None
+        self._ini_buffer = None
+        self._conf = None
+        try:
+            self._ini_filename = find_file(ini_file)
+        except:
+            # If we catch any kind of exception here then treat the parameter as the configuration
+            self._ini_buffer = StringIO(ini_file)
+
+    def load_ini(self):
+        """
+        Loads and parses the data from INI file. The data is stored internally in the object and can be retrieved
+        through the property methods
+        For the system settings all parameter names <section>_<name>
+        """
+        self._conf = SafeConfigParser(dict_type=OrderedDict)
+        self._conf.optionxform = str
+        if self._ini_filename:
+            self._conf.read(self._ini_filename)
+            self.log.info("Read Sensor Configuration Settings INI file: %s", self._ini_filename)
+        else:
+            self._conf.readfp(self._ini_buffer)
+            self.log.info("Read Sensor Configuration Settings INI object %s", self._ini_buffer)
+        self.log.info("    sections: %s", self._conf.sections())
+
+    @property
+    def value_map(self):
+        # Read out the section General that describes the rest of the file
+        values = {}
+        desc = {}
+        for item in self._conf.items('General'):
+            match = re.match(r'^.*Cols_<(\w*)>$', item[0])
+            if match:
+                desc[match.group(1)] = int(item[1])
+        # Now loop over each defined group adding the values
+        self.log.info("Ini description: %s", desc)
+        for item in desc:
+            val_list = []
+            for index in range(desc[item]):
+                item_name = "Col{}".format(index)
+                val_list.append(self._conf.getint(item, item_name))
+            values[item] = val_list
+        return values

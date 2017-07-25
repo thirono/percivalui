@@ -1,6 +1,7 @@
 import unittest
 import os
-from percival.carrier.configuration import find_file, ChannelParameters, BoardParameters, ControlParameters
+from percival.carrier.configuration import find_file, ChannelParameters, BoardParameters, ControlParameters,\
+    SensorConfigurationParameters
 from percival.carrier.const import BoardTypes
 
 
@@ -210,6 +211,20 @@ carrier_ip = \"127.0.0.1\"\n\
         with self.assertRaises(RuntimeError):
             self.assertEquals(pp.carrier_ip, '127.0.0.1')
 
+
+class TestSensorConfigurationParameters(unittest.TestCase):
+    def setUp(self):
+        self._ini_description = "[General]\nCols_<H1>=5\nCols_<H0>=4\nCols_<G>=3\n\n\
+[H1]\nCol0=5\nCol1=4\nCol2=3\nCol3=2\nCol4=1\n\n\
+[H0]\nCol0=1\nCol1=2\nCol2=3\nCol3=4\n\n\
+[G]\nCol0=3\nCol1=2\nCol2=1\n\n"
+
+    def test_configuration_parameters(self):
+        cp = SensorConfigurationParameters(unicode(self._ini_description, "utf-8"))
+        cp.load_ini()
+        self.assertEqual(cp.value_map, {'H1': [5, 4, 3, 2, 1],
+                         'H0': [1, 2, 3, 4],
+                         'G': [3, 2, 1]})
 
 if __name__ == '__main__':
     unittest.main()
