@@ -51,7 +51,7 @@ class IpcChannel(object):
 
     def recv(self):
 
-        data = self.socket.recv()
+        data = self.socket.recv_string()
         if data[-1] == '\0':
             data = data[:-1]
         return data

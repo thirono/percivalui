@@ -41,9 +41,8 @@ class IpcMessage(object):
         else:
             try:
                 self.attrs = json.loads(from_str)
-
             except ValueError as e:
-                raise IpcMessageException("Illegal message JSON format: " + str(e))
+                raise IpcMessageException("Illegal message JSON format")
 
     def is_valid(self):
 

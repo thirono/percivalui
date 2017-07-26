@@ -100,9 +100,14 @@ class IpcReactor:
 
                 for sock in pollrc:
                     if pollrc[sock] == zmq.POLLIN:
-                        reply = self._channels[sock].recv()
-                        msg = IpcMessage(from_str=reply)
-                        self._callbacks[sock](msg)
+                        try:
+                            reply = self._channels[sock].recv()
+                            msg = IpcMessage(from_str=reply)
+                            self._callbacks[sock](msg)
+                        except Exception as e:
+                            # TODO: How to handle an exception here
+                            self._log.debug("Caught reactor exception")
+                            #self._log.exception(e)
 
                 for timer in self._timers:
                     if self._timers[timer].has_fired():
