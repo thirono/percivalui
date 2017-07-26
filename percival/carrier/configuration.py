@@ -413,6 +413,17 @@ class ControlParameters(object):
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._ini_filename = find_file(ini_file)
         self.conf = None
+        self._ini_file_options = ["system_settings_file",
+                                  "chip_readout_settings_file",
+                                  "clock_settings_file",
+                                  "sensor_configuration_file",
+                                  "sensor_calibration_file",
+                                  "sensor_debug_file",
+                                  "board_bottom_settings_file",
+                                  "board_carrier_settings_file",
+                                  "board_left_settings_file",
+                                  "board_plugin_settings_file",
+                                  "channel_settings_file"]
 
     def load_ini(self):
         """
@@ -448,11 +459,28 @@ class ControlParameters(object):
             raise_with_traceback(RuntimeError("Database section not found in ini file %s" % str(self._ini_filename)))
         return self.conf.get("Database", "name").strip("\"")
 
-    @property
-    def system_settings_ini_file(self):
+    def __getattr__(self, item):
+        if item in self._ini_file_options:
+            return self.get_ini_file(item)
+
+    def get_ini_file(self, item):
         if "Configuration" not in self.conf.sections():
             raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
-        return self.conf.get("Configuration", "system_settings_file").strip("\"")
+        return self.conf.get("Configuration", item).strip("\"")
+
+    def get_ini_file_download(self, item):
+        if "Configuration" not in self.conf.sections():
+            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
+        value = self.conf.get("Configuration", item).strip("\"")
+        if isinstance(value, str):
+            if 'false' in value.lower():
+                value = False
+            elif 'true' in value.lower():
+                value = True
+        else:
+            value = bool(value)
+
+        return value
 
     @property
     def system_settings_download(self):
@@ -470,12 +498,6 @@ class ControlParameters(object):
         return item
 
     @property
-    def chip_readout_settings_ini_file(self):
-        if "Configuration" not in self.conf.sections():
-            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
-        return self.conf.get("Configuration", "chip_readout_settings_file").strip("\"")
-
-    @property
     def chip_readout_settings_download(self):
         if "Configuration" not in self.conf.sections():
             raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
@@ -489,12 +511,6 @@ class ControlParameters(object):
             item = bool(item)
 
         return item
-
-    @property
-    def clock_settings_ini_file(self):
-        if "Configuration" not in self.conf.sections():
-            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
-        return self.conf.get("Configuration", "clock_settings_file").strip("\"")
 
     @property
     def clock_settings_download(self):
@@ -512,12 +528,6 @@ class ControlParameters(object):
         return item
 
     @property
-    def sensor_configuration_ini_file(self):
-        if "Configuration" not in self.conf.sections():
-            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
-        return self.conf.get("Configuration", "sensor_configuration_file").strip("\"")
-
-    @property
     def sensor_configuration_download(self):
         if "Configuration" not in self.conf.sections():
             raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
@@ -531,12 +541,6 @@ class ControlParameters(object):
             item = bool(item)
 
         return item
-
-    @property
-    def sensor_calibration_ini_file(self):
-        if "Configuration" not in self.conf.sections():
-            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
-        return self.conf.get("Configuration", "sensor_calibration_file").strip("\"")
 
     @property
     def sensor_calibration_download(self):
@@ -554,12 +558,6 @@ class ControlParameters(object):
         return item
 
     @property
-    def sensor_debug_ini_file(self):
-        if "Configuration" not in self.conf.sections():
-            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
-        return self.conf.get("Configuration", "sensor_debug_file").strip("\"")
-
-    @property
     def sensor_debug_download(self):
         if "Configuration" not in self.conf.sections():
             raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
@@ -573,36 +571,6 @@ class ControlParameters(object):
             item = bool(item)
 
         return item
-
-    @property
-    def board_bottom_settings_ini_file(self):
-        if "Configuration" not in self.conf.sections():
-            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
-        return self.conf.get("Configuration", "board_bottom_settings_file").strip("\"")
-
-    @property
-    def board_carrier_settings_ini_file(self):
-        if "Configuration" not in self.conf.sections():
-            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
-        return self.conf.get("Configuration", "board_carrier_settings_file").strip("\"")
-
-    @property
-    def board_left_settings_ini_file(self):
-        if "Configuration" not in self.conf.sections():
-            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
-        return self.conf.get("Configuration", "board_left_settings_file").strip("\"")
-
-    @property
-    def board_plugin_settings_ini_file(self):
-        if "Configuration" not in self.conf.sections():
-            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
-        return self.conf.get("Configuration", "board_plugin_settings_file").strip("\"")
-
-    @property
-    def channel_settings_ini_file(self):
-        if "Configuration" not in self.conf.sections():
-            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
-        return self.conf.get("Configuration", "channel_settings_file").strip("\"")
 
     @property
     def buffer_settings_ini_file(self):
