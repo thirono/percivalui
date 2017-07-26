@@ -29,6 +29,7 @@ class PercivalCommandNames(Enum):
     cmd_set_channel = 7           # Put only
     cmd_update_monitors = 8       # Put only
     cmd_status = 9                # Get only
+    cmd_download_channel_cfg = 10 # Put only TODO: This is a temporary command
 
 
 @unique

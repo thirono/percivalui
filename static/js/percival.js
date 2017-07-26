@@ -225,6 +225,9 @@ $( document ).ready(function()
   $('#server-sys-cmd').click(function(){
     send_system_command();
   });
+  $('#channel-settings-cmd').click(function(){
+    send_load_config_command();
+  });
   $('#server-init-cmd').click(function(){
     send_init_command();
   });
@@ -256,6 +259,11 @@ function send_system_command()
 {
     cmd_name = $('#select-sys-cmd').find(":selected").text();
     $.put('/api/' + api_version + '/percival/cmd_system_command?name=' + cmd_name, function(response){});
+}
+
+function send_load_config_command()
+{
+    $.put('/api/' + api_version + '/percival/cmd_download_channel_cfg', function(response){});
 }
 
 function send_init_command()

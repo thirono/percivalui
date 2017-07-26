@@ -716,6 +716,9 @@ class PercivalDetector(object):
             self._trace_log.info("Command {} [{}] executed".format(command.command_type, command.command_name))
             self._trace_log.info(command.format_trace)
             # Check if the command is a connection request to the DB
+            if command.command_name in str(PercivalCommandNames.cmd_download_channel_cfg):
+                # No parameters required for this command
+                self.load_configuration()
             if command.command_name in str(PercivalCommandNames.cmd_connect_db):
                 # No parameters required for this command
                 self.setup_db()
