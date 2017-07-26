@@ -1,7 +1,7 @@
 import unittest
 import os
 from percival.carrier.configuration import find_file, ChannelParameters, BoardParameters, ControlParameters,\
-    SensorConfigurationParameters
+    SensorConfigurationParameters, SensorCalibrationParameters
 from percival.carrier.const import BoardTypes
 
 
@@ -254,6 +254,97 @@ class TestSensorConfigurationParameters(unittest.TestCase):
         self.assertEqual(cp.value_map, {'H1': [5, 4, 3, 2, 1],
                          'H0': [1, 2, 3, 4],
                          'G': [3, 2, 1]})
+
+
+class TestSensorCalibrationParameters(unittest.TestCase):
+    def setUp(self):
+        self._ini_description = "[General]\nCols_<H1>=3\nCols_<H0>=2\nCols_<G>=1\ntarget_signals=4\n\n\
+[H1]\n\
+RightCal<0>Col<0>=1\n\
+LeftCal<0>Col<0>=2\n\
+RightCal<1>Col<0>=3\n\
+LeftCal<1>Col<0>=4\n\
+RightCal<2>Col<0>=5\n\
+LeftCal<2>Col<0>=6\n\
+RightCal<3>Col<0>=7\n\
+LeftCal<3>Col<0>=8\n\
+RightCal<0>Col<1>=9\n\
+LeftCal<0>Col<1>=10\n\
+RightCal<1>Col<1>=11\n\
+LeftCal<1>Col<1>=12\n\
+RightCal<2>Col<1>=13\n\
+LeftCal<2>Col<1>=14\n\
+RightCal<3>Col<1>=15\n\
+LeftCal<3>Col<1>=16\n\
+RightCal<0>Col<2>=17\n\
+LeftCal<0>Col<2>=18\n\
+RightCal<1>Col<2>=19\n\
+LeftCal<1>Col<2>=20\n\
+RightCal<2>Col<2>=21\n\
+LeftCal<2>Col<2>=22\n\
+RightCal<3>Col<2>=23\n\
+LeftCal<3>Col<2>=24\n\
+\n\
+[H0]\n\
+RightCal<0>Col<0>=25\n\
+LeftCal<0>Col<0>=26\n\
+RightCal<1>Col<0>=27\n\
+LeftCal<1>Col<0>=28\n\
+RightCal<2>Col<0>=29\n\
+LeftCal<2>Col<0>=30\n\
+RightCal<3>Col<0>=31\n\
+LeftCal<3>Col<0>=32\n\
+RightCal<0>Col<1>=33\n\
+LeftCal<0>Col<1>=34\n\
+RightCal<1>Col<1>=35\n\
+LeftCal<1>Col<1>=36\n\
+RightCal<2>Col<1>=37\n\
+LeftCal<2>Col<1>=38\n\
+RightCal<3>Col<1>=39\n\
+LeftCal<3>Col<1>=40\n\
+\n\
+[G]\n\
+RightCal<0>Col<0>=41\n\
+LeftCal<0>Col<0>=42\n\
+RightCal<1>Col<0>=43\n\
+LeftCal<1>Col<0>=44\n\
+RightCal<2>Col<0>=45\n\
+LeftCal<2>Col<0>=46\n\
+RightCal<3>Col<0>=47\n\
+LeftCal<3>Col<0>=48\n\
+\n"
+
+    def test_configuration_parameters(self):
+        cp = SensorCalibrationParameters(unicode(self._ini_description, "utf-8"))
+        cp.load_ini()
+        self.assertEqual(cp.value_map, {'H1': {'Cal0': {'Right' :[1, 9, 17],
+                                                        'Left': [2, 10, 18]},
+                                               'Cal1': {'Right': [3, 11, 19],
+                                                        'Left': [4, 12, 20]},
+                                               'Cal2': {'Right': [5, 13, 21],
+                                                        'Left': [6, 14, 22]},
+                                               'Cal3': {'Right': [7, 15, 23],
+                                                        'Left': [8, 16, 24]},
+                                               },
+                                        'H0': {'Cal0': {'Right': [25, 33],
+                                                        'Left': [26, 34]},
+                                               'Cal1': {'Right': [27, 35],
+                                                        'Left': [28, 36]},
+                                               'Cal2': {'Right': [29, 37],
+                                                        'Left': [30, 38]},
+                                               'Cal3': {'Right': [31, 39],
+                                                        'Left': [32, 40]},
+                                               },
+                                        'G': {'Cal0': {'Right': [41],
+                                                       'Left': [42]},
+                                              'Cal1': {'Right': [43],
+                                                       'Left': [44]},
+                                              'Cal2': {'Right': [45],
+                                                       'Left': [46]},
+                                              'Cal3': {'Right': [47],
+                                                       'Left': [48]},
+                                              }
+                                        })
 
 if __name__ == '__main__':
     unittest.main()

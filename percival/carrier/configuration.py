@@ -925,16 +925,28 @@ class SensorCalibrationParameters(object):
         # Read out the section General that describes the rest of the file
         values = {}
         desc = {}
+        target_signals = 4
         for item in self._conf.items('General'):
             match = re.match(r'^.*Cols_<(\w*)>$', item[0])
             if match:
                 desc[match.group(1)] = int(item[1])
+            elif 'target_signals' in item[0].lower():
+                target_signals = int(item[1])
         # Now loop over each defined group adding the values
         self.log.info("Ini description: %s", desc)
         for item in desc:
-            val_list = []
-            for index in range(desc[item]):
-                item_name = "Col{}".format(index)
-                val_list.append(self._conf.getint(item, item_name))
-            values[item] = val_list
+            values[item] = {}
+            for cal_no in range(target_signals):
+                target_string = 'Cal{}'.format(cal_no)
+                values[item][target_string] = {}
+                right_val_list = []
+                left_val_list = []
+                for index in range(desc[item]):
+                    item_name = "RightCal<{}>Col<{}>".format(cal_no, index)
+                    right_val_list.append(self._conf.getint(item, item_name))
+                    item_name = "LeftCal<{}>Col<{}>".format(cal_no, index)
+                    left_val_list.append(self._conf.getint(item, item_name))
+                values[item][target_string]['Right'] = right_val_list
+                values[item][target_string]['Left'] = left_val_list
+        self.log.info("Calibration Map: %s", values)
         return values
