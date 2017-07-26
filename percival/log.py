@@ -43,7 +43,7 @@ percival_log_config = {
         },
         'percival.carrier.sensor.Sensor': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propagate': False,
         },
         'percival.carrier.buffer': {

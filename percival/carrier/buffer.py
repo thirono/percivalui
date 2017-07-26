@@ -21,6 +21,7 @@ import logging
 from percival.carrier import const
 from percival.carrier.encoding import encode_multi_message
 from percival.carrier.registers import UARTRegister
+from percival.carrier.txrx import TxMessage
 
 
 class BufferCommand(object):
@@ -147,7 +148,7 @@ class SensorBufferCommand(BufferCommand):
         self._log.debug("Writing buffer words to address: %X ...", const.WRITE_BUFFER.start_address)
         try:
             for item in msg:
-                self._txrx.send_recv(item, None)
+                self._txrx.send_recv_message(TxMessage(item))
         except RuntimeError:
             self._log.exception("No response (addr: %X)", const.WRITE_BUFFER.start_address)
             raise
