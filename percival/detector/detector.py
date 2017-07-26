@@ -102,10 +102,10 @@ class PercivalParameters(object):
 
         try:
             self._board_params = {
-                const.BoardTypes.left: BoardParameters(self._control_params.board_left_settings_ini_file),
-                const.BoardTypes.bottom: BoardParameters(self._control_params.board_bottom_settings_ini_file),
-                const.BoardTypes.carrier: BoardParameters(self._control_params.board_carrier_settings_ini_file),
-                const.BoardTypes.plugin: BoardParameters(self._control_params.board_plugin_settings_ini_file)
+                const.BoardTypes.left: BoardParameters(self._control_params.board_left_settings_file),
+                const.BoardTypes.bottom: BoardParameters(self._control_params.board_bottom_settings_file),
+                const.BoardTypes.carrier: BoardParameters(self._control_params.board_carrier_settings_file),
+                const.BoardTypes.plugin: BoardParameters(self._control_params.board_plugin_settings_file)
             }
             self._board_params[const.BoardTypes.left].load_ini()
             self._board_params[const.BoardTypes.bottom].load_ini()
@@ -116,7 +116,7 @@ class PercivalParameters(object):
             raise PercivalDetectorError("Could not initialise board configuration from ini files")
 
         try:
-            self._channel_params = ChannelParameters(self._control_params.channel_settings_ini_file)
+            self._channel_params = ChannelParameters(self._control_params.channel_settings_file)
             self._channel_params.load_ini()
         except:
             self._log.error("Could not initialise channel parameters from ini file")
@@ -133,22 +133,22 @@ class PercivalParameters(object):
         #self._monitor_group_params.load_ini()
         #self._setpoint_group_params.load_ini()
         try:
-            self.load_system_settings_ini(self._control_params.system_settings_ini_file)
+            self.load_system_settings_ini(self._control_params.system_settings_file)
         except:
             self._log.debug("No default system settings ini file to load")
 
         try:
-            self.load_chip_readout_settings_ini(self._control_params.chip_readout_settings_ini_file)
+            self.load_chip_readout_settings_ini(self._control_params.chip_readout_settings_file)
         except:
             self._log.debug("No default chip readout settings ini file to load")
 
         try:
-            self.load_clock_settings_ini(self._control_params.clock_settings_ini_file)
+            self.load_clock_settings_ini(self._control_params.clock_settings_file)
         except:
             self._log.debug("No default clock settings ini file to load")
 
         try:
-            self.load_sensor_configuration_params(self._control_params.sensor_configuration_ini_file)
+            self.load_sensor_configuration_params(self._control_params.sensor_configuration_file)
         except:
             self._log.debug("No default sensor configuration ini file to load")
 
