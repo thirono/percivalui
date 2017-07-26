@@ -425,6 +425,13 @@ class ControlParameters(object):
                                   "board_left_settings_file",
                                   "board_plugin_settings_file",
                                   "channel_settings_file"]
+        self._ini_download_options = ["system_settings_download",
+                                      "chip_readout_settings_download",
+                                      "clock_settings_download",
+                                      "sensor_dac_download",
+                                      "sensor_configuration_download",
+                                      "sensor_calibration_download",
+                                      "sensor_debug_download"]
 
     def load_ini(self):
         """
@@ -463,6 +470,8 @@ class ControlParameters(object):
     def __getattr__(self, item):
         if item in self._ini_file_options:
             return self.get_ini_file(item)
+        elif item in self._ini_download_options:
+            return self.get_ini_file_download(item)
 
     def get_ini_file(self, item):
         if "Configuration" not in self.conf.sections():
@@ -482,96 +491,6 @@ class ControlParameters(object):
             value = bool(value)
 
         return value
-
-    @property
-    def system_settings_download(self):
-        if "Configuration" not in self.conf.sections():
-            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
-        item = self.conf.get("Configuration", "download_system_settings").strip("\"")
-        if isinstance(item, str):
-            if 'false' in item.lower():
-                item = False
-            elif 'true' in item.lower():
-                item = True
-        else:
-            item = bool(item)
-
-        return item
-
-    @property
-    def chip_readout_settings_download(self):
-        if "Configuration" not in self.conf.sections():
-            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
-        item = self.conf.get("Configuration", "download_chip_readout_settings").strip("\"")
-        if isinstance(item, str):
-            if 'false' in item.lower():
-                item = False
-            elif 'true' in item.lower():
-                item = True
-        else:
-            item = bool(item)
-
-        return item
-
-    @property
-    def clock_settings_download(self):
-        if "Configuration" not in self.conf.sections():
-            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
-        item = self.conf.get("Configuration", "download_clock_settings").strip("\"")
-        if isinstance(item, str):
-            if 'false' in item.lower():
-                item = False
-            elif 'true' in item.lower():
-                item = True
-        else:
-            item = bool(item)
-
-        return item
-
-    @property
-    def sensor_configuration_download(self):
-        if "Configuration" not in self.conf.sections():
-            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
-        item = self.conf.get("Configuration", "download_sensor_configuration").strip("\"")
-        if isinstance(item, str):
-            if 'false' in item.lower():
-                item = False
-            elif 'true' in item.lower():
-                item = True
-        else:
-            item = bool(item)
-
-        return item
-
-    @property
-    def sensor_calibration_download(self):
-        if "Configuration" not in self.conf.sections():
-            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
-        item = self.conf.get("Configuration", "download_sensor_calibration").strip("\"")
-        if isinstance(item, str):
-            if 'false' in item.lower():
-                item = False
-            elif 'true' in item.lower():
-                item = True
-        else:
-            item = bool(item)
-
-        return item
-
-    @property
-    def sensor_debug_download(self):
-        if "Configuration" not in self.conf.sections():
-            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
-        item = self.conf.get("Configuration", "download_sensor_debug").strip("\"")
-        if isinstance(item, str):
-            if 'false' in item.lower():
-                item = False
-            elif 'true' in item.lower():
-                item = True
-        else:
-            item = bool(item)
-
-        return item
 
     @property
     def control_group_ini_file(self):
