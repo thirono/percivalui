@@ -888,3 +888,53 @@ class SensorConfigurationParameters(object):
                 val_list.append(self._conf.getint(item, item_name))
             values[item] = val_list
         return values
+
+class SensorCalibrationParameters(object):
+    """
+    Loads sensor calibration parameters from an INI file
+    """
+    def __init__(self, ini_file):
+        self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+        self._ini_filename = None
+        self._ini_buffer = None
+        self._conf = None
+        try:
+            self._ini_filename = find_file(ini_file)
+        except:
+            # If we catch any kind of exception here then treat the parameter as the configuration
+            self._ini_buffer = StringIO(ini_file)
+
+    def load_ini(self):
+        """
+        Loads and parses the data from INI file. The data is stored internally in the object and can be retrieved
+        through the property methods
+        For the system settings all parameter names <section>_<name>
+        """
+        self._conf = SafeConfigParser(dict_type=OrderedDict)
+        self._conf.optionxform = str
+        if self._ini_filename:
+            self._conf.read(self._ini_filename)
+            self.log.info("Read Sensor Configuration Settings INI file: %s", self._ini_filename)
+        else:
+            self._conf.readfp(self._ini_buffer)
+            self.log.info("Read Sensor Configuration Settings INI object %s", self._ini_buffer)
+        self.log.info("    sections: %s", self._conf.sections())
+
+    @property
+    def value_map(self):
+        # Read out the section General that describes the rest of the file
+        values = {}
+        desc = {}
+        for item in self._conf.items('General'):
+            match = re.match(r'^.*Cols_<(\w*)>$', item[0])
+            if match:
+                desc[match.group(1)] = int(item[1])
+        # Now loop over each defined group adding the values
+        self.log.info("Ini description: %s", desc)
+        for item in desc:
+            val_list = []
+            for index in range(desc[item]):
+                item_name = "Col{}".format(index)
+                val_list.append(self._conf.getint(item, item_name))
+            values[item] = val_list
+        return values
