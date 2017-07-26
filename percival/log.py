@@ -24,21 +24,26 @@ percival_log_config = {
         'percival': {
             'handlers': ['console'],
             'propagate': False,
-            'level': 'DEBUG',
+            'level': 'ERROR',
         },
         'percival.carrier': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': 'ERROR',
             'propagate': False,
         },
         'percival.carrier.simulator': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propagate': False,
         },
         'percival.carrier.system.SystemSettings': {
             'handlers': ['console'],
             'level': 'INFO',
+            'propagate': False,
+        },
+        'percival.carrier.sensor.Sensor': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
             'propagate': False,
         },
         'percival.carrier.buffer': {
@@ -83,7 +88,7 @@ percival_log_config = {
         },
         'percival.carrier.encoding': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': 'ERROR',
             'propagate': False,
         },
         'percival.carrier.txrx': {

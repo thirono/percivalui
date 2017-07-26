@@ -1,6 +1,7 @@
 import unittest
 import os
-from percival.carrier.configuration import find_file, ChannelParameters, BoardParameters, ControlParameters
+from percival.carrier.configuration import find_file, ChannelParameters, BoardParameters, ControlParameters,\
+    SensorConfigurationParameters
 from percival.carrier.const import BoardTypes
 
 
@@ -195,6 +196,24 @@ class TestControlParameters(unittest.TestCase):
 [Control]\n\
 carrier_ip = \"127.0.0.1\"\n\
 \n\
+[Configuration]\n\
+system_settings_file = \"config/SystemSettings.ini\"\n\
+download_system_settings = True\n\
+chip_readout_settings_file = \"config/ChipReadoutSettings.ini\"\n\
+download_chip_readout_settings = True\n\
+clock_settings_file = \"config/ClockSettings.ini\"\n\
+download_clock_settings = True\n\
+sensor_configuration_file = \"config/SensorConfiguration.ini\"\n\
+download_sensor_configuration = True\n\
+sensor_calibration_file = \"config/SensorCalibration.ini\"\n\
+download_sensor_calibration = True\n\
+sensor_debug_file = \"config/SensorDebug.ini\"\n\
+download_sensor_debug = True\n\
+board_bottom_settings_file = \"config/Board BOTTOM.ini\"\n\
+board_carrier_settings_file = \"config/Board CARRIER.ini\"\n\
+board_left_settings_file = \"config/Board LEFT.ini\"\n\
+board_plugin_settings_file = \"config/Board PLUGIN.ini\"\n\
+channel_settings_file = \"config/Channel parameters.ini\"\n\
 ")
         f = open("/tmp/PercivalNONE.ini", "w+")
         f.write("")
@@ -203,6 +222,17 @@ carrier_ip = \"127.0.0.1\"\n\
         pp = ControlParameters("/tmp/Percival.ini")
         pp.load_ini()
         self.assertEquals(pp.carrier_ip, '127.0.0.1')
+        self.assertEquals(pp.system_settings_file, 'config/SystemSettings.ini')
+        self.assertEquals(pp.chip_readout_settings_file, 'config/ChipReadoutSettings.ini')
+        self.assertEquals(pp.clock_settings_file, 'config/ClockSettings.ini')
+        self.assertEquals(pp.sensor_configuration_file, 'config/SensorConfiguration.ini')
+        self.assertEquals(pp.sensor_calibration_file, 'config/SensorCalibration.ini')
+        self.assertEquals(pp.sensor_debug_file, 'config/SensorDebug.ini')
+        self.assertEquals(pp.board_bottom_settings_file, 'config/Board BOTTOM.ini')
+        self.assertEquals(pp.board_carrier_settings_file, 'config/Board CARRIER.ini')
+        self.assertEquals(pp.board_left_settings_file, 'config/Board LEFT.ini')
+        self.assertEquals(pp.board_plugin_settings_file, 'config/Board PLUGIN.ini')
+        self.assertEquals(pp.channel_settings_file, 'config/Channel parameters.ini')
 
     def test_control_exceptions(self):
         pp = ControlParameters("/tmp/PercivalNONE.ini")
@@ -210,6 +240,20 @@ carrier_ip = \"127.0.0.1\"\n\
         with self.assertRaises(RuntimeError):
             self.assertEquals(pp.carrier_ip, '127.0.0.1')
 
+
+class TestSensorConfigurationParameters(unittest.TestCase):
+    def setUp(self):
+        self._ini_description = "[General]\nCols_<H1>=5\nCols_<H0>=4\nCols_<G>=3\n\n\
+[H1]\nCol0=5\nCol1=4\nCol2=3\nCol3=2\nCol4=1\n\n\
+[H0]\nCol0=1\nCol1=2\nCol2=3\nCol3=4\n\n\
+[G]\nCol0=3\nCol1=2\nCol2=1\n\n"
+
+    def test_configuration_parameters(self):
+        cp = SensorConfigurationParameters(unicode(self._ini_description, "utf-8"))
+        cp.load_ini()
+        self.assertEqual(cp.value_map, {'H1': [5, 4, 3, 2, 1],
+                         'H0': [1, 2, 3, 4],
+                         'G': [3, 2, 1]})
 
 if __name__ == '__main__':
     unittest.main()

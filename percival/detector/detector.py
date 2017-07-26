@@ -26,6 +26,7 @@ from percival.carrier.configuration import SystemSettingsParameters, \
     ChipReadoutSettingsParameters, \
     ClockSettingsParameters, \
     ChannelParameters,\
+    SensorConfigurationParameters, \
     BoardParameters, \
     ControlParameters,\
     ChannelGroupParameters,\
@@ -78,7 +79,7 @@ class PercivalParameters(object):
         self._buffer_params = None
 
         #self._channel_params = ChannelParameters("config/Channel parameters.ini")
-        #self._buffer_params = BufferParameters("config/BufferParameters.ini")
+        #self._buffer_params = BufferParameters("config/SensorDAC.ini")
         #self._control_group_params = ChannelGroupParameters("config/ControlGroups.ini")
         #self._monitor_group_params = ChannelGroupParameters("config/MonitorGroups.ini")
         #print(self._control_params.setpoint_ini_file)
@@ -86,6 +87,9 @@ class PercivalParameters(object):
         self._system_settings_params = None
         self._chip_readout_settings_params = None
         self._clock_settings_params = None
+        self._sensor_configuration_params = None
+        self._sensor_calibration_params = None
+        self._sensor_debug_params = None
         self._control_group_params = None
         self._monitor_group_params = None
         self._setpoint_group_params = None
@@ -98,10 +102,10 @@ class PercivalParameters(object):
 
         try:
             self._board_params = {
-                const.BoardTypes.left: BoardParameters(self._control_params.board_left_settings_ini_file),
-                const.BoardTypes.bottom: BoardParameters(self._control_params.board_bottom_settings_ini_file),
-                const.BoardTypes.carrier: BoardParameters(self._control_params.board_carrier_settings_ini_file),
-                const.BoardTypes.plugin: BoardParameters(self._control_params.board_plugin_settings_ini_file)
+                const.BoardTypes.left: BoardParameters(self._control_params.board_left_settings_file),
+                const.BoardTypes.bottom: BoardParameters(self._control_params.board_bottom_settings_file),
+                const.BoardTypes.carrier: BoardParameters(self._control_params.board_carrier_settings_file),
+                const.BoardTypes.plugin: BoardParameters(self._control_params.board_plugin_settings_file)
             }
             self._board_params[const.BoardTypes.left].load_ini()
             self._board_params[const.BoardTypes.bottom].load_ini()
@@ -112,14 +116,14 @@ class PercivalParameters(object):
             raise PercivalDetectorError("Could not initialise board configuration from ini files")
 
         try:
-            self._channel_params = ChannelParameters(self._control_params.channel_settings_ini_file)
+            self._channel_params = ChannelParameters(self._control_params.channel_settings_file)
             self._channel_params.load_ini()
         except:
             self._log.error("Could not initialise channel parameters from ini file")
             raise PercivalDetectorError("Could not initialise channel parameters from ini file")
 
         try:
-            self._buffer_params = BufferParameters(self._control_params.buffer_settings_ini_file)
+            self._buffer_params = BufferParameters(self._control_params.sensor_dac_file)
             self._buffer_params.load_ini()
         except:
             self._log.error("Could not initialise buffer parameters from ini file")
@@ -129,19 +133,24 @@ class PercivalParameters(object):
         #self._monitor_group_params.load_ini()
         #self._setpoint_group_params.load_ini()
         try:
-            self.load_system_settings_ini(self._control_params.system_settings_ini_file)
+            self.load_system_settings_ini(self._control_params.system_settings_file)
         except:
             self._log.debug("No default system settings ini file to load")
 
         try:
-            self.load_chip_readout_settings_ini(self._control_params.chip_readout_settings_ini_file)
+            self.load_chip_readout_settings_ini(self._control_params.chip_readout_settings_file)
         except:
             self._log.debug("No default chip readout settings ini file to load")
 
         try:
-            self.load_clock_settings_ini(self._control_params.clock_settings_ini_file)
+            self.load_clock_settings_ini(self._control_params.clock_settings_file)
         except:
             self._log.debug("No default clock settings ini file to load")
+
+        try:
+            self.load_sensor_configuration_params(self._control_params.sensor_configuration_file)
+        except:
+            self._log.debug("No default sensor configuration ini file to load")
 
         try:
             self.load_control_group_ini(self._control_params.control_group_ini_file)
@@ -172,6 +181,11 @@ class PercivalParameters(object):
         # Create the ini object from either filename or raw file
         self._clock_settings_params = ClockSettingsParameters(filename)
         self._clock_settings_params.load_ini()
+
+    def load_sensor_configuration_params(self, filename):
+        # Create the ini object from either filename or raw file
+        self._sensor_configuration_params = SensorConfigurationParameters(filename)
+        self._sensor_configuration_params.load_ini()
 
     def load_control_group_ini(self, filename):
         # Create the ini object from either filename or raw file
@@ -259,6 +273,15 @@ class PercivalParameters(object):
             download = self._control_params.clock_settings_download
         except:
             self._log.info("Could not parse download_clock_settings value from config file")
+        return download
+
+    @property
+    def download_sensor_configuration(self):
+        download = False
+        try:
+            download = self._control_params.sensor_configuration_download
+        except:
+            self._log.info("Could not parse download_sensor_configuration value from config file")
         return download
 
     def board_name(self, board):
@@ -407,6 +430,10 @@ class PercivalParameters(object):
         return self._clock_settings_params
 
     @property
+    def sensor_configuration_params(self):
+        return self._sensor_configuration_params
+
+    @property
     def control_group_params(self):
         return self._control_group_params
 
@@ -505,18 +532,25 @@ class PercivalDetector(object):
         self._sensor = Sensor(self._sensor_buffer_cmd)
 
     def auto_download(self):
-        # Check if we are asked to auto download the settings ini file
+        # Check if we are asked to auto download the system settings to hardware
         if self._percival_params.download_system_settings:
             self._log.info("Auto-downloading system settings from default ini file")
             self.download_system_settings()
 
+        # Check if we are asked to auto download the chip readout settings to hardware
         if self._percival_params.download_chip_readout_settings:
             self._log.info("Auto-downloading chip readout settings from default ini file")
             self.download_chip_readout_settings()
 
+        # Check if we are asked to auto download the clock settings to hardware
         if self._percival_params.download_clock_settings:
             self._log.info("Auto-downloading clock settings from default ini file")
             self.download_clock_settings()
+
+        # Check if we are asked to auto download the sensor configuration to hardware
+        if self._percival_params.download_sensor_configuration:
+            self._log.info("Auto-downloading sensor configuration from default ini file")
+            self._sensor.apply_configuration(self._percival_params.sensor_configuration_params.value_map)
 
     def setup_db(self):
         """
@@ -648,6 +682,10 @@ class PercivalDetector(object):
         self._percival_params.load_clock_settings_ini(clock_settings_ini)
         self._clock_settings.load_ini(self._percival_params.clock_settings_params)
 
+    def load_sensor_configuration(self, sensor_config_ini):
+        self._log.debug("Loading sensor configuration with config: %s", sensor_config_ini)
+        self._percival_params.load_sensor_configuration_params(sensor_config_ini)
+
     def load_control_groups(self, control_groups_ini):
         self._log.debug("Loading control groups with config: %s", control_groups_ini)
         self._percival_params.load_control_group_ini(control_groups_ini)
@@ -678,6 +716,9 @@ class PercivalDetector(object):
             self._trace_log.info("Command {} [{}] executed".format(command.command_type, command.command_name))
             self._trace_log.info(command.format_trace)
             # Check if the command is a connection request to the DB
+            if command.command_name in str(PercivalCommandNames.cmd_download_channel_cfg):
+                # No parameters required for this command
+                self.load_configuration()
             if command.command_name in str(PercivalCommandNames.cmd_connect_db):
                 # No parameters required for this command
                 self.setup_db()

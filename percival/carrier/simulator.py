@@ -257,6 +257,10 @@ class Simulator(object):
                         log.info("EOM required")
                         # We need to send FFFFABBABAC1 as an end of message
                         client_sock.send(END_OF_MESSAGE)
+                        # Check for special buffer command case where two reponses may be required
+                        if a == COMMAND.start_address + 1:
+                            if (w & 0x51000000) == 0x51000000:
+                                client_sock.send(bytes('\xFF\xF3\xAB\xBA\x33\x33', encoding=DATA_ENCODING))
                     else:
                         # Simply send back the registers
                         client_sock.send(encode_message(a, self.registers[a]))
