@@ -196,6 +196,24 @@ class TestControlParameters(unittest.TestCase):
 [Control]\n\
 carrier_ip = \"127.0.0.1\"\n\
 \n\
+[Configuration]\n\
+system_settings_file = \"config/SystemSettings.ini\"\n\
+download_system_settings = True\n\
+chip_readout_settings_file = \"config/ChipReadoutSettings.ini\"\n\
+download_chip_readout_settings = True\n\
+clock_settings_file = \"config/ClockSettings.ini\"\n\
+download_clock_settings = True\n\
+sensor_configuration_file = \"config/SensorConfiguration.ini\"\n\
+download_sensor_configuration = True\n\
+sensor_calibration_file = \"config/SensorCalibration.ini\"\n\
+download_sensor_calibration = True\n\
+sensor_debug_file = \"config/SensorDebug.ini\"\n\
+download_sensor_debug = True\n\
+board_bottom_settings_file = \"config/Board BOTTOM.ini\"\n\
+board_carrier_settings_file = \"config/Board CARRIER.ini\"\n\
+board_left_settings_file = \"config/Board LEFT.ini\"\n\
+board_plugin_settings_file = \"config/Board PLUGIN.ini\"\n\
+channel_settings_file = \"config/Channel parameters.ini\"\n\
 ")
         f = open("/tmp/PercivalNONE.ini", "w+")
         f.write("")
@@ -204,6 +222,17 @@ carrier_ip = \"127.0.0.1\"\n\
         pp = ControlParameters("/tmp/Percival.ini")
         pp.load_ini()
         self.assertEquals(pp.carrier_ip, '127.0.0.1')
+        self.assertEquals(pp.system_settings_file, 'config/SystemSettings.ini')
+        self.assertEquals(pp.chip_readout_settings_file, 'config/ChipReadoutSettings.ini')
+        self.assertEquals(pp.clock_settings_file, 'config/ClockSettings.ini')
+        self.assertEquals(pp.sensor_configuration_file, 'config/SensorConfiguration.ini')
+        self.assertEquals(pp.sensor_calibration_file, 'config/SensorCalibration.ini')
+        self.assertEquals(pp.sensor_debug_file, 'config/SensorDebug.ini')
+        self.assertEquals(pp.board_bottom_settings_file, 'config/Board BOTTOM.ini')
+        self.assertEquals(pp.board_carrier_settings_file, 'config/Board CARRIER.ini')
+        self.assertEquals(pp.board_left_settings_file, 'config/Board LEFT.ini')
+        self.assertEquals(pp.board_plugin_settings_file, 'config/Board PLUGIN.ini')
+        self.assertEquals(pp.channel_settings_file, 'config/Channel parameters.ini')
 
     def test_control_exceptions(self):
         pp = ControlParameters("/tmp/PercivalNONE.ini")
