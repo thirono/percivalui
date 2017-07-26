@@ -97,9 +97,9 @@ class BufferCommand(object):
         :returns: list of (address, dataword) tuples
         """
         cmd_msg = self._get_command_msg(cmd, words, address)
-        self._log.critical("Command Message: %s", cmd_msg)
+        self._log.debug("Command Message: %s", cmd_msg)
         response = self._txrx.send_recv_message(cmd_msg)
-        self._log.critical("Response Message: %s", response)
+        self._log.debug("Response Message: %s", response)
         return response
 
     def cmd_no_operation(self):
