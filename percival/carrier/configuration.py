@@ -416,6 +416,7 @@ class ControlParameters(object):
         self._ini_file_options = ["system_settings_file",
                                   "chip_readout_settings_file",
                                   "clock_settings_file",
+                                  "sensor_dac_file",
                                   "sensor_configuration_file",
                                   "sensor_calibration_file",
                                   "sensor_debug_file",
@@ -571,12 +572,6 @@ class ControlParameters(object):
             item = bool(item)
 
         return item
-
-    @property
-    def buffer_settings_ini_file(self):
-        if "Configuration" not in self.conf.sections():
-            raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
-        return self.conf.get("Configuration", "buffer_settings_file").strip("\"")
 
     @property
     def control_group_ini_file(self):

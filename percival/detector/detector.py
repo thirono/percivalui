@@ -79,7 +79,7 @@ class PercivalParameters(object):
         self._buffer_params = None
 
         #self._channel_params = ChannelParameters("config/Channel parameters.ini")
-        #self._buffer_params = BufferParameters("config/BufferParameters.ini")
+        #self._buffer_params = BufferParameters("config/SensorDAC.ini")
         #self._control_group_params = ChannelGroupParameters("config/ControlGroups.ini")
         #self._monitor_group_params = ChannelGroupParameters("config/MonitorGroups.ini")
         #print(self._control_params.setpoint_ini_file)
@@ -123,7 +123,7 @@ class PercivalParameters(object):
             raise PercivalDetectorError("Could not initialise channel parameters from ini file")
 
         try:
-            self._buffer_params = BufferParameters(self._control_params.buffer_settings_ini_file)
+            self._buffer_params = BufferParameters(self._control_params.sensor_dac_file)
             self._buffer_params.load_ini()
         except:
             self._log.error("Could not initialise buffer parameters from ini file")
