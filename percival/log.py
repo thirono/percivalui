@@ -21,7 +21,7 @@ percival_log_config = {
             'formatter': 'verbose'
         },
         'trace_file': {
-            'class': 'logging.handlers.RotatingFileHandler',
+            'class': 'percival.mkdir_handler.MkDirRotatingFileHandler',
             'formatter': 'simple',
             'filename': './logs/percival_trace_{}.log'.format(datetime.now()
                                                               .isoformat()
