@@ -1,5 +1,6 @@
 #import logging.config
 import os
+from datetime import datetime
 
 percival_log_config = {
     'version': 1,
@@ -19,8 +20,23 @@ percival_log_config = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
+        'trace_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'simple',
+            'filename': './logs/percival_trace_{}.log'.format(datetime.now()
+                                                              .isoformat()
+                                                              .replace(':', '_')
+                                                              .replace('-', '_')),
+            'maxBytes': 1048576,
+            'backupCount': 128
+        }
     },
     'loggers': {
+        'percival_trace': {
+            'handlers': ['trace_file'],
+            'propagate': False,
+            'level': 'INFO',
+        },
         'percival': {
             'handlers': ['console'],
             'propagate': False,
