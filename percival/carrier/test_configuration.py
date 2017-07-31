@@ -1,7 +1,7 @@
 import unittest
 import os
 from percival.carrier.configuration import find_file, ChannelParameters, BoardParameters, ControlParameters,\
-    SensorConfigurationParameters, SensorCalibrationParameters
+    SensorConfigurationParameters, SensorCalibrationParameters, SensorDebugParameters
 from percival.carrier.const import BoardTypes
 
 
@@ -243,13 +243,32 @@ channel_settings_file = \"config/Channel parameters.ini\"\n\
 
 class TestSensorConfigurationParameters(unittest.TestCase):
     def setUp(self):
-        self._ini_description = "[General]\nCols_<H1>=5\nCols_<H0>=4\nCols_<G>=3\n\n\
-[H1]\nCol0=5\nCol1=4\nCol2=3\nCol3=2\nCol4=1\n\n\
-[H0]\nCol0=1\nCol1=2\nCol2=3\nCol3=4\n\n\
-[G]\nCol0=3\nCol1=2\nCol2=1\n\n"
+        self._ini_description = u"[General]\n" \
+                                u"Cols<H1>=5\n" \
+                                u"Cols<H0>=4\n" \
+                                u"Cols<G>=3\n" \
+                                u"\n" \
+                                u"[H1]\n" \
+                                u"Col<0>=5\n" \
+                                u"Col<1>=4\n" \
+                                u"Col<2>=3\n" \
+                                u"Col<3>=2\n" \
+                                u"Col<4>=1\n" \
+                                u"\n" \
+                                u"[H0]\n" \
+                                u"Col<0>=1\n" \
+                                u"Col<1>=2\n" \
+                                u"Col<2>=3\n" \
+                                u"Col<3>=4\n" \
+                                u"\n" \
+                                u"[G]\n" \
+                                u"Col<0>=3\n" \
+                                u"Col<1>=2\n" \
+                                u"Col<2>=1\n" \
+                                u"\n"
 
     def test_configuration_parameters(self):
-        cp = SensorConfigurationParameters(unicode(self._ini_description, "utf-8"))
+        cp = SensorConfigurationParameters(self._ini_description)
         cp.load_ini()
         self.assertEqual(cp.value_map, {'H1': [5, 4, 3, 2, 1],
                          'H0': [1, 2, 3, 4],
@@ -258,64 +277,69 @@ class TestSensorConfigurationParameters(unittest.TestCase):
 
 class TestSensorCalibrationParameters(unittest.TestCase):
     def setUp(self):
-        self._ini_description = "[General]\nCols_<H1>=3\nCols_<H0>=2\nCols_<G>=1\ntarget_signals=4\n\n\
-[H1]\n\
-RightCal<0>Col<0>=1\n\
-LeftCal<0>Col<0>=2\n\
-RightCal<1>Col<0>=3\n\
-LeftCal<1>Col<0>=4\n\
-RightCal<2>Col<0>=5\n\
-LeftCal<2>Col<0>=6\n\
-RightCal<3>Col<0>=7\n\
-LeftCal<3>Col<0>=8\n\
-RightCal<0>Col<1>=9\n\
-LeftCal<0>Col<1>=10\n\
-RightCal<1>Col<1>=11\n\
-LeftCal<1>Col<1>=12\n\
-RightCal<2>Col<1>=13\n\
-LeftCal<2>Col<1>=14\n\
-RightCal<3>Col<1>=15\n\
-LeftCal<3>Col<1>=16\n\
-RightCal<0>Col<2>=17\n\
-LeftCal<0>Col<2>=18\n\
-RightCal<1>Col<2>=19\n\
-LeftCal<1>Col<2>=20\n\
-RightCal<2>Col<2>=21\n\
-LeftCal<2>Col<2>=22\n\
-RightCal<3>Col<2>=23\n\
-LeftCal<3>Col<2>=24\n\
-\n\
-[H0]\n\
-RightCal<0>Col<0>=25\n\
-LeftCal<0>Col<0>=26\n\
-RightCal<1>Col<0>=27\n\
-LeftCal<1>Col<0>=28\n\
-RightCal<2>Col<0>=29\n\
-LeftCal<2>Col<0>=30\n\
-RightCal<3>Col<0>=31\n\
-LeftCal<3>Col<0>=32\n\
-RightCal<0>Col<1>=33\n\
-LeftCal<0>Col<1>=34\n\
-RightCal<1>Col<1>=35\n\
-LeftCal<1>Col<1>=36\n\
-RightCal<2>Col<1>=37\n\
-LeftCal<2>Col<1>=38\n\
-RightCal<3>Col<1>=39\n\
-LeftCal<3>Col<1>=40\n\
-\n\
-[G]\n\
-RightCal<0>Col<0>=41\n\
-LeftCal<0>Col<0>=42\n\
-RightCal<1>Col<0>=43\n\
-LeftCal<1>Col<0>=44\n\
-RightCal<2>Col<0>=45\n\
-LeftCal<2>Col<0>=46\n\
-RightCal<3>Col<0>=47\n\
-LeftCal<3>Col<0>=48\n\
-\n"
+        self._ini_description = u"[General]\n" \
+                                u"Cols<H1>=3\n" \
+                                u"Cols<H0>=2\n" \
+                                u"Cols<G>=1\n" \
+                                u"target_signals=4\n" \
+                                u"\n" \
+                                u"[H1]\n" \
+                                u"RightCal<0>Col<0>=1\n" \
+                                u"LeftCal<0>Col<0>=2\n" \
+                                u"RightCal<1>Col<0>=3\n" \
+                                u"LeftCal<1>Col<0>=4\n" \
+                                u"RightCal<2>Col<0>=5\n" \
+                                u"LeftCal<2>Col<0>=6\n" \
+                                u"RightCal<3>Col<0>=7\n" \
+                                u"LeftCal<3>Col<0>=8\n" \
+                                u"RightCal<0>Col<1>=9\n" \
+                                u"LeftCal<0>Col<1>=10\n" \
+                                u"RightCal<1>Col<1>=11\n" \
+                                u"LeftCal<1>Col<1>=12\n" \
+                                u"RightCal<2>Col<1>=13\n" \
+                                u"LeftCal<2>Col<1>=14\n" \
+                                u"RightCal<3>Col<1>=15\n" \
+                                u"LeftCal<3>Col<1>=16\n" \
+                                u"RightCal<0>Col<2>=17\n" \
+                                u"LeftCal<0>Col<2>=18\n" \
+                                u"RightCal<1>Col<2>=19\n" \
+                                u"LeftCal<1>Col<2>=20\n" \
+                                u"RightCal<2>Col<2>=21\n" \
+                                u"LeftCal<2>Col<2>=22\n" \
+                                u"RightCal<3>Col<2>=23\n" \
+                                u"LeftCal<3>Col<2>=24\n" \
+                                u"\n" \
+                                u"[H0]\n" \
+                                u"RightCal<0>Col<0>=25\n" \
+                                u"LeftCal<0>Col<0>=26\n" \
+                                u"RightCal<1>Col<0>=27\n" \
+                                u"LeftCal<1>Col<0>=28\n" \
+                                u"RightCal<2>Col<0>=29\n" \
+                                u"LeftCal<2>Col<0>=30\n" \
+                                u"RightCal<3>Col<0>=31\n" \
+                                u"LeftCal<3>Col<0>=32\n" \
+                                u"RightCal<0>Col<1>=33\n" \
+                                u"LeftCal<0>Col<1>=34\n" \
+                                u"RightCal<1>Col<1>=35\n" \
+                                u"LeftCal<1>Col<1>=36\n" \
+                                u"RightCal<2>Col<1>=37\n" \
+                                u"LeftCal<2>Col<1>=38\n" \
+                                u"RightCal<3>Col<1>=39\n" \
+                                u"LeftCal<3>Col<1>=40\n" \
+                                u"\n" \
+                                u"[G]\n" \
+                                u"RightCal<0>Col<0>=41\n" \
+                                u"LeftCal<0>Col<0>=42\n" \
+                                u"RightCal<1>Col<0>=43\n" \
+                                u"LeftCal<1>Col<0>=44\n" \
+                                u"RightCal<2>Col<0>=45\n" \
+                                u"LeftCal<2>Col<0>=46\n" \
+                                u"RightCal<3>Col<0>=47\n" \
+                                u"LeftCal<3>Col<0>=48\n" \
+                                u"\n"
 
     def test_configuration_parameters(self):
-        cp = SensorCalibrationParameters(unicode(self._ini_description, "utf-8"))
+        cp = SensorCalibrationParameters(self._ini_description)
         cp.load_ini()
         self.assertEqual(cp.value_map, {'H1': {'Cal0': {'Right' :[1, 9, 17],
                                                         'Left': [2, 10, 18]},
@@ -345,6 +369,41 @@ LeftCal<3>Col<0>=48\n\
                                                        'Left': [48]},
                                               }
                                         })
+
+
+class TestSensorDebugParameters(unittest.TestCase):
+    def setUp(self):
+        self._ini_description = u"[General]\n" \
+                                u"debug<H1>=5\n" \
+                                u"debug<H0>=4\n" \
+                                u"debug<G>=3\n" \
+                                u"\n" \
+                                u"[H1]\n" \
+                                u"debug<0>=12\n" \
+                                u"debug<1>=11\n" \
+                                u"debug<2>=10\n" \
+                                u"debug<3>=9\n" \
+                                u"debug<4>=8\n" \
+                                u"\n" \
+                                u"[H0]\n" \
+                                u"debug<0>=7\n" \
+                                u"debug<1>=6\n" \
+                                u"debug<2>=5\n" \
+                                u"debug<3>=4\n" \
+                                u"\n" \
+                                u"[G]\n" \
+                                u"debug<0>=3\n" \
+                                u"debug<1>=2\n" \
+                                u"debug<2>=1\n" \
+                                u"\n"
+
+    def test_debug_parameters(self):
+        cp = SensorDebugParameters(self._ini_description)
+        cp.load_ini()
+        self.assertEqual(cp.value_map, {'H1': [12, 11, 10, 9, 8],
+                         'H0': [7, 6, 5, 4],
+                         'G': [3, 2, 1]})
+
 
 if __name__ == '__main__':
     unittest.main()

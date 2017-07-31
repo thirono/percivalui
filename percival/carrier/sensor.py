@@ -184,7 +184,7 @@ class Sensor(object):
             self._buffer_cmd.send_debug_setup_cmd(words)
 
     def apply_calibration(self, calibration):
-        self._log.debug("Applying sensor calibration: %s", calibration)
+        #self._log.debug("Applying sensor calibration: %s", calibration)
         # We need to first verify the debug description
         # Expected format
         #
@@ -219,15 +219,15 @@ class Sensor(object):
         #
         data_words = []
         calibration_keys = ['H1', 'H0', 'G']
-        calibration_set_names = ['Cal1', 'Cal2', 'Cal3', 'Cal4']
+        calibration_set_names = ['Cal0', 'Cal1', 'Cal2', 'Cal3']
         if all(name in calibration_keys for name in calibration):
             for key in calibration_keys:
                 calibration_set = calibration[key]
                 if all(name in calibration_set_names for name in calibration_set):
-                    calibration_set_1 = calibration_set['Cal1']
-                    calibration_set_2 = calibration_set['Cal2']
-                    calibration_set_3 = calibration_set['Cal3']
-                    calibration_set_4 = calibration_set['Cal4']
+                    calibration_set_1 = calibration_set['Cal0']
+                    calibration_set_2 = calibration_set['Cal1']
+                    calibration_set_3 = calibration_set['Cal2']
+                    calibration_set_4 = calibration_set['Cal3']
                     col1_values = self.combine_9bit_lists_into_8bit_list(calibration_set_1['Right'],
                                                                          calibration_set_1['Left'])
                     col2_values = self.combine_9bit_lists_into_8bit_list(calibration_set_2['Right'],
@@ -240,11 +240,11 @@ class Sensor(object):
                                                                                       col2_values,
                                                                                       col3_values,
                                                                                       col4_values)
-                    self._log.debug("Sensor calibration words: %s", data_words)
-                    self._buffer_cmd.send_calibration_setup_cmd(data_words)
                 else:
                     self._log.error("Unable to find calibration targets %s in set %s", calibration_set_names, key)
                     raise RuntimeError("Unable to find calibration targets %s in set %s", calibration_set_names, key)
+            self._log.debug("Sensor calibration words: %s", data_words)
+            self._buffer_cmd.send_calibration_setup_cmd(data_words)
         else:
             self._log.error("Unable to find calibration sets %s within calibration object", calibration_keys)
             raise RuntimeError("Unable to find calibration sets %s within calibration object", calibration_keys)
