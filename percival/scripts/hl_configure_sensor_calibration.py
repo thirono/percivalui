@@ -28,7 +28,7 @@ def main():
         ini_str = ini_file.read()
 
     pc = PercivalClient(args.address)
-    pc.send_configuration('sensor_configuration', ini_str, 'hl_configure_sensor_configuration.py')
+    pc.send_configuration('sensor_calibration', ini_str, 'hl_configure_sensor_calibration.py')
 
 
 if __name__ == '__main__':
