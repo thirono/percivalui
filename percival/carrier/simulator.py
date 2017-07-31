@@ -259,7 +259,9 @@ class Simulator(object):
                         client_sock.send(END_OF_MESSAGE)
                         # Check for special buffer command case where two reponses may be required
                         if a == COMMAND.start_address + 1:
-                            if (w & 0x51000000) == 0x51000000:
+                            if (w & 0x51000000) == 0x51000000 \
+                                    or (w & 0x52000000) == 0x52000000 \
+                                    or (w & 0x54000000) == 0x54000000:
                                 client_sock.send(bytes('\xFF\xF3\xAB\xBA\x33\x33', encoding=DATA_ENCODING))
                     else:
                         # Simply send back the registers
