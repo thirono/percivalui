@@ -1,5 +1,6 @@
 #import logging.config
 import os
+from datetime import datetime
 
 percival_log_config = {
     'version': 1,
@@ -19,130 +20,155 @@ percival_log_config = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
+        'log_file': {
+            'class': 'percival.mkdir_handler.MkDirRotatingFileHandler',
+            'formatter': 'simple',
+            'filename': './logs/percival_{}.log'.format(datetime.now()
+                                                        .isoformat()
+                                                        .replace(':', '_')
+                                                        .replace('-', '_')),
+            'maxBytes': 1048576,
+            'backupCount': 128
+        },
+        'trace_file': {
+            'class': 'percival.mkdir_handler.MkDirRotatingFileHandler',
+            'formatter': 'simple',
+            'filename': './logs/percival_trace_{}.log'.format(datetime.now()
+                                                              .isoformat()
+                                                              .replace(':', '_')
+                                                              .replace('-', '_')),
+            'maxBytes': 1048576,
+            'backupCount': 128
+        }
     },
     'loggers': {
+        'percival_trace': {
+            'handlers': ['trace_file'],
+            'propagate': False,
+            'level': 'INFO',
+        },
         'percival': {
-            'handlers': ['console'],
+            'handlers': ['log_file'],
             'propagate': False,
             'level': 'ERROR',
         },
         'percival.carrier': {
-            'handlers': ['console'],
+            'handlers': ['log_file'],
             'level': 'ERROR',
             'propagate': False,
         },
         'percival.carrier.simulator': {
-            'handlers': ['console'],
+            'handlers': ['log_file'],
             'level': 'DEBUG',
             'propagate': False,
         },
         'percival.carrier.system.SystemSettings': {
-            'handlers': ['console'],
+            'handlers': ['log_file'],
             'level': 'INFO',
             'propagate': False,
         },
         'percival.carrier.sensor.Sensor': {
-            'handlers': ['console'],
+            'handlers': ['log_file'],
             'level': 'DEBUG',
             'propagate': False,
         },
         'percival.carrier.buffer': {
-            'handlers': ['console'],
+            'handlers': ['log_file'],
             'level': 'ERROR',
             'propagate': False,
         },
         'percival.carrier.buffer.BufferCommand': {
-            'handlers': ['console'],
+            'handlers': ['log_file'],
             'level': 'ERROR',
             'propagate': False,
         },
         'percival.carrier.channels': {
-            'handlers': ['console'],
+            'handlers': ['log_file'],
             'level': 'ERROR',
             'propagate': False,
         },
         'percival.carrier.channels.ControlChannel': {
-            'handlers': ['console'],
+            'handlers': ['log_file'],
             'level': 'ERROR',
             'propagate': False,
         },
         'percival.carrier.channels.MonitoringChannel': {
-            'handlers': ['console'],
+            'handlers': ['log_file'],
             'level': 'ERROR',
             'propagate': False,
         },
         'percival.carrier.configuration.SetpointGroupParameters': {
-            'handlers': ['console'],
+            'handlers': ['log_file'],
             'level': 'INFO',
             'propagate': False,
         },
         'percival.carrier.configuration.ControlParameters': {
-            'handlers': ['console'],
+            'handlers': ['log_file'],
             'level': 'DEBUG',
             'propagate': False,
         },
         'percival.carrier.devices': {
-            'handlers': ['console'],
+            'handlers': ['log_file'],
             'level': 'INFO',
             'propagate': False,
         },
         'percival.carrier.encoding': {
-            'handlers': ['console'],
+            'handlers': ['log_file'],
             'level': 'ERROR',
             'propagate': False,
         },
         'percival.carrier.txrx': {
-            'handlers': ['console'],
+            'handlers': ['log_file'],
             'level': 'DEBUG',
             'propagate': False,
         },
         'percival.carrier.txrx.TxRx': {
-            'handlers': ['console'],
+            'handlers': ['log_file'],
             'level': 'DEBUG',
             'propagate': False,
         },
         'percival.control': {
-            'handlers': ['console'],
+            'handlers': ['log_file'],
             'level': 'ERROR',
             'propagate': False,
         },
         'percival.detector': {
-            'handlers': ['console'],
+            'handlers': ['log_file'],
             'level': 'ERROR',
             'propagate': False,
         },
         'percival.detector.ipc_reactor.IpcReactor': {
-            'handlers': ['console'],
+            'handlers': ['log_file'],
             'level': 'ERROR',
             'propagate': False,
         },
         'percival.detector.standalone.PercivalStandalone': {
-            'handlers': ['console'],
+            'handlers': ['log_file'],
             'level': 'DEBUG',
             'propagate': False,
         },
         'percival.detector.set_point.SetPointControl': {
-            'handlers': ['console'],
+            'handlers': ['log_file'],
             'level': 'INFO',
             'propagate': False,
         },
         'percival.detector.detector.PercivalParameters': {
-            'handlers': ['console'],
+            'handlers': ['log_file'],
             'level': 'DEBUG',
             'propagate': False,
         },
         'percival.detector.detector.PercivalDetector': {
-            'handlers': ['console'],
+            'handlers': ['log_file'],
             'level': 'ERROR',
             'propagate': False,
         },
         'BoardSettings': {
-            'handlers': ['console'],
+            'handlers': ['log_file'],
             'level': 'DEBUG',
             'propagate': False,
         },
         'percival.configuration.ChannelParameters': {
-            'handlers': ['console'],
+            'handlers': ['log_file'],
             'level': 'INFO',
             'propagate': False,
         }

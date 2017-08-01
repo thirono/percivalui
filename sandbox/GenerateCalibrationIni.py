@@ -14,9 +14,10 @@ def main():
     try:
         with open("config/SensorCalibration.ini", "w") as c_file:
             c_file.write("[General]\n")
-            c_file.write("Cols_<H1>= 704\n")
-            c_file.write("Cols_<H0>= 704\n")
-            c_file.write("Cols_<G>= 32\n")
+            c_file.write("Cols<H1>=704\n")
+            c_file.write("Cols<H0>=704\n")
+            c_file.write("Cols<G>=32\n")
+            c_file.write("target_signals=4\n")
             c_file.write("\n")
             c_file.write("[H1]\n")
             for index in range(704):

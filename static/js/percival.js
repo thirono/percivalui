@@ -2,6 +2,7 @@ api_version = '0.1';
 monitor_names = [];
 monitor_desc = {};
 current_page = "configuration-view";
+config_files = "";
 
 percival = {
   api_version: '0.1',
@@ -12,6 +13,12 @@ percival = {
   groups: {},
   control_names: []
   };
+
+
+String.prototype.replaceAll = function(search, replacement) {
+    var target = this;
+    return target.replace(new RegExp(search, 'g'), replacement);
+};
 
 $.put = function(url, data, callback, type)
 {
@@ -237,7 +244,18 @@ $( document ).ready(function()
   $('#server-set-point-cmd').click(function(){
     send_set_point_command();
   });
-
+  $('#server-config-cmd').click(function(){
+    send_config_command();
+  });
+  $('#select-config-file').on('change', function(event){
+    //alert(event.target.files[0]);
+    reader = new FileReader();
+    reader.onloadend = function(event){
+        //alert(event.target.result);
+        $('#config-display').text(event.target.result)
+    }
+    reader.readAsText(event.target.files[0], 'UF-8');
+  });
   $(window).on('hashchange', function(){
 		// On every hash change the render function is called with the new hash.
 		// This is how the navigation of the app is executed.
@@ -253,6 +271,21 @@ function reconnect_db()
 function auto_read(action)
 {
     $.put('/api/' + api_version + '/percival/auto_read/' + action, function(response){});
+}
+
+function send_config_command()
+{
+    alert($('#config-display').text().replaceAll('=', '::'));
+    config_type = $('#select-config').find(":selected").text();
+    $.ajax({
+        url: '/api/' + api_version + '/percival/cmd_load_config',
+        type: 'PUT',
+        dataType: 'json',
+        data: 'config=' + encodeURIComponent($('#config-display').text().replaceAll('=', '::')) + '&config_type=' + config_type,
+        headers: {'Content-Type': 'application/json',
+                  'Accept': 'application/json'},
+        success: function(data){}
+    });
 }
 
 function send_system_command()

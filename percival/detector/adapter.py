@@ -33,7 +33,7 @@ class PercivalAdapter(ApiAdapter):
         """
         super(PercivalAdapter, self).__init__(**kwargs)
 
-        logging.debug(kwargs)
+        #logging.debug(kwargs)
         ini_file = None
         if 'config_file' in kwargs:
             ini_file = kwargs['config_file']

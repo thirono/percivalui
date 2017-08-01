@@ -13,7 +13,7 @@ class ChipReadoutSettings(object):
         :param txrx: Percival communication context
         :type  txrx: TxRx
         """
-        self.log = logging.getLogger(self.__class__.__name__)
+        self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._reg_command = UARTRegister(const.CHIP_READOUT_SETTINGS)
         self._reg_command.initialize_map([0, 0, 0, 0, 0, 0, 0, 0,
                                           0, 0, 0, 0, 0, 0, 0, 0,
@@ -52,8 +52,7 @@ class ChipReadoutSettings(object):
                     self.log.error("Failed to set iten %s from ini file", item)
                     raise
         else:
-            self._log.debug("Attempted to load a none type ini object")
-
+            self.log.debug("Attempted to load a none type ini object")
 
     def set_txrx(self, txrx):
         self._txrx = txrx

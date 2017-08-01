@@ -222,6 +222,7 @@ class SensorBufferCommand(BufferCommand):
         self._log.debug("Executing sensor calibration command with words: %s", words)
         if len(words) != 3240:
             self._log.error("Supplied word list for sensor calibration is not length 3240")
+            self._log.error("Provided word length is: %d", len(words))
             raise RuntimeError("Supplied word list for sensor config is not length 3240")
 
         # Now perform 90 iterations, each time writing 36 words to the buffer and then sending the

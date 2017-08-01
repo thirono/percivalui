@@ -289,6 +289,34 @@
 								</div></small>
 							</div>
 						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-3">&nbsp;</div>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-3">Upload Configuration File:</div>
+							<div class="col-xs-5 status vertical-align">
+								<small>
+									<input type="file" id="select-config-file" size="50">
+									</input>
+									<div class="dropdown">
+									<select id="select-config">
+										<option>system_settings</option>
+										<option>chip_readout_settings</option>
+										<option>clock_settings</option>
+										<option>sensor_dac</option>
+										<option>sensor_configuration</option>
+										<option>sensor_calibration</option>
+										<option>sensor_debug</option>
+										<option>setpoints</option>
+										<option>control_groups</option>
+										<option>monitor_groups</option>
+									</select>
+									<span><button id="server-config-cmd">Execute</button></span>
+									</div>
+								</small>
+								<textarea rows="20" cols="80" id="config-display"></textarea>
+							</div>
+						</div>
 					</div> <!-- container-fluid -->
 				</div> <!--  well sidebar-nav-fixed -->
 			</div> <!-- span3 -->
