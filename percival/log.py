@@ -23,25 +23,30 @@ percival_log_config = {
         'log_file': {
             'class': 'percival.mkdir_handler.MkDirRotatingFileHandler',
             'formatter': 'simple',
-            'filename': './logs/percival_{}.log'.format(datetime.now()
-                                                        .isoformat()
-                                                        .replace(':', '_')
-                                                        .replace('-', '_')),
+            'filename': './logs/percival.log',  #.format(datetime.now()
+                                                #        .isoformat()
+                                                #        .replace(':', '_')
+                                                #        .replace('-', '_')),
             'maxBytes': 1048576,
-            'backupCount': 128
+            'backupCount': 10
         },
         'trace_file': {
             'class': 'percival.mkdir_handler.MkDirRotatingFileHandler',
             'formatter': 'simple',
-            'filename': './logs/percival_trace_{}.log'.format(datetime.now()
-                                                              .isoformat()
-                                                              .replace(':', '_')
-                                                              .replace('-', '_')),
+            'filename': './logs/percival_trace.log',  #.format(datetime.now()
+                                                      #        .isoformat()
+                                                      #        .replace(':', '_')
+                                                      #        .replace('-', '_')),
             'maxBytes': 1048576,
-            'backupCount': 128
+            'backupCount': 10
         }
     },
     'loggers': {
+        'percival_sandbox': {
+            'handlers': ['console'],
+            'propagate': False,
+            'level': 'DEBUG',
+        },
         'percival_trace': {
             'handlers': ['trace_file'],
             'propagate': False,
