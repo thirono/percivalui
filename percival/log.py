@@ -27,8 +27,8 @@ percival_log_config = {
                                                 #        .isoformat()
                                                 #        .replace(':', '_')
                                                 #        .replace('-', '_')),
-            'maxBytes': 1048576,
-            'backupCount': 10
+            'maxBytes': 5242880,
+            'backupCount': 20
         },
         'trace_file': {
             'class': 'percival.mkdir_handler.MkDirRotatingFileHandler',
@@ -37,8 +37,8 @@ percival_log_config = {
                                                       #        .isoformat()
                                                       #        .replace(':', '_')
                                                       #        .replace('-', '_')),
-            'maxBytes': 1048576,
-            'backupCount': 10
+            'maxBytes': 5242880,
+            'backupCount': 20
         }
     },
     'loggers': {
