@@ -22,13 +22,13 @@ percival_log_config = {
         },
         'log_file': {
             'class': 'percival.mkdir_handler.MkDirRotatingFileHandler',
-            'formatter': 'simple',
+            'formatter': 'verbose',
             'filename': './logs/percival.log',  #.format(datetime.now()
                                                 #        .isoformat()
                                                 #        .replace(':', '_')
                                                 #        .replace('-', '_')),
-            'maxBytes': 1048576,
-            'backupCount': 10
+            'maxBytes': 5242880,
+            'backupCount': 20
         },
         'trace_file': {
             'class': 'percival.mkdir_handler.MkDirRotatingFileHandler',
@@ -37,8 +37,8 @@ percival_log_config = {
                                                       #        .isoformat()
                                                       #        .replace(':', '_')
                                                       #        .replace('-', '_')),
-            'maxBytes': 1048576,
-            'backupCount': 10
+            'maxBytes': 5242880,
+            'backupCount': 20
         }
     },
     'loggers': {
@@ -55,11 +55,11 @@ percival_log_config = {
         'percival': {
             'handlers': ['log_file'],
             'propagate': False,
-            'level': 'ERROR',
+            'level': 'DEBUG',
         },
         'percival.carrier': {
             'handlers': ['log_file'],
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'propagate': False,
         },
         'percival.carrier.simulator': {
@@ -69,22 +69,22 @@ percival_log_config = {
         },
         'percival.carrier.system.SystemSettings': {
             'handlers': ['log_file'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propagate': False,
         },
         'percival.carrier.sensor.Sensor': {
             'handlers': ['log_file'],
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'propagate': False,
         },
         'percival.carrier.buffer': {
             'handlers': ['log_file'],
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'propagate': False,
         },
         'percival.carrier.buffer.BufferCommand': {
             'handlers': ['log_file'],
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'propagate': False,
         },
         'percival.carrier.channels': {
@@ -134,12 +134,12 @@ percival_log_config = {
         },
         'percival.control': {
             'handlers': ['log_file'],
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'propagate': False,
         },
         'percival.detector': {
             'handlers': ['log_file'],
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'propagate': False,
         },
         'percival.detector.ipc_reactor.IpcReactor': {
@@ -164,7 +164,7 @@ percival_log_config = {
         },
         'percival.detector.detector.PercivalDetector': {
             'handlers': ['log_file'],
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'propagate': False,
         },
         'BoardSettings': {

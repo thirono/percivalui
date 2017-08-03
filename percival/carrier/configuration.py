@@ -476,12 +476,15 @@ class ControlParameters(object):
     def get_ini_file(self, item):
         if "Configuration" not in self.conf.sections():
             raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
-        return self.conf.get("Configuration", item).strip("\"")
+        value = self.conf.get("Configuration", item).strip("\"")
+        self.log.debug("Checking for %s in percival control config file.  Value: %s", item, value)
+        return value
 
     def get_ini_file_download(self, item):
         if "Configuration" not in self.conf.sections():
             raise_with_traceback(RuntimeError("Configuration section not found in ini file %s" % str(self._ini_filename)))
         value = self.conf.get("Configuration", item).strip("\"")
+        self.log.debug("Checking for %s in percival control config file.  Raw value: %s", item, value)
         if isinstance(value, str):
             if 'false' in value.lower():
                 value = False
@@ -490,6 +493,7 @@ class ControlParameters(object):
         else:
             value = bool(value)
 
+        self.log.debug("    Processed value: %s", value)
         return value
 
     @property
