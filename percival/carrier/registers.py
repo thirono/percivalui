@@ -27,7 +27,7 @@ class RegisterMap(object):
             raise_with_traceback(AttributeError("No attribute: %s"%name))
 
     def __setattr__(self, name, value):
-        logger.debug(str(self._mem_map))
+        #logger.debug(str(self._mem_map))
         if name not in self._mem_map.keys():
             return object.__setattr__(self, name, value)
         else:

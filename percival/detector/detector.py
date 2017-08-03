@@ -507,20 +507,14 @@ class PercivalDetector(object):
     def __init__(self, ini_file=None, download_config=True, initialise_hardware=True):
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._trace_log = logging.getLogger("percival_trace")
-        #self._trace_log = get_exclusive_file_logger('./logs/percival_trace_{}.log'.format(datetime.now()
-        #                                                                                  .isoformat()
-        #                                                                                  .replace(':', '_')
-        #                                                                                  .replace('-', '_')))
-        print(self._trace_log)
-        print(self._trace_log.getEffectiveLevel())
-        #self._trace_log.setLevel(20)
-        print(self._trace_log.getEffectiveLevel())
         self._trace_log.info("Percival execution trace logging")
+        self._log.info("Executing detector constructor")
         self._start_time = datetime.now()
         self._username = getpass.getuser()
         self._txrx = None
         self._db = None
         self._global_monitoring = False
+        self._log.info("Executing detector constructor")
         self._percival_params = PercivalParameters(ini_file)
         self._board_settings = {}
         self._board_values ={}
@@ -531,19 +525,31 @@ class PercivalDetector(object):
         self._sensor = None
         self._control_groups = None
         self._monitor_groups = None
+        self._log.info("Creating SystemSettings object")
         self._system_settings = SystemSettings()
+        self._log.info("Creating ChipRadoutSettings object")
         self._chip_readout_settings = ChipReadoutSettings()
+        self._log.info("Creating ClockSettings object")
         self._clock_settings = ClockSettings()
+        self._log.info("Creating SetPointControl object")
         self._setpoint_control = SetPointControl(self)
+        self._log.info("Starting setpoint control scan loop")
         self._setpoint_control.start_scan_loop()
+        self._log.info("Calling load_ini for detector")
         self.load_ini()
+        self._log.info("Setting up database connection to influxdb")
         self.setup_db()
+        self._log.info("Setting up control interface")
         self.setup_control()
+        self._log.info("Checking for auto-download of configuration files")
         self.auto_download()
         if download_config:
+            self._log.info("Loading channel configuration to hardware")
             self.load_configuration()
+        self._log.info("Loading channel information from hardware shortcuts")
         self.load_channels()
         if initialise_hardware:
+            self._log.info("Executing initialisation of channels")
             self.initialize_channels()
 
     def cleanup(self):
@@ -791,7 +797,8 @@ class PercivalDetector(object):
         :param command:
         :return:
         """
-        response = {}
+        response = {'command': command.command_name,
+                    'time': command.command_time}
         # Check if the command is a PUT command
         if 'PUT' in command.command_type:
             # Log the trace information from the command object

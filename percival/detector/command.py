@@ -73,6 +73,10 @@ class Command(object):
         return self._command_name
 
     @property
+    def command_time(self):
+        return self._trace[CommandTrace.creation_time]
+
+    @property
     def format_trace(self):
         return {'Username': self._trace[CommandTrace.user],
                 'Created': self._trace[CommandTrace.creation_time],
