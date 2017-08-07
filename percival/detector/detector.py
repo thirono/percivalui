@@ -6,9 +6,16 @@ Created on 20 May 2016
 from __future__ import print_function
 import os
 import logging
+import threading
 from percival.log import get_exclusive_file_logger
 from datetime import datetime, timedelta
 import getpass
+import sys
+is_py2 = sys.version[0] == '2'
+if is_py2:
+    import Queue as queue
+else:
+    import queue as queue
 
 from percival.carrier import const
 from percival.carrier.buffer import SensorBufferCommand
@@ -525,6 +532,7 @@ class PercivalDetector(object):
         self._sensor = None
         self._control_groups = None
         self._monitor_groups = None
+        self._active_command = None
         self._log.info("Creating SystemSettings object")
         self._system_settings = SystemSettings()
         self._log.info("Creating ChipRadoutSettings object")
@@ -551,8 +559,12 @@ class PercivalDetector(object):
         if initialise_hardware:
             self._log.info("Executing initialisation of channels")
             self.initialize_channels()
+        self._command_queue = queue.Queue()
+        self._command_thread = threading.Thread(target=self.command_loop)
+        self._command_thread.start()
 
     def cleanup(self):
+        self.queue_command(None)
         self._setpoint_control.stop_scan_loop()
 
     def load_ini(self):
@@ -789,6 +801,23 @@ class PercivalDetector(object):
         self._percival_params.load_setpoint_group_ini(setpoint_ini)
         self._setpoint_control.load_ini(self._percival_params.setpoint_params)
 
+    def queue_command(self, command):
+        self._command_queue.put(command)
+
+    def command_loop(self):
+        running = True
+        while running:
+            try:
+                command = self._command_queue.get()
+                if command:
+                    self.execute_command(command)
+                else:
+                    running = False
+            except PercivalDetectorError as e:
+                self._active_command.complete(success=False, message=str(e))
+            except Exception as e:
+                self._active_command.complete(success=False, message="Unhandled exception: {}".format(str(e)))
+
     def execute_command(self, command):
         """
         Log the execution of the command (use command trace)
@@ -797,51 +826,58 @@ class PercivalDetector(object):
         :param command:
         :return:
         """
-        response = {'command': command.command_name,
-                    'time': command.command_time}
+        response = {}
         # Check if the command is a PUT command
         if 'PUT' in command.command_type:
             # Log the trace information from the command object
             self._trace_log.info("Command {} [{}] executed".format(command.command_type, command.command_name))
+            command.activate()
             self._trace_log.info(command.format_trace)
+            self._active_command = command
             # Check if the command is a connection request to the DB
             if command.command_name in str(PercivalCommandNames.cmd_download_channel_cfg):
                 # No parameters required for this command
                 self.load_configuration()
+                self._active_command.complete(success=True)
             if command.command_name in str(PercivalCommandNames.cmd_connect_db):
                 # No parameters required for this command
                 self.setup_db()
+                self._active_command.complete(success=True)
             elif command.command_name in str(PercivalCommandNames.cmd_load_config):
                 # Parameter [config_type] one of setpoint, ctrl_group, mon_group, channels
                 # Parameter [config] path to config file or the configuration contents
                 if command.has_param('config_type'):
                     if command.has_param('config'):
-                        config_type = command.get_param('config_type')
-                        config_desc = command.get_param('config').replace('::', '=')
-                        if 'setpoints' in config_type:
-                            self.load_setpoints(config_desc)
-                        elif 'control_groups' in config_type:
-                            self.load_control_groups(config_desc)
-                        elif 'monitor_groups' in config_type:
-                            self.load_monitor_groups(config_desc)
-                        elif 'system_settings' in config_type:
-                            self.load_system_settings(config_desc)
-                            self.download_system_settings()
-                        elif 'chip_readout_settings' in config_type:
-                            self.load_chip_readout_settings(config_desc)
-                            self.download_chip_readout_settings()
-                        elif 'clock_settings' in config_type:
-                            self.load_clock_settings(config_desc)
-                            self.download_clock_settings()
-                        elif 'sensor_configuration' in config_type:
-                            self.load_sensor_configuration(config_desc)
-                            self.download_sensor_configuration()
-                        elif 'sensor_calibration' in config_type:
-                            self.load_sensor_calibration(config_desc)
-                            self.download_sensor_calibration()
-                        elif 'sensor_debug' in config_type:
-                            self.load_sensor_debug(config_desc)
-                            self.download_sensor_debug()
+                        if len(command.get_param('config')) > 0:
+                            config_type = command.get_param('config_type')
+                            config_desc = command.get_param('config').replace('::', '=')
+                            if 'setpoints' in config_type:
+                                self.load_setpoints(config_desc)
+                            elif 'control_groups' in config_type:
+                                self.load_control_groups(config_desc)
+                            elif 'monitor_groups' in config_type:
+                                self.load_monitor_groups(config_desc)
+                            elif 'system_settings' in config_type:
+                                self.load_system_settings(config_desc)
+                                self.download_system_settings()
+                            elif 'chip_readout_settings' in config_type:
+                                self.load_chip_readout_settings(config_desc)
+                                self.download_chip_readout_settings()
+                            elif 'clock_settings' in config_type:
+                                self.load_clock_settings(config_desc)
+                                self.download_clock_settings()
+                            elif 'sensor_configuration' in config_type:
+                                self.load_sensor_configuration(config_desc)
+                                self.download_sensor_configuration()
+                            elif 'sensor_calibration' in config_type:
+                                self.load_sensor_calibration(config_desc)
+                                self.download_sensor_calibration()
+                            elif 'sensor_debug' in config_type:
+                                self.load_sensor_debug(config_desc)
+                                self.download_sensor_debug()
+                            self._active_command.complete(success=True)
+                        else:
+                            self._active_command.complete(success=False, message='Empty configuration parameter supplied')
                     else:
                         raise PercivalDetectorError("No config provided (file or object)")
                 else:
@@ -897,6 +933,7 @@ class PercivalDetector(object):
                 if command.has_param('name'):
                     # Execute the system command
                     self.system_command(command.get_param('name'))
+                    self._active_command.complete(success=True)
 
         # Check if the command is a GET command
         elif 'GET' in command.command_type:
@@ -1009,6 +1046,24 @@ class PercivalDetector(object):
                      "influx_db": self._db.get_status(),
                      "hardware": self._txrx.get_status()
                      }
+
+        elif parameter == "action":
+            if self._active_command:
+                reply = {'response': self._active_command.state,
+                         'error': self._active_command.message,
+                         'command': self._active_command.command_name,
+                         'param_names': self._active_command.param_names,
+                         'parameters': self._active_command.parameters,
+                         'time': self._active_command.command_time
+                         }
+            else:
+                reply = {'response': '',
+                         'error': '',
+                         'command': '',
+                         'param_names': '',
+                         'parameters': '',
+                         'time': ''
+                         }
 
         elif parameter == "groups":
             # Construct dictionaries of control and monitor groups
