@@ -54,6 +54,9 @@ class Command(object):
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._command_type = None
         self._command_name = None
+        self._command_active = False
+        self._command_state = 'Unknown'
+        self._command_message = ''
         self._parameters = {}
         self._trace = {
             CommandTrace.user: "unknown",
@@ -77,11 +80,48 @@ class Command(object):
         return self._trace[CommandTrace.creation_time]
 
     @property
+    def active(self):
+        return self._command_active
+
+    @property
+    def state(self):
+        return self._command_state
+
+    @property
+    def message(self):
+        return self._command_message
+
+    @property
+    def param_names(self):
+        return list(self._parameters.keys())
+
+    @property
+    def parameters(self):
+        parsed_params = {}
+        for key in self._parameters:
+            param_value = str(self._parameters[key])
+            if len(param_value) > 40:
+                param_value = "{ too long to display }"
+            parsed_params[key] = param_value
+        return parsed_params
+
+    @property
     def format_trace(self):
         return {'Username': self._trace[CommandTrace.user],
                 'Created': self._trace[CommandTrace.creation_time],
                 'Source_Address': self._trace[CommandTrace.origin_address],
                 'Source_ID': self._trace[CommandTrace.origin_type]}
+
+    def activate(self):
+        self._command_active = True
+        self._command_state = 'Active'
+
+    def complete(self, success, message=''):
+        if success:
+            self._command_state = 'Completed'
+        else:
+            self._command_state = 'Failed'
+        self._command_message = message
 
     def has_param(self, name):
         found_name = False

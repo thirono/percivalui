@@ -219,6 +219,7 @@ $( document ).ready(function()
   setInterval(update_api_read_monitors, 1000);
   setInterval(update_api_read_controls, 1000);
   setInterval(update_api_read_status, 100);
+  setInterval(update_server_command_status, 500);
 
   $('#server-db-reconnect').click(function(){
     reconnect_db();
@@ -275,7 +276,7 @@ function auto_read(action)
 
 function send_config_command()
 {
-    alert($('#config-display').text().replaceAll('=', '::'));
+    //alert($('#config-display').text().replaceAll('=', '::'));
     config_type = $('#select-config').find(":selected").text();
     $.ajax({
         url: '/api/' + api_version + '/percival/cmd_load_config',
@@ -284,37 +285,75 @@ function send_config_command()
         data: 'config=' + encodeURIComponent($('#config-display').text().replaceAll('=', '::')) + '&config_type=' + config_type,
         headers: {'Content-Type': 'application/json',
                   'Accept': 'application/json'},
-        success: function(data){}
+        success: process_cmd_response
     });
 }
 
 function send_system_command()
 {
     cmd_name = $('#select-sys-cmd').find(":selected").text();
-    $.put('/api/' + api_version + '/percival/cmd_system_command?name=' + cmd_name, function(response){});
+    $.put('/api/' + api_version + '/percival/cmd_system_command?name=' + cmd_name, process_cmd_response);
 }
 
 function send_load_config_command()
 {
-    $.put('/api/' + api_version + '/percival/cmd_download_channel_cfg', function(response){});
+    $.put('/api/' + api_version + '/percival/cmd_download_channel_cfg', process_cmd_response);
 }
 
 function send_init_command()
 {
-    $.put('/api/' + api_version + '/percival/cmd_initialise_channels', function(response){});
+    $.put('/api/' + api_version + '/percival/cmd_initialise_channels', process_cmd_response);
 }
 
 function send_set_channel_command()
 {
     set_name = $('#control-set-channel').find(":selected").text();
     set_value = $('#server-set-channel-val').val();
-    $.put('/api/' + api_version + '/percival/cmd_set_channel?channel=' + set_name + '&value=' + set_value, function(response){});
+    $.put('/api/' + api_version + '/percival/cmd_set_channel?channel=' + set_name + '&value=' + set_value, process_cmd_response);
 }
 
 function send_set_point_command()
 {
     set_name = $('#select-set-point').find(":selected").text();
-    $.put('/api/' + api_version + '/percival/cmd_apply_setpoint?setpoint=' + set_name, function(response){});
+    $.put('/api/' + api_version + '/percival/cmd_apply_setpoint?setpoint=' + set_name, process_cmd_response);
+}
+
+function process_cmd_response(response)
+{
+}
+
+
+function update_server_command_status()
+{
+    $.getJSON('/api/' + api_version + '/percival/action/', function(response) {
+        $('#ctrl-resp-cmd').text("Command: " + response.command);
+        $('#ctrl-resp-success').text(response.response);
+        $('#ctrl-resp-time').text(response.time);
+        if (response.response == 'Failed'){
+            $('#ctrl-resp-message').text(response.error);
+            $('#ctrl-msg-response').addClass("panel-danger");
+            $('#ctrl-msg-response').removeClass("panel-default");
+            $('#ctrl-msg-response').removeClass("panel-success");
+        } else if (response.response == 'Active'){
+            $('#ctrl-msg-response').removeClass("panel-danger");
+            $('#ctrl-msg-response').removeClass("panel-default");
+            $('#ctrl-msg-response').addClass("panel-success");
+        } else {
+            $('#ctrl-resp-message').text("");
+            $('#ctrl-msg-response').addClass("panel-default");
+            $('#ctrl-msg-response').removeClass("panel-danger");
+            $('#ctrl-msg-response').removeClass("panel-success");
+        }
+        pn = response.param_names;
+        html = "<table>";
+        for (var index=0; index < pn.length; index++){
+            html += "<tr><td>" + pn[index] + " = " + response.parameters[pn[index]] + "</td></tr>";
+        }
+        html += "</table>";
+        $('#ctrl-resp-param').html(html);
+    });
+
+    //alert(response.command);
 }
 
 function update_api_version() {

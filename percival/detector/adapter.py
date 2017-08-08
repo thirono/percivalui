@@ -94,22 +94,35 @@ class PercivalAdapter(ApiAdapter):
         logging.debug("%s", request.body)
 
         status_code = 200
-        response = {}
+        response = {'response': 'Failed',
+                    'error': 'Unknown',
+                    'command': 'Unknown',
+                    'param_names': 'Unknown',
+                    'parameters': 'Unknown',
+                    'time': 'Unknown'}
 
         # Create a new Percival Command object
         try:
             cmd = Command(request)
+            response['command'] = cmd.command_name
+            response['param_names'] = cmd.param_names
+            response['parameters'] = cmd.parameters
+            response['time'] = cmd.command_time
             if 'start' in cmd.command_name:
                 self._auto_read = True
             elif 'stop' in cmd.command_name:
                 self._auto_read = False
             else:
-                response = self._detector.execute_command(cmd)
+                #cmd_response = self._detector.execute_command(cmd)
+                self._detector.queue_command(cmd)
+                # Merge the response from the command execution
+                #for key in cmd_response:
+                #    response[key] = cmd_response[key]
         except Exception as ex:
             # Return an error condition with the exception message
-            status_code = 500
-            response['error'] = ex.args
-            response['trace'] = traceback.format_exc()
+            # status_code = 500
+            response['response'] = 'Failed'
+            response['error'] = "{} => {}".format(ex.args, traceback.format_exc())
 
         logging.debug(response)
 

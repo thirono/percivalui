@@ -216,22 +216,36 @@
 						<div class="row sidebar-title">
 							<h3>Control</h3>
 						</div>
-						<!--<div class="row sidebar-row vertical-align">
-							<div class="col-xs-3">&nbsp;</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-2">&nbsp;</div>
 						</div>
 						<div class="row sidebar-row vertical-align">
-							<div class="col-xs-3">Write Configuration To Hardware:</div>
-							<div class="col-xs-5 status vertical-align">
-								<small><div class="dropdown">
-									<span><button id="server-download-config">Write Config</button></span>
-								</div></small>
+							<div class="col-xs-2">Control Message Response:</div>
+							<div class="col-xs-7 status vertical-align">
+								<div id="ctrl-msg-response" class="panel panel-default">
+									<div id="ctrl-resp-cmd" class="panel-heading">Command: </div>
+									<table>
+										<tr valign="top">
+											<td style="padding:0 15px 0 15px;">Parameters:</td><td id="ctrl-resp-param"></td>
+										</tr><tr>
+											<td style="padding:0 15px 0 15px;">Execution Start Time:</td><td id="ctrl-resp-time"></td>
+										</tr><tr>
+											<td style="padding:0 15px 0 15px;">Response:</td><td id="ctrl-resp-success"></td>
+										</tr><tr>
+											<td style="padding:0 15px 0 15px;">Message:</td><td id="ctrl-resp-message"></td>
+										</tr>
+									</table>
+									<!--<div class="panel-heading clearfix">
+										<span class="panel-title pull-left">Status</span>
+									</div>-->
+								</div>
 							</div>
-						</div>-->
-						<div class="row sidebar-row vertical-align">
-							<div class="col-xs-3">&nbsp;</div>
 						</div>
 						<div class="row sidebar-row vertical-align">
-							<div class="col-xs-3">Download Channel Settings:</div>
+							<div class="col-xs-2">&nbsp;</div>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-2">Download Channel Settings:</div>
 							<div class="col-xs-5 status vertical-align">
 								<small><div class="dropdown">
 									<span><button id="channel-settings-cmd">Execute</button></span>
@@ -239,10 +253,10 @@
 							</div>
 						</div>
 						<div class="row sidebar-row vertical-align">
-							<div class="col-xs-3">&nbsp;</div>
+							<div class="col-xs-2">&nbsp;</div>
 						</div>
 						<div class="row sidebar-row vertical-align">
-							<div class="col-xs-3">Initialise Channels:</div>
+							<div class="col-xs-2">Initialise Channels:</div>
 							<div class="col-xs-5 status vertical-align">
 								<small><div class="dropdown">
 									<span><button id="server-init-cmd">Execute</button></span>
@@ -250,10 +264,10 @@
 							</div>
 						</div>
 						<div class="row sidebar-row vertical-align">
-							<div class="col-xs-3">&nbsp;</div>
+							<div class="col-xs-2">&nbsp;</div>
 						</div>
 						<div class="row sidebar-row vertical-align">
-							<div class="col-xs-3">System Command:</div>
+							<div class="col-xs-2">System Command:</div>
 							<div class="col-xs-5 status vertical-align">
 								<small><div class="dropdown">
 									<select id="select-sys-cmd">
@@ -263,10 +277,10 @@
 							</div>
 						</div>
 						<div class="row sidebar-row vertical-align">
-							<div class="col-xs-3">&nbsp;</div>
+							<div class="col-xs-2">&nbsp;</div>
 						</div>
 						<div class="row sidebar-row vertical-align">
-							<div class="col-xs-3">Set Channel Value:</div>
+							<div class="col-xs-2">Set Channel Value:</div>
 							<div class="col-xs-5 status vertical-align">
 								<small><div class="dropdown">
 									<select id="control-set-channel">
@@ -277,10 +291,10 @@
 							</div>
 						</div>
 						<div class="row sidebar-row vertical-align">
-							<div class="col-xs-3">&nbsp;</div>
+							<div class="col-xs-2">&nbsp;</div>
 						</div>
 						<div class="row sidebar-row vertical-align">
-							<div class="col-xs-3">Apply Set Point:</div>
+							<div class="col-xs-2">Apply Set Point:</div>
 							<div class="col-xs-5 status vertical-align">
 								<small><div class="dropdown">
 									<select id="select-set-point">
@@ -290,10 +304,10 @@
 							</div>
 						</div>
 						<div class="row sidebar-row vertical-align">
-							<div class="col-xs-3">&nbsp;</div>
+							<div class="col-xs-2">&nbsp;</div>
 						</div>
 						<div class="row sidebar-row vertical-align">
-							<div class="col-xs-3">Upload Configuration File:</div>
+							<div class="col-xs-2">Upload Configuration File:</div>
 							<div class="col-xs-5 status vertical-align">
 								<small>
 									<input type="file" id="select-config-file" size="50">
