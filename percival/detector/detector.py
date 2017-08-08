@@ -593,6 +593,7 @@ class PercivalDetector(object):
         self._board_settings[const.BoardTypes.bottom] = BoardSettings(self._txrx, const.BoardTypes.bottom)
         self._board_settings[const.BoardTypes.carrier] = BoardSettings(self._txrx, const.BoardTypes.carrier)
         self._board_settings[const.BoardTypes.plugin] = BoardSettings(self._txrx, const.BoardTypes.plugin)
+        self._board_values[const.BoardTypes.bottom] = BoardValues(self._txrx, const.BoardTypes.bottom)
         self._board_values[const.BoardTypes.carrier] = BoardValues(self._txrx, const.BoardTypes.carrier)
         self._system_settings.set_txrx(self._txrx)
         self._chip_readout_settings.set_txrx(self._txrx)
@@ -1178,6 +1179,24 @@ class PercivalDetector(object):
             for addr, value in response:  # pylint: disable=W0612
                 offset = addr - readback_block.start_address
                 name = self._percival_params.monitoring_channel_name_by_index_and_board_type(offset, const.BoardTypes.carrier)
+                if name in self._monitors:
+                    self._monitors[name].update(read_maps[offset])
+                    status_msg[name] = self._monitors[name].status
+                    if self._db:
+                        self._db.log_point(time_now, name, self._monitors[name].status)
+
+            response = self._board_values[const.BoardTypes.bottom].read_values()
+            # time_now = datetime.today() - timedelta(hours=1)
+            time_now = datetime.utcnow()
+            self._log.debug(response)
+            read_maps = generate_register_maps(response)
+            self._log.debug(read_maps)
+
+            readback_block = BoardValueRegisters[const.BoardTypes.bottom]
+            for addr, value in response:  # pylint: disable=W0612
+                offset = addr - readback_block.start_address
+                name = self._percival_params.monitoring_channel_name_by_index_and_board_type(offset,
+                                                                                             const.BoardTypes.bottom)
                 if name in self._monitors:
                     self._monitors[name].update(read_maps[offset])
                     status_msg[name] = self._monitors[name].status
