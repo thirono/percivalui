@@ -894,6 +894,7 @@ class PercivalDetector(object):
                     if command.has_param('value'):
                         value = int(float(command.get_param('value')))
                         self.set_value(channel, value)
+                        self._active_command.complete(success=True)
                     else:
                         raise PercivalDetectorError("No value supplied to set channel command")
                 else:
@@ -902,6 +903,7 @@ class PercivalDetector(object):
                 # Parameter [setpoint] is the name of the setpoint to apply
                 if command.has_param('setpoint'):
                     self._setpoint_control.apply_set_point(command.get_param('setpoint'))
+                    self._active_command.complete(success=True)
             elif command.command_name in str(PercivalCommandNames.cmd_scan_setpoints):
                 # Parameter [setpoints] is a list of setpoints to scan
                 # Parameter [dwell] is the dwell time in ms at each point
@@ -925,12 +927,15 @@ class PercivalDetector(object):
             elif command.command_name in str(PercivalCommandNames.cmd_update_monitors):
                 # Force a read of the monitors.  This will result in values being written to db
                 self.update_status()
+                self._active_command.complete(success=True)
             elif command.command_name in str(PercivalCommandNames.cmd_initialise_channels):
                 # Initialise the channels on the Percival hardware
                 self.initialize_channels()
+                self._active_command.complete(success=True)
             elif command.command_name in str(PercivalCommandNames.cmd_apply_sensor_dacs):
                 # Apply the current set of sensor DAC values
                 self.apply_sensor_dac_values()
+                self._active_command.complete(success=True)
             # Check if the command is a system_command
             elif command.command_name in str(PercivalCommandNames.cmd_system_command):
                 # We expect a single parameter which is the command
