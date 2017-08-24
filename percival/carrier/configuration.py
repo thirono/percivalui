@@ -612,7 +612,7 @@ class ChannelGroupParameters(object):
             self._ini_filename = find_file(ini_file)
         except:
             # If we catch any kind of exception here then treat the parameter as the configuration
-            self._ini_buffer = StringIO(ini_file)
+            self._ini_buffer = StringIO(unicode(ini_file))
 
     def load_ini(self):
         """
@@ -669,7 +669,7 @@ class SetpointGroupParameters(object):
             self._ini_filename = find_file(ini_file)
         except:
             # If we catch any kind of exception here then treat the parameter as the configuration
-            self._ini_buffer = StringIO(ini_file)
+            self._ini_buffer = StringIO(unicode(ini_file))
 
     def load_ini(self):
         """
@@ -727,7 +727,7 @@ class SystemSettingsParameters(object):
             self._ini_filename = find_file(ini_file)
         except:
             # If we catch any kind of exception here then treat the parameter as the configuration
-            self._ini_buffer = StringIO(ini_file)
+            self._ini_buffer = StringIO(unicode(ini_file))
 
     def load_ini(self):
         """
@@ -770,7 +770,7 @@ class ChipReadoutSettingsParameters(object):
             self._ini_filename = find_file(ini_file)
         except:
             # If we catch any kind of exception here then treat the parameter as the configuration
-            self._ini_buffer = StringIO(ini_file)
+            self._ini_buffer = StringIO(unicode(ini_file))
 
     def load_ini(self):
         """
@@ -813,7 +813,7 @@ class ClockSettingsParameters(object):
             self._ini_filename = find_file(ini_file)
         except:
             # If we catch any kind of exception here then treat the parameter as the configuration
-            self._ini_buffer = StringIO(ini_file)
+            self._ini_buffer = StringIO(unicode(ini_file))
 
     def load_ini(self):
         """
@@ -856,7 +856,7 @@ class SensorConfigurationParameters(object):
             self._ini_filename = find_file(ini_file)
         except:
             # If we catch any kind of exception here then treat the parameter as the configuration
-            self._ini_buffer = StringIO(ini_file)
+            self._ini_buffer = StringIO(unicode(ini_file))
 
     def load_ini(self):
         """
@@ -907,7 +907,7 @@ class SensorCalibrationParameters(object):
             self._ini_filename = find_file(ini_file)
         except:
             # If we catch any kind of exception here then treat the parameter as the configuration
-            self._ini_buffer = StringIO(ini_file)
+            self._ini_buffer = StringIO(unicode(ini_file))
 
     def load_ini(self):
         """
@@ -970,7 +970,7 @@ class SensorDebugParameters(object):
             self._ini_filename = find_file(ini_file)
         except:
             # If we catch any kind of exception here then treat the parameter as the configuration
-            self._ini_buffer = StringIO(ini_file)
+            self._ini_buffer = StringIO(unicode(ini_file))
 
     def load_ini(self):
         """

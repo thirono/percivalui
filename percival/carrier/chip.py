@@ -36,7 +36,7 @@ class ChipReadoutSettings(object):
             self.log.info(map)
             # First replace any true or false with 1 or 0
             for item in map:
-                if isinstance(map[item], str):
+                if isinstance(map[item], str) or isinstance(map[item], unicode):
                     if 'false' in map[item].lower():
                         map[item] = 0
                     elif 'true' in map[item].lower():
