@@ -11,6 +11,7 @@ from percival.log import get_exclusive_file_logger
 from datetime import datetime, timedelta
 import getpass
 import sys
+import traceback
 is_py2 = sys.version[0] == '2'
 if is_py2:
     import Queue as queue
@@ -817,7 +818,9 @@ class PercivalDetector(object):
             except PercivalDetectorError as e:
                 self._active_command.complete(success=False, message=str(e))
             except Exception as e:
-                self._active_command.complete(success=False, message="Unhandled exception: {}".format(str(e)))
+                type_, value_, traceback_ = sys.exc_info()
+                ex = traceback.format_exception(type_, value_, traceback_)
+                self._active_command.complete(success=False, message="Unhandled exception: {} => {}".format(str(e), str(ex)))
 
     def execute_command(self, command):
         """
