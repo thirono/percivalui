@@ -200,7 +200,8 @@ class Monitor
     this.extreme_low_threshold = lolo_val;
     this.safety_exception = safety;
     this.i2c_comms_error = comms;
-    if (hihi_val == 1 || lolo_val == 1 || safety == 1 || comms == 1){
+    //if (hihi_val == 1 || lolo_val == 1 || safety == 1 || comms == 1){
+    if (comms == 1){
         $(this.parent).addClass("panel-danger");
     } else {
         $(this.parent).removeClass("panel-danger");
