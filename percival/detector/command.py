@@ -145,6 +145,7 @@ class Command(object):
             params = param_string.split("&")
             for param in params:
                 pv = param.split("=")
+                pv[0] = pv[0].replace("[]", "")
                 # Check if the parameter already exists
                 if pv[0] in self._parameters:
                     # It does, so check if it is a list
