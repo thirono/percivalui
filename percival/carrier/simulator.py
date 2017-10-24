@@ -267,30 +267,38 @@ class Simulator(object):
                         # Simply send back the registers
                         client_sock.send(encode_message(a, self.registers[a]))
 
+                if CONTROL_SETTINGS_CARRIER.start_address <= a < MONITORING_SETTINGS_CARRIER.start_address:
+                    log.debug("***** SETTING VALUE: 0x%04X = 0x%04X", a, w)
+                    self.registers[READ_ECHO_WORD.start_address] = w
+
+                if CONTROL_SETTINGS_BOTTOM.start_address <= a < MONITORING_SETTINGS_BOTTOM.start_address:
+                    log.debug("***** SETTING VALUE: 0x%04X = 0x%04X", a, w)
+                    self.registers[READ_ECHO_WORD.start_address] = w
+
                 # Implementation of some expected results
                 # If set value called for VCH device then the next read echo
                 # is happy if it sees the same value
-                if a == 0x022E or\
-                    a == 0x0232 or\
-                    a == 0x0236 or\
-                    a == 0x023A or\
-                    a == 0x023E or\
-                    a == 0x0242 or\
-                    a == 0x0246 or\
-                    a == 0x0250:
-                    log.debug("***** SETTING VALUE: 0x%04X", a)
-                    self.registers[READ_ECHO_WORD.start_address] = w
+                #if a == 0x022E or\
+                #    a == 0x0232 or\
+                #    a == 0x0236 or\
+                #    a == 0x023A or\
+                #    a == 0x023E or\
+                #    a == 0x0242 or\
+                #    a == 0x0246 or\
+                #    a == 0x0250:
+                #    log.debug("***** SETTING VALUE: 0x%04X", a)
+                #    self.registers[READ_ECHO_WORD.start_address] = w
 
                 # Implementation of some expected results
                 # If set value called for DPOT device then the next read echo
                 # is happy if it sees the same value without the flag for power
-                if a == 0x0254 or\
-                    a == 0x0258 or\
-                    a == 0x025C or\
-                    a == 0x0260 or\
-                    a == 0x0264 or\
-                    a == 0x0268:
-                    self.registers[READ_ECHO_WORD.start_address] = w & 0x0FFFF
+                #if a == 0x0254 or\
+                #    a == 0x0258 or\
+                #    a == 0x025C or\
+                #    a == 0x0260 or\
+                #    a == 0x0264 or\
+                #    a == 0x0268:
+                #    self.registers[READ_ECHO_WORD.start_address] = w & 0x0FFFF
 
             chunk = client_sock.recv(block_read_bytes)
 
