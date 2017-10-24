@@ -186,7 +186,9 @@ class SetPointControl(object):
     def get_status(self):
         status = {
             "scanning": self._scanning,
-            "scan_index": self._scan_index,
-            "scan": self._scan_points
+            "scan_index": self._scan_index
         }
+        if self._scan_points:
+            status["scan"] = str(self._scan_points)
+        self._log.info("Status: %s", status)
         return status

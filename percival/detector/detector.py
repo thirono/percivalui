@@ -918,6 +918,7 @@ class PercivalDetector(object):
                         if command.has_param('steps'):
                             steps = int(command.get_param('steps'))
                             self._setpoint_control.scan_set_points(setpoints, steps, dwell)
+                            self._active_command.complete(success=True)
                         else:
                             raise PercivalDetectorError("Number of scan steps required to scan")
                     else:
@@ -1105,6 +1106,8 @@ class PercivalDetector(object):
             reply["setpoints"] = []
             for name in self._setpoint_control.set_points:
                 reply["setpoints"].append(name)
+            reply["status"] = self._setpoint_control.get_status()
+            self._log.info("Setpoints: %s", reply)
 
         elif parameter == "controls":
             reply = {}

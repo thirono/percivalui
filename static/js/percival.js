@@ -246,6 +246,9 @@ $( document ).ready(function()
   $('#server-set-point-cmd').click(function(){
     send_set_point_command();
   });
+  $('#server-scan-set-point-cmd').click(function(){
+    send_scan_command();
+  });
   $('#server-config-cmd').click(function(){
     send_config_command();
   });
@@ -317,6 +320,31 @@ function send_set_point_command()
 {
     set_name = $('#select-set-point').find(":selected").text();
     $.put('/api/' + api_version + '/percival/cmd_apply_setpoint?setpoint=' + set_name, process_cmd_response);
+}
+
+function send_scan_command()
+{
+    //data = {}
+    sp = [$('#scan-set-point-start').find(":selected").text(),$('#scan-set-point-end').find(":selected").text()];
+    //data = {'setpoints': sp};
+    //alert(data)
+    steps = $('#scan-sp-steps').val();
+    dwell = $('#scan-sp-dwell').val();
+    //$.put('/api/' + api_version + '/percival/cmd_scan_setpoints?dwell=' + dwell + '&steps=' + steps, data, process_cmd_response, 'json');
+    //alert('/api/' + api_version + '/percival/cmd_scan_setpoints?dwell=' + dwell + '&steps=' + steps);
+    $.ajax({
+        url: '/api/' + api_version + '/percival/cmd_scan_setpoints',
+        type: 'PUT',
+        dataType: 'json',
+        data: {
+            'dwell' : dwell,
+            'steps' : steps,
+            'setpoints' : sp
+        },
+        headers: {'Content-Type': 'application/json',
+                  'Accept': 'application/json'},
+        success: process_cmd_response
+    });
 }
 
 function process_cmd_response(response)
@@ -435,7 +463,7 @@ function update_server_setup() {
         }
     });
     $.getJSON('/api/' + api_version + '/percival/commands/', function(response) {
-        percival.sys_commands = response.commands
+        percival.sys_commands = response.commands;
 		html = "";
 		for (var index=0; index < percival.sys_commands.length; index++){
             html += "<option role=\"presentation\">" + percival.sys_commands[index] + "</option>";
@@ -445,13 +473,26 @@ function update_server_setup() {
         }
     });
     $.getJSON('/api/' + api_version + '/percival/setpoints/', function(response) {
-        percival.set_points = response.setpoints
+        //alert(response);
+        percival.set_points = response.setpoints;
 		html = "";
 		for (var index=0; index < percival.set_points.length; index++){
             html += "<option role=\"presentation\">" + percival.set_points[index] + "</option>";
         }
+        //alert(html);
         if (html != $('#select-set-point').html()){
             $('#select-set-point').html(html);
+        }
+        if (html != $('#scan-set-point-start').html()){
+            $('#scan-set-point-start').html(html);
+        }
+        if (html != $('#scan-set-point-end').html()){
+            $('#scan-set-point-end').html(html);
+        }
+        $('#sp-scan-scanning').text(response.status.scanning);
+        $('#sp-scan-index').text(response.status.scan_index);
+        if (response.status.scan){
+            $('#sp-scan-scanpoints').text(response.status.scan);
         }
     });
 }
