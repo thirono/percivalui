@@ -16,7 +16,7 @@ import logging
 from percival.carrier import const
 from percival.carrier.registers import UARTRegister, BoardRegisters, generate_register_maps
 from percival.carrier.devices import DeviceCmd, DeviceFamilyFeatures, DeviceFamily
-
+from percival.carrier.errors import PercivalControlDeviceError
 
 class Channel(object):
     """
@@ -202,6 +202,7 @@ class ControlChannel(Channel):
         self.cmd_no_operation()
         self.cmd_set_and_get_value()
         start_time = time.time()
+        retries = 0
         while True:
             echo = self.read_echo_word()
             result = generate_register_maps(echo)
@@ -211,10 +212,15 @@ class ControlChannel(Channel):
                 self._log.debug("Read value same a set value %s (\"%s\")", value, self._channel_ini.Channel_name)
                 break
             if time.time() > (start_time + timeout):
-                raise RuntimeError("Timeout when reading back value from ECHO word")
+                raise PercivalControlDeviceError("Readback ECHO word (%d) does not match \'%s\'"
+                                                 " demand (%d) after %d retries",
+                                                 result[0].read_value,
+                                                 self._channel_ini.Channel_name,
+                                                 value,
+                                                 retries)
 
             time.sleep(0.1)
-            self._log.debug("####### Retrying reading ECHO word. Got: %s", result)
+            self._log.debug("####### Retrying (%d) reading ECHO word. Got: %s", retries, result)
         return result[0]
 
 
