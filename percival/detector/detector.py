@@ -1107,7 +1107,7 @@ class PercivalDetector(object):
             for name in self._setpoint_control.set_points:
                 reply["setpoints"].append(name)
             reply["status"] = self._setpoint_control.get_status()
-            self._log.info("Setpoints: %s", reply)
+            self._log.debug("Setpoints: %s", reply)
 
         elif parameter == "controls":
             reply = {}
@@ -1176,7 +1176,7 @@ class PercivalDetector(object):
         The values shortcut is read out from the hardware and the status of all
         monitors is updated appropriately.
         """
-        self._log.debug("Update status callback called")
+        self._log.info("Update status callback called")
         status_msg = {}
         if self._global_monitoring:
             response = self._board_values[const.BoardTypes.carrier].read_values()
