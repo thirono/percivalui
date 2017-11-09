@@ -676,7 +676,7 @@ CarrierUARTRegisters = {
     const.CONTROL_SETTINGS_BOTTOM:      ("Control settings bottom",     const.READBACK_CONTROL_SETTINGS_BOTTOM,      ControlChannelMap),
     const.MONITORING_SETTINGS_BOTTOM:   ("Monitoring settings bottom",  const.READBACK_MONITORING_SETTINGS_BOTTOM,   MonitoringChannelMap),
     const.READ_VALUES_PERIPHERY_BOTTOM: ("Read monitor values bottom",  const.READBACK_READ_VALUES_PERIPHERY_BOTTOM, ReadValueMap),
-    const.HEADER_SETTINGS_CARRIER:      ("Header settings carrier",     const.READBACK_HEADER_SETTINGS_BOTTOM,       HeaderInfoMap),
+    const.HEADER_SETTINGS_CARRIER:      ("Header settings carrier",     const.READBACK_HEADER_SETTINGS_CARRIER,      HeaderInfoMap),
     const.CONTROL_SETTINGS_CARRIER:     ("Control settings carrier",    const.READBACK_CONTROL_SETTINGS_CARRIER,     ControlChannelMap),
     const.MONITORING_SETTINGS_CARRIER:  ("Monitoring settings carrier", const.READBACK_MONITORING_SETTINGS_CARRIER,  MonitoringChannelMap),
     const.READ_VALUES_CARRIER:          ("Read monitor values carrier", const.READBACK_READ_VALUES_CARRIER,          ReadValueMap),

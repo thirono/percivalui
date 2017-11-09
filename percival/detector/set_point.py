@@ -190,5 +190,5 @@ class SetPointControl(object):
         }
         if self._scan_points:
             status["scan"] = str(self._scan_points)
-        self._log.info("Status: %s", status)
+        self._log.debug("Status: %s", status)
         return status

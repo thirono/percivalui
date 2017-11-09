@@ -160,11 +160,11 @@ class Command(object):
                     # New parameter
                     self._parameters[pv[0]] = pv[1]
 
-        self._log.info("Parsed parameters for [%s]: %s", self._command_name, self._parameters)
+        self._log.debug("Parsed parameters for [%s]: %s", self._command_name, self._parameters)
 
     def parse_request(self, request):
-        self._log.info("Path: %s", request.path)
-        self._log.info("Query: %s", request.query)
+        self._log.debug("Path: %s", request.path)
+        self._log.debug("Query: %s", request.query)
         # If a request object exists then it contains the method type
         self._command_type = request.method
 
@@ -185,7 +185,7 @@ class Command(object):
         if 'User-Agent' in request.headers:
             self._trace[CommandTrace.origin_type] = request.headers['User-Agent']
 
-        self._log.info("Parsed request [%s], trace: %s", self._command_type, self._trace)
+        self._log.debug("Parsed request [%s], trace: %s", self._command_type, self._trace)
 
         # Parse any parameters
         self.parse_parameters(request.query)
