@@ -18,7 +18,7 @@ from __future__ import unicode_literals, absolute_import
 
 from enum import Enum, unique
 
-FIRMWARE_VERSION = "2017.05.05"
+FIRMWARE_VERSION = "2017.09.28 CARRIER FULL NEW"
 """Elettra Firmware version is based on date"""
 
 
@@ -101,8 +101,8 @@ class SystemCmd(Enum):
     disable_global_monitoring = 2
     enable_device_level_safety_controls = 3
     disable_device_level_safety_controls = 4
-    enable_level_safety_controls = 5
-    disable_level_safety_controls = 6
+    enable_system_level_safety_controls = 5
+    disable_system_level_safety_controls = 6
     enable_experimental_level_safety_controls = 7
     disable_experimental_level_safety_controls = 8
     enable_safety_actions = 9
@@ -111,14 +111,45 @@ class SystemCmd(Enum):
     exit_acquisition_armed_status = 12
     start_acquisition = 13
     stop_acquisition = 14
-    fast_sensor_powerup = 15
-    fast_sensor_powerdown = 16
-    fast_enable_control_standby = 17
-    fast_disable_control_standby = 18
-    enable_startup_mode = 19
-    disable_startup_mode = 20
-
-
+    forced_stop_acquisition = 15
+    enable_LVDS_IOs = 16
+    disable_LVDS_IOs = 17
+    fast_sensor_powerup = 18
+    fast_sensor_powerdown = 19
+    fast_enable_control_standby = 20
+    fast_disable_control_standby = 21
+    enable_startup_mode = 22
+    disable_startup_mode = 23
+    assert_dmuxCDN = 24
+    deassert_dmuxCDN = 25
+    assert_sr7DIn_0 = 26
+    deassert_sr7DIn_0 = 27
+    assert_sr7DIn_1 = 28
+    deassert_sr7DIn_1 = 29
+    assert_horizDataIn_0 = 30
+    deassert_horizDataIn_0 = 31
+    assert_horizDataIn_1 = 32
+    deassert_horizDataIn_1 = 33
+    assert_sensor_PLL_Reset = 34
+    deassert_sensor_PLL_Reset = 35
+    assert_sensor_Master_Reset = 36
+    deassert_sensor_Master_Reset = 37
+    assert_mezzanine_board_A_hardware_Reset = 38
+    deassert_mezzanine_board_A_hardware_Reset = 39
+    assert_mezzanine_board_B_hardware_Reset = 40
+    deassert_mezzanine_board_B_hardware_Reset = 41
+    assert_plugin_board_hardware_Reset = 42
+    deassert_plugin_board_hardware_Reset = 43
+    assert_MARKER_OUT_0 = 44
+    deassert_MARKER_OUT_0 = 45
+    assert_MARKER_OUT_1 = 46
+    deassert_MARKER_OUT_1 = 47
+    assert_MARKER_OUT_2 = 48
+    deassert_MARKER_OUT_2 = 49
+    assert_MARKER_OUT_3 = 50
+    deassert_MARKER_OUT_3 = 51
+		   
+		   
 @unique
 class BoardTypes(Enum):
     """Enumeration of the board types"
@@ -244,6 +275,7 @@ class BufferCmd(Enum):
     write = 1
     read = 2
 
+
 @unique
 class  SensorBufferCmd(Enum):
     """Enumeration of sensor specific buffer commands, only relevant to the sensor """
@@ -254,22 +286,22 @@ class  SensorBufferCmd(Enum):
     send_ROI_setup = 4
     send_DEBUG_setup = 5
 
-
+ 
 BufferCommands = {
     BufferTarget.mezzanine_board_A: {
         BufferCmd.no_operation: {"command": int(0), "response": 1},
         BufferCmd.write:        {"command": int(0), "response": 2},
         BufferCmd.read:         {"command": int(1), "response": 2}
-    },
+                                    },
     BufferTarget.mezzanine_board_B: {
         BufferCmd.no_operation: {"command": int(0), "response": 1},
         BufferCmd.write:        {"command": int(0), "response": 2},
         BufferCmd.read:         {"command": int(1), "response": 2}
-    },
+                                    },
     BufferTarget.both_mezzanine_boards: {
         BufferCmd.no_operation: {"command": int(0), "response": 1},
         BufferCmd.write:        {"command": int(0), "response": 3}
-    },
+                                    },
     BufferTarget.percival_sensor: {
         SensorBufferCmd.no_operation:             {"command": int(0), "response": 1},
         SensorBufferCmd.send_DACs_setup:          {"command": int(0), "response": 2},
@@ -279,3 +311,4 @@ BufferCommands = {
         SensorBufferCmd.send_DEBUG_setup:         {"command": int(4), "response": 2}
     }
 }
+
