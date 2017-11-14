@@ -94,8 +94,8 @@ class PercivalAdapter(ApiAdapter):
         logging.debug("%s", request.body)
 
         status_code = 200
-        response = {'response': 'Failed',
-                    'error': 'Unknown',
+        response = {'response': 'Submitted',
+                    'error': '',
                     'command': 'Unknown',
                     'param_names': 'Unknown',
                     'parameters': 'Unknown',
