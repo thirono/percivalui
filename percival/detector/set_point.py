@@ -136,6 +136,10 @@ class SetPointControl(object):
         self._scan_points = {}
         for sp in set_point_map:
             self._scan_points[sp] = numpy.empty([0], dtype=float)
+            if len(set_point_map[sp]) < 2:
+                # Serious error, generate exception
+                self._log.error("Invalid set point values given, check they map the same devices")
+                raise ValueError("Invalid set point values given, check they map the same devices")
             for index in range(0, len(set_point_map[sp])-1):
                 start_value = set_point_map[sp][index]
                 stop_value = set_point_map[sp][index+1]
