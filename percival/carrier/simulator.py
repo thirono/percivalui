@@ -269,11 +269,19 @@ class Simulator(object):
 
                 if CONTROL_SETTINGS_CARRIER.start_address <= a < MONITORING_SETTINGS_CARRIER.start_address:
                     log.debug("***** SETTING VALUE: 0x%04X = 0x%04X", a, w)
-                    self.registers[READ_ECHO_WORD.start_address] = w
+                    self.registers[READ_ECHO_WORD.start_address] = w&0xFFFF
 
                 if CONTROL_SETTINGS_BOTTOM.start_address <= a < MONITORING_SETTINGS_BOTTOM.start_address:
                     log.debug("***** SETTING VALUE: 0x%04X = 0x%04X", a, w)
-                    self.registers[READ_ECHO_WORD.start_address] = w
+                    self.registers[READ_ECHO_WORD.start_address] = w&0xFFFF
+
+                if CONTROL_SETTINGS_LEFT.start_address <= a < MONITORING_SETTINGS_LEFT.start_address:
+                    log.debug("***** SETTING VALUE: 0x%04X = 0x%04X", a, w)
+                    self.registers[READ_ECHO_WORD.start_address] = w&0xFFFF
+
+                if CONTROL_SETTINGS_PLUGIN.start_address <= a < MONITORING_SETTINGS_PLUGIN.start_address:
+                    log.debug("***** SETTING VALUE: 0x%04X = 0x%04X", a, w)
+                    self.registers[READ_ECHO_WORD.start_address] = w&0xFFFF
 
                 # Implementation of some expected results
                 # If set value called for VCH device then the next read echo
