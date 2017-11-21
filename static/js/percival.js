@@ -381,11 +381,15 @@ function update_server_command_status()
         $('#ctrl-resp-success').text(response.response);
         $('#ctrl-resp-time').text(response.time);
         if (response.response == 'Failed'){
+            if ($('#ctrl-resp-message').text() != response.error){
+                alert(response.error);
+            }
             $('#ctrl-resp-message').text(response.error);
             $('#ctrl-msg-response').addClass("panel-danger");
             $('#ctrl-msg-response').removeClass("panel-default");
             $('#ctrl-msg-response').removeClass("panel-success");
         } else if (response.response == 'Active'){
+            $('#ctrl-resp-message').text("");
             $('#ctrl-msg-response').removeClass("panel-danger");
             $('#ctrl-msg-response').removeClass("panel-default");
             $('#ctrl-msg-response').addClass("panel-success");
