@@ -68,7 +68,7 @@ class Monitor
 {
   constructor(parent, id, device)
   {
-    this.parent = parent;
+    //this.parent = parent;
     this.disp_name = id;
     this.id = id.split(' ').join('_');
     this.device = device.device;
@@ -107,6 +107,29 @@ class Monitor
                       "<tr><td>Safety Exception:</td><td></td><td id=\"" + this.id + "-safety\">" + led_html(parseInt(device.safety_exception), "red", 25) + "</td>" +
                       "<tr><td>i2c Error:</td><td></td><td id=\"" + this.id + "-i2c\">" + led_html(parseInt(device.i2c_comms_error), "red", 25) + "</td>" +
                       "</table>";
+
+    this.set_parent(parent);
+
+//    $(this.parent).html(this.html_text);
+//    $('#' + this.id + '-dtbl').hide();
+//    $('#' + this.id + '-expbtn').click(function(){
+//        //alert("Clicked!! " + $(this).attr("id"));
+//        if ($('#' + $(this).attr("id").replace('-expbtn', '-dtbl')).is(':visible')){
+//            $('#' + $(this).attr("id").replace('-expbtn', '-dtbl')).hide();
+//            $('#' + $(this).attr("id").replace('-expbtn', '-expglp')).removeClass('glyphicon-resize-small');
+//            $('#' + $(this).attr("id").replace('-expbtn', '-expglp')).addClass('glyphicon-resize-full');
+//        } else {
+//            $('#' + $(this).attr("id").replace('-expbtn', '-dtbl')).show();
+//            $('#' + $(this).attr("id").replace('-expbtn', '-expglp')).removeClass('glyphicon-resize-full');
+//            $('#' + $(this).attr("id").replace('-expbtn', '-expglp')).addClass('glyphicon-resize-small');
+//        }
+//    });
+    this.update(device);
+  }
+
+  set_parent(parent)
+  {
+    this.parent = parent;
     $(this.parent).html(this.html_text);
     $('#' + this.id + '-dtbl').hide();
     $('#' + this.id + '-expbtn').click(function(){
@@ -121,7 +144,6 @@ class Monitor
             $('#' + $(this).attr("id").replace('-expbtn', '-expglp')).addClass('glyphicon-resize-small');
         }
     });
-    this.update(device);
   }
 
   hide()
@@ -549,7 +571,7 @@ function update_api_read_boards() {
 function update_api_read_controls() {
 
     $.getJSON('/api/' + api_version + '/percival/controls/', function(response) {
-        percival.control_names = response["controls"];
+        percival.control_names = response["controls"].sort();
         percival.control_desc = response;
         percival.control_count = percival.control_names.length;
     });
@@ -558,7 +580,7 @@ function update_api_read_controls() {
 function update_api_read_monitors()
 {
     $.getJSON('/api/' + api_version + '/percival/monitors/', function(response) {
-        monitor_names = response["monitors"];
+        monitor_names = response["monitors"].sort();
         monitor_desc = response;
         percival.monitor_count = monitor_names.length;
     });
