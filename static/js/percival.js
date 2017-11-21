@@ -213,7 +213,8 @@ $( document ).ready(function()
   update_api_version();
   update_api_adapters();
   update_server_setup();
-  render('#/home-view');
+  //render('#/home-view');
+  render(decodeURI(window.location.hash));
 
   setInterval(update_server_setup, 1000);
   setInterval(update_api_read_monitors, 1000);
