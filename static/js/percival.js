@@ -91,7 +91,7 @@ class Monitor
                      "<table>";
                      //"<tr><td width=120px>Device:</td><td colspan=2 width=150px>" + this.device + "</td></tr>";
     if (this.device == "LTC2309"){
-      this.html_text += "<tr><td width=120px>Voltage:</td><td colspan=2 id=\"" + this.id + "-value\">0.000 ";
+      this.html_text += "<tr><td width=120px>Value:</td><td colspan=2 id=\"" + this.id + "-value\">0.000 ";
     } else if (this.device == "MAX31730"){
       this.html_text += "<tr><td width=120px>Temperature:</td><td colspan=2 id=\"" + this.id + "-value\">0.000 ";
     }
@@ -138,8 +138,8 @@ class Monitor
   update(device)
   {
     if (this.device == "LTC2309"){
-      if (this.value != device.voltage){
-        this.update_value(device.voltage);
+      if (this.value != device.value){
+        this.update_value(device.value);
       }
     } else if (this.device == "MAX31730"){
       if (this.value != device.temperature){
