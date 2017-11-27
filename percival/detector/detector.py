@@ -519,6 +519,8 @@ class PercivalDetector(object):
         self._log.info("Executing detector constructor")
         self._start_time = datetime.now()
         self._username = getpass.getuser()
+        self._download_configuration = download_config
+        self._initialise_hardware = initialise_hardware
         self._txrx = None
         self._db = None
         self._global_monitoring = False
@@ -550,16 +552,7 @@ class PercivalDetector(object):
         self.setup_db()
         self._log.info("Setting up control interface")
         self.setup_control()
-        self._log.info("Checking for auto-download of configuration files")
-        self.auto_download()
-        if download_config:
-            self._log.info("Loading channel configuration to hardware")
-            self.load_configuration()
-        self._log.info("Loading channel information from hardware shortcuts")
-        self.load_channels()
-        if initialise_hardware:
-            self._log.info("Executing initialisation of channels")
-            self.initialize_channels()
+        self.connect()
         self._command_queue = queue.Queue()
         self._command_thread = threading.Thread(target=self.command_loop)
         self._command_thread.start()
@@ -594,14 +587,34 @@ class PercivalDetector(object):
         self._board_settings[const.BoardTypes.bottom] = BoardSettings(self._txrx, const.BoardTypes.bottom)
         self._board_settings[const.BoardTypes.carrier] = BoardSettings(self._txrx, const.BoardTypes.carrier)
         self._board_settings[const.BoardTypes.plugin] = BoardSettings(self._txrx, const.BoardTypes.plugin)
+        self._board_values[const.BoardTypes.left] = BoardValues(self._txrx, const.BoardTypes.left)
         self._board_values[const.BoardTypes.bottom] = BoardValues(self._txrx, const.BoardTypes.bottom)
         self._board_values[const.BoardTypes.carrier] = BoardValues(self._txrx, const.BoardTypes.carrier)
+        self._board_values[const.BoardTypes.plugin] = BoardValues(self._txrx, const.BoardTypes.plugin)
         self._system_settings.set_txrx(self._txrx)
         self._chip_readout_settings.set_txrx(self._txrx)
         self._clock_settings.set_txrx(self._txrx)
         self._sys_cmd = SystemCommand(self._txrx)
         self._sensor_buffer_cmd = SensorBufferCommand(self._txrx)
         self._sensor = Sensor(self._sensor_buffer_cmd)
+
+    def connect(self):
+        """
+        Request a connection to the detector hardware
+        :return:
+        """
+        self._txrx.connect()
+        if self._txrx.connected:
+            self._log.info("Checking for auto-download of configuration files")
+            self.auto_download()
+            if self._download_configuration:
+                self._log.info("Loading channel configuration to hardware")
+                self.load_configuration()
+            self._log.info("Loading channel information from hardware shortcuts")
+            self.load_channels()
+            if self._initialise_hardware:
+                self._log.info("Executing initialisation of channels")
+                self.initialize_channels()
 
     def auto_download(self):
         # Check if we are asked to auto download the system settings to hardware
@@ -704,62 +717,64 @@ class PercivalDetector(object):
         Monitor type devices are stored in the _monitors dictionary.
         Control type devices are stored in the _controls dictionary.
         """
-        # Readback the monitoring settings
-        self._board_settings[const.BoardTypes.left].readback_monitoring_settings()
-        self._board_settings[const.BoardTypes.bottom].readback_monitoring_settings()
-        self._board_settings[const.BoardTypes.carrier].readback_monitoring_settings()
-        self._board_settings[const.BoardTypes.plugin].readback_monitoring_settings()
-        # Get the list of monitor names
-        monitors = self._percival_params.monitoring_channels
-        for monitor in monitors:
-            # Check for the board type
-            bt = const.BoardTypes(monitor.Board_type)
-            if bt != const.BoardTypes.prototype:
-                settings = self._board_settings[bt].device_monitoring_settings(monitor.UART_address)
-                mc = MonitoringChannel(self._txrx, monitor, settings)
-                if mc._channel_ini.Channel_name is None or len(mc._channel_ini.Channel_name) == 0:
-                    self._log.debug("Dropping %s as it has no channel name defined",
-                                    (const.DeviceFamily(mc._channel_ini.Component_family_ID)).name)
-                else:
-                    self._log.debug("Adding %s [%s] to monitor set",
-                                       (const.DeviceFamily(mc._channel_ini.Component_family_ID)).name,
-                                       mc._channel_ini.Channel_name)
-                    description, device = DeviceFactory[const.DeviceFamily(mc._channel_ini.Component_family_ID)]
-                    self._monitors[mc._channel_ini.Channel_name] = device(mc._channel_ini.Channel_name, mc)
+        # We can only load the channel information if we have a valid connection
+        if self._txrx.connected:
+            # Readback the monitoring settings
+            self._board_settings[const.BoardTypes.left].readback_monitoring_settings()
+            self._board_settings[const.BoardTypes.bottom].readback_monitoring_settings()
+            self._board_settings[const.BoardTypes.carrier].readback_monitoring_settings()
+            self._board_settings[const.BoardTypes.plugin].readback_monitoring_settings()
+            # Get the list of monitor names
+            monitors = self._percival_params.monitoring_channels
+            for monitor in monitors:
+                # Check for the board type
+                bt = const.BoardTypes(monitor.Board_type)
+                if bt != const.BoardTypes.prototype:
+                    settings = self._board_settings[bt].device_monitoring_settings(monitor.UART_address)
+                    mc = MonitoringChannel(self._txrx, monitor, settings)
+                    if mc._channel_ini.Channel_name is None or len(mc._channel_ini.Channel_name) == 0:
+                        self._log.debug("Dropping %s as it has no channel name defined",
+                                        (const.DeviceFamily(mc._channel_ini.Component_family_ID)).name)
+                    else:
+                        self._log.debug("Adding %s [%s] to monitor set",
+                                           (const.DeviceFamily(mc._channel_ini.Component_family_ID)).name,
+                                           mc._channel_ini.Channel_name)
+                        description, device = DeviceFactory[const.DeviceFamily(mc._channel_ini.Component_family_ID)]
+                        self._monitors[mc._channel_ini.Channel_name] = device(mc._channel_ini.Channel_name, mc)
 
-        # Readback the control settings
-        self._board_settings[const.BoardTypes.left].readback_control_settings()
-        self._board_settings[const.BoardTypes.bottom].readback_control_settings()
-        self._board_settings[const.BoardTypes.carrier].readback_control_settings()
-        self._board_settings[const.BoardTypes.plugin].readback_control_settings()
-        # Get the list of control names
-        controls = self._percival_params.control_channels
-        for control in controls:
-            # Check for the board type
-            bt = const.BoardTypes(control.Board_type)
-            if bt != const.BoardTypes.prototype:
-                settings = self._board_settings[bt].device_control_settings(control.UART_address)
-                cc = ControlChannel(self._txrx, control, settings)
-                if cc._channel_ini.Channel_name is None or len(cc._channel_ini.Channel_name) == 0:
-                    self._log.debug("Dropping %s as it has no channel name defined",
-                                    (const.DeviceFamily(cc._channel_ini.Component_family_ID)).name)
-                else:
-                    self._log.debug("Adding %s [%s] to control set",
-                                       (const.DeviceFamily(cc._channel_ini.Component_family_ID)).name,
-                                       cc._channel_ini.Channel_name)
-                    description, device = DeviceFactory[const.DeviceFamily(cc._channel_ini.Component_family_ID)]
-                    self._controls[cc._channel_ini.Channel_name] = device(cc._channel_ini.Channel_name, cc)
+            # Readback the control settings
+            self._board_settings[const.BoardTypes.left].readback_control_settings()
+            self._board_settings[const.BoardTypes.bottom].readback_control_settings()
+            self._board_settings[const.BoardTypes.carrier].readback_control_settings()
+            self._board_settings[const.BoardTypes.plugin].readback_control_settings()
+            # Get the list of control names
+            controls = self._percival_params.control_channels
+            for control in controls:
+                # Check for the board type
+                bt = const.BoardTypes(control.Board_type)
+                if bt != const.BoardTypes.prototype:
+                    settings = self._board_settings[bt].device_control_settings(control.UART_address)
+                    cc = ControlChannel(self._txrx, control, settings)
+                    if cc._channel_ini.Channel_name is None or len(cc._channel_ini.Channel_name) == 0:
+                        self._log.debug("Dropping %s as it has no channel name defined",
+                                        (const.DeviceFamily(cc._channel_ini.Component_family_ID)).name)
+                    else:
+                        self._log.debug("Adding %s [%s] to control set",
+                                           (const.DeviceFamily(cc._channel_ini.Component_family_ID)).name,
+                                           cc._channel_ini.Channel_name)
+                        description, device = DeviceFactory[const.DeviceFamily(cc._channel_ini.Component_family_ID)]
+                        self._controls[cc._channel_ini.Channel_name] = device(cc._channel_ini.Channel_name, cc)
 
-        # Load the sensor DACs from the ini file
-        sensor_dacs = self._percival_params.sensor_dac_channels
-        for dac in sensor_dacs:
-            self._sensor.add_dac(dac)
+            # Load the sensor DACs from the ini file
+            sensor_dacs = self._percival_params.sensor_dac_channels
+            for dac in sensor_dacs:
+                self._sensor.add_dac(dac)
 
-        # Load in control groups from the ini file
-        self._control_groups = Group(self._percival_params.control_group_params)
+            # Load in control groups from the ini file
+            self._control_groups = Group(self._percival_params.control_group_params)
 
-        # Load in control groups from the ini file
-        self._monitor_groups = Group(self._percival_params.monitor_group_params)
+            # Load in control groups from the ini file
+            self._monitor_groups = Group(self._percival_params.monitor_group_params)
 
     def load_system_settings(self, system_settings_ini):
         self._log.debug("Loading system settings with config: %s", system_settings_ini)
@@ -842,6 +857,9 @@ class PercivalDetector(object):
             if command.command_name in str(PercivalCommandNames.cmd_download_channel_cfg):
                 # No parameters required for this command
                 self.load_configuration()
+                self._active_command.complete(success=True)
+            if command.command_name in str(PercivalCommandNames.cmd_connect_hardware):
+                self.connect()
                 self._active_command.complete(success=True)
             if command.command_name in str(PercivalCommandNames.cmd_connect_db):
                 # No parameters required for this command
@@ -973,13 +991,13 @@ class PercivalDetector(object):
         :type state: bool
         """
         if state:
-            self._sys_cmd.send_command(const.SystemCmd.enable_global_monitoring)
-            self._sys_cmd.send_command(const.SystemCmd.enable_device_level_safety_controls)
+            #self._sys_cmd.send_command(const.SystemCmd.enable_global_monitoring)
+            #self._sys_cmd.send_command(const.SystemCmd.enable_device_level_safety_controls)
             self._global_monitoring = True
         else:
             self._global_monitoring = False
-            self._sys_cmd.send_command(const.SystemCmd.disable_global_monitoring)
-            self._sys_cmd.send_command(const.SystemCmd.disable_device_level_safety_controls)
+            #self._sys_cmd.send_command(const.SystemCmd.disable_global_monitoring)
+            #self._sys_cmd.send_command(const.SystemCmd.disable_device_level_safety_controls)
 
     def system_command(self, cmd):
         """
@@ -1179,40 +1197,71 @@ class PercivalDetector(object):
         self._log.info("Update status callback called")
         status_msg = {}
         if self._global_monitoring:
-            response = self._board_values[const.BoardTypes.carrier].read_values()
-            #time_now = datetime.today() - timedelta(hours=1)
-            time_now = datetime.utcnow()
-            self._log.debug(response)
-            read_maps = generate_register_maps(response)
-            self._log.debug(read_maps)
+            try:
+                status_msg.update(self.update_board_status(const.BoardTypes.carrier))
+                status_msg.update(self.update_board_status(const.BoardTypes.bottom))
+                status_msg.update(self.update_board_status(const.BoardTypes.left))
+                status_msg.update(self.update_board_status(const.BoardTypes.plugin))
+            except Exception as ex:
+                self._log.error("Caught exception: %s", str(ex))
+                import traceback
+                exc_info = sys.exc_info()
+                traceback.print_exception(*exc_info)
 
-            readback_block = BoardValueRegisters[const.BoardTypes.carrier]
-            for addr, value in response:  # pylint: disable=W0612
-                offset = addr - readback_block.start_address
-                name = self._percival_params.monitoring_channel_name_by_index_and_board_type(offset, const.BoardTypes.carrier)
-                if name in self._monitors:
-                    self._monitors[name].update(read_maps[offset])
-                    status_msg[name] = self._monitors[name].status
-                    if self._db:
-                        self._db.log_point(time_now, name, self._monitors[name].status)
-
-            response = self._board_values[const.BoardTypes.bottom].read_values()
-            # time_now = datetime.today() - timedelta(hours=1)
-            time_now = datetime.utcnow()
-            self._log.debug(response)
-            read_maps = generate_register_maps(response)
-            self._log.debug(read_maps)
-
-            readback_block = BoardValueRegisters[const.BoardTypes.bottom]
-            for addr, value in response:  # pylint: disable=W0612
-                offset = addr - readback_block.start_address
-                name = self._percival_params.monitoring_channel_name_by_index_and_board_type(offset,
-                                                                                             const.BoardTypes.bottom)
-                if name in self._monitors:
-                    self._monitors[name].update(read_maps[offset])
-                    status_msg[name] = self._monitors[name].status
-                    if self._db:
-                        self._db.log_point(time_now, name, self._monitors[name].status)
+            # response = self._board_values[const.BoardTypes.carrier].read_values()
+            # #time_now = datetime.today() - timedelta(hours=1)
+            # time_now = datetime.utcnow()
+            # self._log.debug(response)
+            # read_maps = generate_register_maps(response)
+            # self._log.debug(read_maps)
+            #
+            # readback_block = BoardValueRegisters[const.BoardTypes.carrier]
+            # for addr, value in response:  # pylint: disable=W0612
+            #     offset = addr - readback_block.start_address
+            #     name = self._percival_params.monitoring_channel_name_by_index_and_board_type(offset, const.BoardTypes.carrier)
+            #     if name in self._monitors:
+            #         self._monitors[name].update(read_maps[offset])
+            #         status_msg[name] = self._monitors[name].status
+            #         if self._db:
+            #             self._db.log_point(time_now, name, self._monitors[name].status)
+            #
+            # response = self._board_values[const.BoardTypes.bottom].read_values()
+            # # time_now = datetime.today() - timedelta(hours=1)
+            # time_now = datetime.utcnow()
+            # self._log.debug(response)
+            # read_maps = generate_register_maps(response)
+            # self._log.debug(read_maps)
+            #
+            # readback_block = BoardValueRegisters[const.BoardTypes.bottom]
+            # for addr, value in response:  # pylint: disable=W0612
+            #     offset = addr - readback_block.start_address
+            #     name = self._percival_params.monitoring_channel_name_by_index_and_board_type(offset,
+            #                                                                                  const.BoardTypes.bottom)
+            #     if name in self._monitors:
+            #         self._monitors[name].update(read_maps[offset])
+            #         status_msg[name] = self._monitors[name].status
+            #         if self._db:
+            #             self._db.log_point(time_now, name, self._monitors[name].status)
 
             self._log.debug("Status: %s", status_msg)
+        return status_msg
+
+    def update_board_status(self, board):
+        status_msg = {}
+        response = self._board_values[board].read_values()
+        time_now = datetime.utcnow()
+        self._log.debug(response)
+        read_maps = generate_register_maps(response)
+        self._log.debug(read_maps)
+
+        readback_block = BoardValueRegisters[board]
+        for addr, value in response:  # pylint: disable=W0612
+            offset = addr - readback_block.start_address
+            name = self._percival_params.monitoring_channel_name_by_index_and_board_type(offset, board)
+            if name in self._monitors:
+                self._monitors[name].update(read_maps[offset])
+                status_msg[name] = self._monitors[name].status
+                if self._db:
+                    self._db.log_point(time_now, name, self._monitors[name].status)
+
         return status_msg
