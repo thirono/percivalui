@@ -244,6 +244,9 @@ $( document ).ready(function()
   setInterval(update_api_read_status, 100);
   setInterval(update_server_command_status, 500);
 
+  $('#server-hw-reconnect').click(function(){
+    reconnect_hardware();
+  });
   $('#server-db-reconnect').click(function(){
     reconnect_db();
   });
@@ -289,6 +292,11 @@ $( document ).ready(function()
 		render(decodeURI(window.location.hash));
 	});
 });
+
+function reconnect_hardware()
+{
+    $.put('/api/' + api_version + '/percival/cmd_connect_hardware', function(response){});
+}
 
 function reconnect_db()
 {
