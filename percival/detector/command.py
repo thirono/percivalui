@@ -31,6 +31,7 @@ class PercivalCommandNames(Enum):
     cmd_status = 9                # Get only
     cmd_download_channel_cfg = 10 # Put only TODO: This is a temporary command
     cmd_connect_hardware = 11     # Put only
+    cmd_system_setting = 12       # Put only
 
 
 @unique

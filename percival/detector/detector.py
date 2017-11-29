@@ -538,6 +538,8 @@ class PercivalDetector(object):
         self._active_command = None
         self._log.info("Creating SystemSettings object")
         self._system_settings = SystemSettings()
+        self._log.info("SystemSettings : %s", self._system_settings.settings)
+
         self._log.info("Creating ChipRadoutSettings object")
         self._chip_readout_settings = ChipReadoutSettings()
         self._log.info("Creating ClockSettings object")
@@ -919,6 +921,19 @@ class PercivalDetector(object):
                         raise PercivalDetectorError("No value supplied to set channel command")
                 else:
                     raise PercivalDetectorError("No channel supplied for set channel command")
+            elif command.command_name in str(PercivalCommandNames.cmd_system_setting):
+                # Parameter [setting] is the name of the system setting to apply
+                # Parameter [value] is the value to apply
+                if command.has_param('setting'):
+                    channel = command.get_param('setting')
+                    if command.has_param('value'):
+                        value = command.get_param('value')
+                        self.set_system_setting(channel, value)
+                        self._active_command.complete(success=True)
+                    else:
+                        raise PercivalDetectorError("No value supplied to set system setting {}".format(channel))
+                else:
+                    raise PercivalDetectorError("No setting supplied for set system setting command")
             elif command.command_name in str(PercivalCommandNames.cmd_apply_setpoint):
                 # Parameter [setpoint] is the name of the setpoint to apply
                 if command.has_param('setpoint'):
@@ -1019,6 +1034,14 @@ class PercivalDetector(object):
         """
         if device in self._controls:
             self._controls[device].initialize()
+
+    def set_system_setting(self, setting, value):
+        """
+        Set the value of a system setting.
+
+        """
+        self._log.info("Setting %s to %d", setting, value)
+        self._system_settings.set_value(setting, value)
 
     def set_value(self, device, value, timeout=0.1):
         """
@@ -1121,6 +1144,10 @@ class PercivalDetector(object):
             for name, tmp in const.SystemCmd.__members__.items():
                 reply["commands"].append(name)
 
+        elif parameter == "system_values":
+            reply = {}
+            reply["system_values"] = self._system_settings.settings
+
         elif parameter == "setpoints":
             reply = {}
             reply["setpoints"] = []
@@ -1206,44 +1233,6 @@ class PercivalDetector(object):
                 status_msg.update(self.update_board_status(const.BoardTypes.plugin))
             except Exception as ex:
                 self._log.error("Caught exception: %s", str(ex))
-                import traceback
-                exc_info = sys.exc_info()
-                traceback.print_exception(*exc_info)
-
-            # response = self._board_values[const.BoardTypes.carrier].read_values()
-            # #time_now = datetime.today() - timedelta(hours=1)
-            # time_now = datetime.utcnow()
-            # self._log.debug(response)
-            # read_maps = generate_register_maps(response)
-            # self._log.debug(read_maps)
-            #
-            # readback_block = BoardValueRegisters[const.BoardTypes.carrier]
-            # for addr, value in response:  # pylint: disable=W0612
-            #     offset = addr - readback_block.start_address
-            #     name = self._percival_params.monitoring_channel_name_by_index_and_board_type(offset, const.BoardTypes.carrier)
-            #     if name in self._monitors:
-            #         self._monitors[name].update(read_maps[offset])
-            #         status_msg[name] = self._monitors[name].status
-            #         if self._db:
-            #             self._db.log_point(time_now, name, self._monitors[name].status)
-            #
-            # response = self._board_values[const.BoardTypes.bottom].read_values()
-            # # time_now = datetime.today() - timedelta(hours=1)
-            # time_now = datetime.utcnow()
-            # self._log.debug(response)
-            # read_maps = generate_register_maps(response)
-            # self._log.debug(read_maps)
-            #
-            # readback_block = BoardValueRegisters[const.BoardTypes.bottom]
-            # for addr, value in response:  # pylint: disable=W0612
-            #     offset = addr - readback_block.start_address
-            #     name = self._percival_params.monitoring_channel_name_by_index_and_board_type(offset,
-            #                                                                                  const.BoardTypes.bottom)
-            #     if name in self._monitors:
-            #         self._monitors[name].update(read_maps[offset])
-            #         status_msg[name] = self._monitors[name].status
-            #         if self._db:
-            #             self._db.log_point(time_now, name, self._monitors[name].status)
 
             self._log.debug("Status: %s", status_msg)
         return status_msg
