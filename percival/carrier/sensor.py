@@ -161,27 +161,41 @@ class Sensor(object):
                 self._log.debug("Sensor configuration words: %s", words)
                 self._buffer_cmd.send_configuration_setup_cmd(words)
 
+    def parse_debug_flag(self, flag):
+        value = 0
+        if isinstance(flag, str) or isinstance(flag, unicode):
+            if 'false' in flag.lower():
+                flag = 0
+            elif 'true' in flag.lower():
+                flag = 1
+        value = int(flag) & 1
+        return value
+
     def apply_debug(self, debug):
         self._log.debug("Applying sensor debug: %s", debug)
-        # We need to first verify the debug description
-        if 'H1' in debug and 'H0' in debug and 'G' in debug:
-            h1_values = debug['H1']
-            words = []
-            while len(h1_values) > 4:
-                words.append(self.configuration_values_to_word(6, h1_values[0:5]))
-                h1_values = h1_values[5:]
-            h0_values = h1_values + debug['H0']
-            while len(h0_values) > 4:
-                words.append(self.configuration_values_to_word(6, h0_values[0:5]))
-                h0_values = h0_values[5:]
-            g_values = h0_values + debug['G']
-            while len(g_values) > 4:
-                words.append(self.configuration_values_to_word(6, g_values[0:5]))
-                g_values = g_values[5:]
-            if len(g_values) > 0:
-                words.append(self.configuration_values_to_word(6, g_values))
-            self._log.debug("Sensor debug words: %s", words)
-            self._buffer_cmd.send_debug_setup_cmd(words)
+        debug_value = 0
+        if 'debug_dmxSEL' in debug:
+            debug_value |= self.parse_debug_flag(debug['debug_dmxSEL'])
+        if 'debug_SC' in debug:
+            debug_value |= self.parse_debug_flag(debug['debug_SC'])<<1
+        if 'debug_sr7SC' in debug:
+            debug_value |= self.parse_debug_flag(debug['debug_sr7SC'])<<2
+        if 'debug_CPNI' in debug:
+            debug_value |= self.parse_debug_flag(debug['debug_CPNI'])<<3
+        if 'debug_adcCPN' in debug:
+            debug_value |= self.parse_debug_flag(debug['debug_adcCPN'])<<4
+        if 'debug_CLKin' in debug:
+            debug_value |= self.parse_debug_flag(debug['debug_CLKin'])<<5
+        self._log.debug("Debug value to set: %d", debug_value)
+        words = []
+        for index in range(0, 9):
+            words.append(self.configuration_values_to_word(6, [debug_value,
+                                                               debug_value,
+                                                               debug_value,
+                                                               debug_value,
+                                                               debug_value]))
+        self._log.debug("Sensor debug words: %s", words)
+        self._buffer_cmd.send_debug_setup_cmd(words)
 
     def apply_calibration(self, calibration):
         #self._log.debug("Applying sensor calibration: %s", calibration)

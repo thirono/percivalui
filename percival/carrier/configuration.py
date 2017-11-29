@@ -993,18 +993,9 @@ class SensorDebugParameters(object):
         # Read out the section General that describes the rest of the file
         values = {}
         desc = {}
-        for item in self._conf.items('General'):
-            match = re.match(r'^.*debug<(\w*)>$', item[0])
-            if match:
-                desc[match.group(1)] = int(item[1])
-        # Now loop over each defined group adding the values
-        self.log.info("Ini description: %s", desc)
-        for item in desc:
-            val_list = []
-            for index in range(desc[item]):
-                item_name = "debug<{}>".format(index)
-                val_list.append(self._conf.getint(item, item_name))
-            values[item] = val_list
+        for item in self._conf.items('Debug'):
+            values[item[0]] = item[1]
+
         return values
 
 
