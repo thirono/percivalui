@@ -849,7 +849,9 @@ class PercivalDetector(object):
         # Check if the command is a PUT command
         if 'PUT' in command.command_type:
             # Log the trace information from the command object
-            self._trace_log.info("Command {} [{}] executed".format(command.command_type, command.command_name))
+            self._trace_log.info("{} Command [{}] executed, parameters: {}".format(command.command_type,
+                                                                                   command.command_name,
+                                                                                   command.parameters))
             command.activate()
             self._trace_log.info(command.format_trace)
             self._active_command = command
