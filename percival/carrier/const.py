@@ -303,7 +303,7 @@ BufferCommands = {
         BufferCmd.write:        {"command": int(0), "response": 3}
                                     },
     BufferTarget.percival_sensor: {
-        SensorBufferCmd.no_operation:             {"command": int(0), "response": 1},
+        SensorBufferCmd.no_operation:             {"command": int(0), "response": 2},
         SensorBufferCmd.send_DACs_setup:          {"command": int(0), "response": 2},
         SensorBufferCmd.send_CONFIGURATION_setup: {"command": int(1), "response": 2},
         SensorBufferCmd.send_CALIBRATION_setup:   {"command": int(2), "response": 2},

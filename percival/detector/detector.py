@@ -41,7 +41,7 @@ from percival.carrier.configuration import SystemSettingsParameters, \
     ControlParameters,\
     ChannelGroupParameters,\
     SetpointGroupParameters,\
-    BufferParameters,\
+    SensorDACParameters,\
     env_carrier_ip
 from percival.detector.errors import PercivalDetectorError
 from percival.detector.groups import Group
@@ -86,7 +86,7 @@ class PercivalParameters(object):
 
 
         self._channel_params = None
-        self._buffer_params = None
+#        self._buffer_params = None
 
         #self._channel_params = ChannelParameters("config/Channel parameters.ini")
         #self._buffer_params = BufferParameters("config/SensorDAC.ini")
@@ -100,6 +100,7 @@ class PercivalParameters(object):
         self._sensor_configuration_params = None
         self._sensor_calibration_params = None
         self._sensor_debug_params = None
+        self._sensor_dac_params = None
         self._control_group_params = None
         self._monitor_group_params = None
         self._setpoint_group_params = None
@@ -132,12 +133,12 @@ class PercivalParameters(object):
             self._log.error("Could not initialise channel parameters from ini file")
             raise PercivalDetectorError("Could not initialise channel parameters from ini file")
 
-        try:
-            self._buffer_params = BufferParameters(self._control_params.sensor_dac_file)
-            self._buffer_params.load_ini()
-        except:
-            self._log.error("Could not initialise buffer parameters from ini file")
-            raise PercivalDetectorError("Could not initialise buffer parameters from ini file")
+#        try:
+#            self._buffer_params = BufferParameters(self._control_params.sensor_dac_file)
+#            self._buffer_params.load_ini()
+#        except:
+#            self._log.error("Could not initialise buffer parameters from ini file")
+#            raise PercivalDetectorError("Could not initialise buffer parameters from ini file")
 
         #self._control_group_params.load_ini()
         #self._monitor_group_params.load_ini()
@@ -171,6 +172,11 @@ class PercivalParameters(object):
             self.load_sensor_debug_params(self._control_params.sensor_debug_file)
         except:
             self._log.debug("No default sensor debug ini file to load")
+
+        try:
+            self.load_sensor_dac_params(self._control_params.sensor_dac_file)
+        except:
+            self._log.debug("No default sensor DAC ini file to load")
 
         try:
             self.load_control_group_ini(self._control_params.control_group_ini_file)
@@ -216,6 +222,11 @@ class PercivalParameters(object):
         # Create the ini object from either filename or raw file
         self._sensor_debug_params = SensorDebugParameters(filename)
         self._sensor_debug_params.load_ini()
+
+    def load_sensor_dac_params(self, filename):
+        # Create the ini object from either filename or raw file
+        self._sensor_dac_params = SensorDACParameters(filename)
+        self._sensor_dac_params.load_ini()
 
     def load_control_group_ini(self, filename):
         # Create the ini object from either filename or raw file
@@ -330,6 +341,15 @@ class PercivalParameters(object):
             download = self._control_params.sensor_debug_download
         except:
             self._log.info("Could not parse sensor_debug_download value from config file")
+        return download
+
+    @property
+    def download_sensor_dac(self):
+        download = False
+        try:
+            download = self._control_params.sensor_dac_download
+        except:
+            self._log.info("Could not parse sensor_dac_download value from config file")
         return download
 
     def board_name(self, board):
@@ -455,15 +475,15 @@ class PercivalParameters(object):
         """
         return self._channel_params.control_channels
 
-    @property
-    def sensor_dac_channels(self):
-        """
-        Return a list of `BufferDACIniParameters`
-
-        :returns: List of control channel ini parameters for sensor DACs
-        :rtype: list
-        """
-        return self._buffer_params.dac_channels
+#    @property
+#    def sensor_dac_channels(self):
+#        """
+#        Return a list of `BufferDACIniParameters`
+#
+#        :returns: List of control channel ini parameters for sensor DACs
+#        :rtype: list
+#        """
+#        return self._buffer_params.dac_channels
 
     @property
     def system_settings_params(self):
@@ -488,6 +508,10 @@ class PercivalParameters(object):
     @property
     def sensor_debug_params(self):
         return self._sensor_debug_params
+
+    @property
+    def sensor_dac_params(self):
+        return self._sensor_dac_params
 
     @property
     def control_group_params(self):
@@ -649,6 +673,11 @@ class PercivalDetector(object):
             self._log.info("Auto-downloading sensor debug from default ini file")
             self._sensor.apply_debug(self._percival_params.sensor_debug_params.value_map)
 
+        # Check if we are asked to auto download the sensor configuration to hardware
+        if self._percival_params.download_sensor_dac:
+            self._log.info("Auto-downloading sensor DACs from default ini file")
+            self._sensor.apply_dac_values(self._percival_params.sensor_dac_params.value_map)
+
     def setup_db(self):
         """
         Provide a DB interface for logging data from the detector.
@@ -712,6 +741,10 @@ class PercivalDetector(object):
         self._log.info("Downloading sensor debug to hardware")
         self._sensor.apply_debug(self._percival_params.sensor_debug_params.value_map)
 
+    def download_sensor_dacs(self):
+        self._log.info("Downloading sensor DAC values to hardware")
+        self._sensor.apply_dac_values(self._percival_params.sensor_dac_params.value_map)
+
     def load_channels(self):
         """
         Readout the settings from the hardware and create all control and monitoring devices according to the current
@@ -767,10 +800,10 @@ class PercivalDetector(object):
                         description, device = DeviceFactory[const.DeviceFamily(cc._channel_ini.Component_family_ID)]
                         self._controls[cc._channel_ini.Channel_name] = device(cc._channel_ini.Channel_name, cc)
 
-            # Load the sensor DACs from the ini file
-            sensor_dacs = self._percival_params.sensor_dac_channels
-            for dac in sensor_dacs:
-                self._sensor.add_dac(dac)
+#            # Load the sensor DACs from the ini file
+#            sensor_dacs = self._percival_params.sensor_dac_channels
+#            for dac in sensor_dacs:
+#                self._sensor.add_dac(dac)
 
             # Load in control groups from the ini file
             self._control_groups = Group(self._percival_params.control_group_params)
@@ -804,6 +837,10 @@ class PercivalDetector(object):
     def load_sensor_debug(self, sensor_debug_ini):
         self._log.debug("Loading sensor debug with config: %s", sensor_debug_ini)
         self._percival_params.load_sensor_debug_params(sensor_debug_ini)
+
+    def load_sensor_dacs(self, sensor_dac_ini):
+        self._log.debug("Loading sensor DACs with config: %s", sensor_dac_ini)
+        self._percival_params.load_sensor_dac_params(sensor_dac_ini)
 
     def load_control_groups(self, control_groups_ini):
         self._log.debug("Loading control groups with config: %s", control_groups_ini)
@@ -901,9 +938,13 @@ class PercivalDetector(object):
                             elif 'sensor_debug' in config_type:
                                 self.load_sensor_debug(config_desc)
                                 self.download_sensor_debug()
+                            elif 'sensor_dacs' in config_type:
+                                self.load_sensor_dacs(config_desc)
+                                self.download_sensor_dacs()
                             self._active_command.complete(success=True)
                         else:
-                            self._active_command.complete(success=False, message='Empty configuration parameter supplied')
+                            self._active_command.complete(success=False,
+                                                          message='Empty configuration parameter supplied')
                     else:
                         raise PercivalDetectorError("No config provided (file or object)")
                 else:
