@@ -334,24 +334,8 @@
 								<span>Number of steps:<input type="text" id="scan-sp-steps" value="10"></input></span>
 								<span>Dwell time (ms):<input type="text" id="scan-sp-dwell" value="1000"></input></span>
 								<span><button id="server-scan-set-point-cmd">Execute</button></span>
+								<span><button data-toggle="modal" data-target="#sp-scan-modal">View Details</button></span>
 							</div>
-							<div class="col-xs-3 status vertical-align">
-								<div id="sp-scan-response" class="panel panel-default">
-									<table>
-										<tr valign="top">
-											<td style="padding:0 15px 0 15px;">Scanning:</td><td id="sp-scan-scanning"></td>
-										</tr><tr>
-											<td style="padding:0 15px 0 15px;">Index:</td><td id="sp-scan-index"></td>
-										</tr><tr>
-											<td style="padding:0 15px 0 15px;">Scan:</td><td id="sp-scan-scanpoints"></td>
-										</tr>
-									</table>
-									<!--<div class="panel-heading clearfix">
-										<span class="panel-title pull-left">Status</span>
-									</div>-->
-								</div>
-							</div>
-
 						</div>
 						<div class="row sidebar-row vertical-align">
 							<div class="col-xs-2">&nbsp;</div>
@@ -409,7 +393,29 @@
 		</div> <!-- row fluid-row -->	
 	</div> <!--  container-fluid -->
 
-  
+
+
+	<div class="modal fade" id="sp-scan-modal" role="dialog">
+	    <div class="modal-dialog" style="overflow-y: scroll; max-height:85%;  margin-top: 50px; margin-bottom:50px;">
+    	    <div class="modal-content">
+        	    <div class="modal-header">
+            	    <h3 class="modal-title">Scanning Status</h3>
+            	</div>
+	            <div class="modal-body">
+					<table>
+						<tr valign="top">
+							<td style="padding:0 15px 0 15px;">Scanning:</td><td id="sp-scan-scanning"></td>
+						</tr><tr>
+							<td style="padding:0 15px 0 15px;">Index:</td><td id="sp-scan-index"></td>
+						</tr><tr>
+							<td style="padding:0 15px 0 15px;">Scan:</td><td id="sp-scan-scanpoints"></td>
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
   
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="js/jquery-3.2.1.min.js" type="text/javascript"></script>
