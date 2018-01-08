@@ -312,7 +312,7 @@ class LTC2309:
         self._channel = channel
         self._device = DeviceFamily.LTC2309
         self._raw_value = 0
-        self._voltage = 0.0
+        self._value = 0.0
         self._low_threshold = 0
         self._extreme_low_threshold = 0
         self._high_threshold = 0
@@ -348,7 +348,7 @@ class LTC2309:
         """
         self._i2c_comms_error = data.i2c_communication_error
         self._raw_value = data.read_value
-        self._voltage = (float(data.read_value) - self._offset) / self._divider * self._multiplier
+        self._value = (float(data.read_value) - self._offset) / self._divider * self._multiplier
         self._sample_number = data.sample_number
 
     def _update_status(self, data):
@@ -363,8 +363,8 @@ class LTC2309:
         self._safety_exception = data.safety_exception_detected
 
     @property
-    def voltage(self):
-        return self._voltage
+    def value(self):
+        return self._value
 
     @property
     def unit(self):
@@ -382,7 +382,7 @@ class LTC2309:
     def status(self):
         return {
             "device":                 "LTC2309",
-            "voltage":                self._voltage,
+            "value":                  self._value,
             "raw_value":              self._raw_value,
             "sample_number":          self._sample_number,
             "low_threshold":          self._low_threshold,

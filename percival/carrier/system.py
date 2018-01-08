@@ -13,6 +13,7 @@ from __future__ import print_function
 import logging
 from percival.carrier import const
 from percival.carrier.registers import UARTRegister
+from percival.carrier.errors import PercivalSystemCommandError
 
 
 class SystemCommand(object):
@@ -90,6 +91,18 @@ class SystemCommand(object):
 
 
 class SystemSettings(object):
+    # Constants used for limits
+    Integration_window_width_max = 2**16 - 1
+    TRIG_REP_RATE_MAX = 2**32 - 1
+    TRIG_ACQ_DELAY_MAX = 2**16 - 1
+    TRIG_FPT_MAX = 2**16 - 1
+    SAMPLING_MAX = 2**4 - 1
+    ADV_OPT_MAX = 2
+    ADV_DISABLE_DURATION_MAX = 2**16 - 1
+    I2C_IDLE_TIME_MAX = 2**16 - 1
+    MONITORING_TIME_MAX = 2**32 - 1
+    SAFETY_OPT_MAX = 2**4 - 1
+
     def __init__(self, settings_ini=None):
         """
         Constructor
@@ -162,9 +175,125 @@ class SystemSettings(object):
         if self._settings_ini:
             self._send_to_carrier()
 
+    @property
+    def settings(self):
+        return self._reg_command.fields.map_fields
+
     def set_number_of_frames(self, no_of_frames):
         self._reg_command.fields.ACQUISITION_Number_of_frames = no_of_frames
         self._send_to_carrier()
+
+    def set_acquisition_mode(self, acquisition_mode):
+        self._reg_command.fields.ACQUISITION_Acquisition_mode = acquisition_mode
+        self._send_to_carrier()
+
+    def set_continuous_acquisition(self, continuous_mode):
+        self._reg_command.fields.ACQUISITION_Acquisition_mode = continuous_mode
+        self._send_to_carrier()
+
+    def set_sensor_type(self, sensor_type):
+        self._reg_command.fields.REGION_OF_INTEREST_Sensor_type = sensor_type
+        self._send_to_carrier()
+
+    def set_illumination(self, illumination):
+        self._reg_command.fields.REGION_OF_INTEREST_Illumination = illumination
+        self._send_to_carrier()
+
+    def set_value(self, setting, value):
+        # First replace any true or false with 1 or 0
+        if isinstance(value, str) or isinstance(value, unicode):
+            if 'false' in value.lower():
+                value = 0
+            elif 'true' in value.lower():
+                value = 1
+        try:
+            if hasattr(self._reg_command.fields, setting):
+                setattr(self._reg_command.fields, setting, int(value))
+                self._send_to_carrier()
+            else:
+                self._log.debug("No system register found for %s", setting)
+                raise PercivalSystemCommandError("No system register found for {}".format(setting))
+        except:
+            self._log.error("Failed to set iten %s from ini file", setting)
+            raise PercivalSystemCommandError("Failed to set {} to {}".format(setting, value))
+
+    def set_values(self, section, params):
+        # First replace any true or false with 1 or 0
+        for item in params:
+            if isinstance(params[item], str) or isinstance(params[item], unicode):
+                if 'false' in params[item].lower():
+                    params[item] = 0
+                elif 'true' in params[item].lower():
+                    params[item] = 1
+        # Now set the attributes within the UART Register
+        for item in params:
+            full_name = section + item
+            try:
+                if hasattr(self._reg_command.fields, full_name):
+                    setattr(self._reg_command.fields, full_name, int(params[item]))
+                else:
+                    self._log.debug("No system register found for %s", full_name)
+                    raise PercivalSystemCommandError("No system register found for {}".format(full_name))
+            except:
+                self._log.error("Failed to set iten %s from ini file", full_name)
+                raise PercivalSystemCommandError("Failed to set {} to {}".format(full_name, params[item]))
+        self._send_to_carrier()
+
+    def set_roi(self, params):
+        self.set_values("REGION_OF_INTEREST_", params)
+
+    def set_integration(self, params):
+        self.set_values("INTEGRATION_", params)
+
+    def set_triggering(self, params):
+        self.set_values("TRIGGERING_", params)
+
+    def set_sampling(self, params):
+        self.set_values("SAMPLING_", params)
+
+    def set_advanced(self, params):
+        self.set_values("ADVANCED_", params)
+
+    def set_monitoring(self, params):
+        self.set_values("MONITORING_", params)
+
+    def set_safety(self, params):
+        self.set_values("SAFETY_", params)
+
+    def set_marker_board(self, params):
+        self.set_values("MARKER_BOARD_", params)
+
+    def set_plugin_board(self, params):
+        self.set_values("PLUGIN_BOARD_", params)
+
+    @staticmethod
+    def parse_boolean_param(name, params):
+        value = 0
+        try:
+            if params[name]:
+                value = 1
+            else:
+                value = 0
+        except:
+            # Raise a system command exception
+            raise PercivalSystemCommandError("Cannot parse {} [supplied: {}]".format(name, params[name]))
+        return value
+
+    @staticmethod
+    def parse_integer_param(name, params, min, max):
+        try:
+            parameter = params[name]
+            if parameter < min:
+                raise PercivalSystemCommandError("{} must be {} or greater [supplied: {}]".
+                                                 format(name, min, parameter))
+            if parameter > max:
+                raise PercivalSystemCommandError("{} must be {} or less [supplied: {}]".
+                                                 format(name, max, parameter))
+            return parameter
+        except:
+            # Raise a system command exception
+            raise PercivalSystemCommandError("Cannot parse {} [supplied: {}]".
+                                             format(name, params[name]))
 
 
 class ClockSettings(object):

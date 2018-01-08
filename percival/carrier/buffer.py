@@ -174,6 +174,7 @@ class SensorBufferCommand(BufferCommand):
         # cmd = send_DACs_setup_to_target
         # words = 0
         # address = 1
+        self._log.debug("Now sending the sensor buffer command to setup DACS")
         result = self.send_command(const.SensorBufferCmd.send_DACs_setup, 0, 1)
         # We expect to see FFFF, ABBABAC1 followed by FFF3 ABBA3333
         if not self.verify_response(result):

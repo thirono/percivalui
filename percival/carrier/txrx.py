@@ -112,17 +112,28 @@ class TxRx(object):
         self.log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         
         self._fpga_addr = (fpga_addr, port)
+        self._connected = False
         self._mutex = Lock()
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.settimeout(timeout)
-        self.log.debug("connecting to FPGA: %s", str(self._fpga_addr))
-        self.sock.connect(self._fpga_addr)
+        self.connect()
+
+    def connect(self):
+        if not self._connected:
+            try:
+                self.log.debug("connecting to FPGA: %s", str(self._fpga_addr))
+                self.sock.connect(self._fpga_addr)
+                self._connected = True
+            except Exception as ex:
+                # Any kind of exception will result in non-connection and so set status accordingly
+                self.log.debug("Unable to connect to FPGA: %s", ex)
+                self._connected = False
 
     def get_status(self):
         status = {
             "address": self._fpga_addr[0],
             "port": self._fpga_addr[1],
-            "connected": True
+            "connected": self._connected
         }
         return status
 
@@ -133,6 +144,10 @@ class TxRx(object):
     @property
     def timeout(self):
         return self.sock.gettimeout()
+
+    @property
+    def connected(self):
+        return self._connected
 
     @timeout.setter
     def timeout(self, value):
@@ -145,11 +160,16 @@ class TxRx(object):
         :type  msg: bytearray
         :raises `PercivalCommsError`: if the socket connection appears to be broken
         """
-        try:
-            self.sock.sendall(msg)
-        except socket.error as e:
-            raise_with_traceback(PercivalCommsError("Unable to send message (%s)" % e))
-    
+        if self._connected:
+            try:
+                self.sock.sendall(msg)
+            except socket.error as e:
+                self._connected = False
+                raise_with_traceback(PercivalCommsError("Unable to send message (%s)" % e))
+        else:
+            self._connected = False
+            raise raise_with_traceback(PercivalCommsError("Socket not connected"))
+
     def rx_msg(self, expected_bytes = None):
         """Receive messages of up to `expected_bytes` length
         
@@ -160,26 +180,32 @@ class TxRx(object):
         :rtype:   bytearray
         """
         msg = bytes()
-        block_read_bytes = expected_bytes
-        expected_resp_len = expected_bytes
-        
-        if expected_bytes is None:
-            expected_resp_len = NUM_BYTES_PER_MSG
-            block_read_bytes = 4096
+        if self._connected:
+            block_read_bytes = expected_bytes
+            expected_resp_len = expected_bytes
 
-        while len(msg) < expected_resp_len:
-            if expected_bytes:
-                block_read_bytes = expected_bytes-len(msg)
-            try:
-                chunk = self.sock.recv(block_read_bytes)
-            except socket.error as e:
-                raise raise_with_traceback(PercivalCommsError("socket connection broken (%s)" % e))
-            if isinstance(chunk, str):
-                chunk = bytes(chunk, encoding=DATA_ENCODING)
-            if len(chunk) == 0:
-                raise raise_with_traceback(
-                    PercivalCommsError("socket connection broken (expected a multiple of 6 bytes)"))
-            msg = msg + chunk
+            if expected_bytes is None:
+                expected_resp_len = NUM_BYTES_PER_MSG
+                block_read_bytes = 4096
+
+            while len(msg) < expected_resp_len:
+                if expected_bytes:
+                    block_read_bytes = expected_bytes-len(msg)
+                try:
+                    chunk = self.sock.recv(block_read_bytes)
+                except socket.error as e:
+                    self._connected = False
+                    raise raise_with_traceback(PercivalCommsError("socket connection broken (%s)" % e))
+                if isinstance(chunk, str):
+                    chunk = bytes(chunk, encoding=DATA_ENCODING)
+                if len(chunk) == 0:
+                    self._connected = False
+                    raise raise_with_traceback(
+                        PercivalCommsError("socket connection broken (expected a multiple of 6 bytes)"))
+                msg = msg + chunk
+        else:
+            self._connected = False
+            raise raise_with_traceback(PercivalCommsError("Socket not connected"))
         return msg
 
     def send_recv(self, msg, expected_bytes = None):
@@ -193,17 +219,24 @@ class TxRx(object):
         :returns:   Response from UART
         :rtype:     bytearray
         """
+        resp = None
         with self._mutex:
-            try:
-                self.tx_msg(msg)
-            except PercivalCommsError as e:
-                self.log.exception("Failed to send message %s. ERROR: %s" % (message, e))
-                raise
-            try:
-                resp = self.rx_msg(expected_bytes)
-            except PercivalCommsError as e:
-                self.log.exception("Failed to receive response to message %s. ERROR: %s" % (message, e))
-                raise
+            if self._connected:
+                try:
+                    self.tx_msg(msg)
+                except PercivalCommsError as e:
+                    self._connected = False
+                    self.log.exception("Failed to send message %s. ERROR: %s" % (msg, e))
+                    raise
+                try:
+                    resp = self.rx_msg(expected_bytes)
+                except PercivalCommsError as e:
+                    self._connected = False
+                    self.log.exception("Failed to receive response to message %s. ERROR: %s" % (msg, e))
+                    raise
+            else:
+                self._connected = False
+                raise raise_with_traceback(PercivalCommsError("Socket not connected"))
         return resp
     
     def send_recv_message(self, message):
@@ -221,23 +254,30 @@ class TxRx(object):
         if not isinstance(message, TxMessage):
             raise TypeError("message must be of type TxMessage, not %s"%str(type(message)))
 
-        with self._mutex:
-            try:
-                self.tx_msg(message.message)
-            except PercivalCommsError as e:
-                self.log.exception("Failed to send message %s. ERROR: %s" % (message, e))
-                raise
-            try:
-                resp = self.rx_msg(message.expected_bytes)
-            except PercivalCommsError as e:
-                self.log.exception("Failed to receive response to message %s. ERROR: %s" % (message, e))
-                raise
-        result = decode_message(resp)
+        result = None
+        if self._connected:
+            with self._mutex:
+                try:
+                    self.tx_msg(message.message)
+                except PercivalCommsError as e:
+                    self._connected = False
+                    self.log.exception("Failed to send message %s. ERROR: %s" % (message, e))
+                    raise
+                try:
+                    resp = self.rx_msg(message.expected_bytes)
+                except PercivalCommsError as e:
+                    self._connected = False
+                    self.log.exception("Failed to receive response to message %s. ERROR: %s" % (message, e))
+                    raise
+            result = decode_message(resp)
 
-        self.log.debug(" response: %s", hexify(result))
-        # Check for expected response
-        if not message.validate_eom(resp):
-            raise PercivalProtocolError("Expected EOM on TxMessage: %s - got %s"%(str(message), str(result)))
+            self.log.debug(" response: %s", hexify(result))
+            # Check for expected response
+            if not message.validate_eom(resp):
+                raise PercivalProtocolError("Expected EOM on TxMessage: %s - got %s"%(str(message), str(result)))
+        else:
+            self._connected = False
+            raise raise_with_traceback(PercivalCommsError("Socket not connected"))
         return result
 
     def clean(self):

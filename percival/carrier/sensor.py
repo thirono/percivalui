@@ -13,6 +13,8 @@ class could instead of taking the number of words, take the actual words and
 fill the buffer itself.
 '''
 from __future__ import print_function
+from percival.carrier.registers import SensorDACMap
+from percival.carrier.errors import PercivalControlDeviceError
 
 import logging
 
@@ -60,53 +62,54 @@ class Sensor(object):
         """
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._buffer_cmd = buffer_cmd
-        self._dacs = {}
+        self._dacs_register_map = SensorDACMap()
+        self._dacs_register_map.parse_map([0, 0, 0, 0, 0, 0, 0])
         self._buffer_words = {}
 
-    @property
-    def dacs(self):
-        return self._dacs
+#    @property
+#    def dacs(self):
+#        return self._dacs
 
-    def add_dac(self, dac_ini):
-        """
-        Add a DAC to the sensor set.
-        :param dac_ini:
-        :return:
-        """
-        # Create the SensorDAC object from the initialisation values
-        dac = SensorDac(dac_ini)
-        self._log.debug("Adding DAC [%s] to sensor", dac.name)
-        self._dacs[dac.name] = dac
-        # Keep a list of dac names for each buffer index
-        if dac.buffer_index not in self._buffer_words:
-            self._buffer_words[dac.buffer_index] = []
+#    def add_dac(self, dac_ini):
+#        """
+#        Add a DAC to the sensor set.
+#        :param dac_ini:
+#        :return:
+#        """
+#        # Create the SensorDAC object from the initialisation values
+#        dac = SensorDac(dac_ini)
+#        self._log.debug("Adding DAC [%s] to sensor", dac.name)
+#        self._dacs[dac.name] = dac
+#        # Keep a list of dac names for each buffer index
+#        if dac.buffer_index not in self._buffer_words:
+#            self._buffer_words[dac.buffer_index] = []
+#
+#        # Append the name to the relevant buffer index store
+#        self._buffer_words[dac.buffer_index].append(dac.name)
 
-        # Append the name to the relevant buffer index store
-        self._buffer_words[dac.buffer_index].append(dac.name)
+#    def set_dac(self, dac_name, value):
+#        """
+#        Set a DAC value ready for writing to the hardware.
+#        Sensor DAC values are written by buffer transfer so must all be set prior
+#        to a write
+#        :param dac_name:
+#        :param value:
+#        :return:
+#        """
+#        self._log.debug("Setting sensor DAC [%s] value: %d", dac_name, value)
+#        if dac_name in self._dacs:
+#            self._dacs[dac_name].set_value(value)
 
-    def set_dac(self, dac_name, value):
-        """
-        Set a DAC value ready for writing to the hardware.
-        Sensor DAC values are written by buffer transfer so must all be set prior
-        to a write
-        :param dac_name:
-        :param value:
-        :return:
-        """
-        self._log.debug("Setting sensor DAC [%s] value: %d", dac_name, value)
-        if dac_name in self._dacs:
-            self._dacs[dac_name].set_value(value)
-
-    def _generate_dac_words(self):
-        # Create the set of words ready for the buffer write command
-        words = []
-        for index in sorted(self._buffer_words):
-            word_value = 0
-            for dac_name in self._buffer_words[index]:
-                word_value += self._dacs[dac_name].to_buffer_word()
-
-            words.append(word_value)
-        return words
+#    def _generate_dac_words(self):
+#        # Create the set of words ready for the buffer write command
+#        words = []
+#        for index in sorted(self._buffer_words):
+#            word_value = 0
+#            for dac_name in self._buffer_words[index]:
+#                word_value += self._dacs[dac_name].to_buffer_word()
+#
+#            words.append(word_value)
+#        return words
 
     def configuration_values_to_word(self, size, values):
         self._log.debug("Combining sensor values into 32 bit word")
@@ -131,10 +134,34 @@ class Sensor(object):
         value <<= extra_shift
         return value
 
-    def apply_dac_values(self):
-        # Generate the words and write to the buffer
-        # Send the appropriate buffer command
-        words = self._generate_dac_words()
+#    def apply_dac_values(self):
+#        # Generate the words and write to the buffer
+#        # Send the appropriate buffer command
+#        words = self._generate_dac_words()
+#        self._log.debug("Applying sensor DAC values: %s", words)
+#        self._buffer_cmd.send_dacs_setup_cmd(words)
+
+    def apply_dac_values(self, config):
+        self._log.debug("Sensor DAC configuration: %s", config)
+        for item in config:
+            try:
+                value = int(float(config[item]))
+                self._log.debug("Setting sensor DAC %s = %d", item, value)
+                if value < 0:
+                    raise PercivalControlDeviceError("Value of {} cannot be negative".format(item))
+                if value > 63:
+                    raise PercivalControlDeviceError("Maximum value of {} is 63".format(item))
+                if hasattr(self._dacs_register_map, item):
+                    setattr(self._dacs_register_map, item, value)
+                else:
+                    self._log.debug("No register found for %s", item)
+                    raise PercivalControlDeviceError("No register found for {}".format(item))
+            except:
+                self._log.error("Failed to set item %s", item)
+                raise
+
+        # Obtain the buffer words from the register map
+        words = self._dacs_register_map.generate_map()
         self._log.debug("Applying sensor DAC values: %s", words)
         self._buffer_cmd.send_dacs_setup_cmd(words)
 
@@ -161,27 +188,41 @@ class Sensor(object):
                 self._log.debug("Sensor configuration words: %s", words)
                 self._buffer_cmd.send_configuration_setup_cmd(words)
 
+    def parse_debug_flag(self, flag):
+        value = 0
+        if isinstance(flag, str) or isinstance(flag, unicode):
+            if 'false' in flag.lower():
+                flag = 0
+            elif 'true' in flag.lower():
+                flag = 1
+        value = int(flag) & 1
+        return value
+
     def apply_debug(self, debug):
         self._log.debug("Applying sensor debug: %s", debug)
-        # We need to first verify the debug description
-        if 'H1' in debug and 'H0' in debug and 'G' in debug:
-            h1_values = debug['H1']
-            words = []
-            while len(h1_values) > 4:
-                words.append(self.configuration_values_to_word(6, h1_values[0:5]))
-                h1_values = h1_values[5:]
-            h0_values = h1_values + debug['H0']
-            while len(h0_values) > 4:
-                words.append(self.configuration_values_to_word(6, h0_values[0:5]))
-                h0_values = h0_values[5:]
-            g_values = h0_values + debug['G']
-            while len(g_values) > 4:
-                words.append(self.configuration_values_to_word(6, g_values[0:5]))
-                g_values = g_values[5:]
-            if len(g_values) > 0:
-                words.append(self.configuration_values_to_word(6, g_values))
-            self._log.debug("Sensor debug words: %s", words)
-            self._buffer_cmd.send_debug_setup_cmd(words)
+        debug_value = 0
+        if 'debug_dmxSEL' in debug:
+            debug_value |= self.parse_debug_flag(debug['debug_dmxSEL'])
+        if 'debug_SC' in debug:
+            debug_value |= self.parse_debug_flag(debug['debug_SC'])<<1
+        if 'debug_sr7SC' in debug:
+            debug_value |= self.parse_debug_flag(debug['debug_sr7SC'])<<2
+        if 'debug_CPNI' in debug:
+            debug_value |= self.parse_debug_flag(debug['debug_CPNI'])<<3
+        if 'debug_adcCPN' in debug:
+            debug_value |= self.parse_debug_flag(debug['debug_adcCPN'])<<4
+        if 'debug_CLKin' in debug:
+            debug_value |= self.parse_debug_flag(debug['debug_CLKin'])<<5
+        self._log.debug("Debug value to set: %d", debug_value)
+        words = []
+        for index in range(0, 9):
+            words.append(self.configuration_values_to_word(6, [debug_value,
+                                                               debug_value,
+                                                               debug_value,
+                                                               debug_value,
+                                                               debug_value]))
+        self._log.debug("Sensor debug words: %s", words)
+        self._buffer_cmd.send_debug_setup_cmd(words)
 
     def apply_calibration(self, calibration):
         #self._log.debug("Applying sensor calibration: %s", calibration)

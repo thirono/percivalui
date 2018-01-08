@@ -68,7 +68,7 @@ class Monitor
 {
   constructor(parent, id, device)
   {
-    this.parent = parent;
+    //this.parent = parent;
     this.disp_name = id;
     this.id = id.split(' ').join('_');
     this.device = device.device;
@@ -91,7 +91,7 @@ class Monitor
                      "<table>";
                      //"<tr><td width=120px>Device:</td><td colspan=2 width=150px>" + this.device + "</td></tr>";
     if (this.device == "LTC2309"){
-      this.html_text += "<tr><td width=120px>Voltage:</td><td colspan=2 id=\"" + this.id + "-value\">0.000 ";
+      this.html_text += "<tr><td width=120px>Value:</td><td colspan=2 id=\"" + this.id + "-value\">0.000 ";
     } else if (this.device == "MAX31730"){
       this.html_text += "<tr><td width=120px>Temperature:</td><td colspan=2 id=\"" + this.id + "-value\">0.000 ";
     }
@@ -107,6 +107,29 @@ class Monitor
                       "<tr><td>Safety Exception:</td><td></td><td id=\"" + this.id + "-safety\">" + led_html(parseInt(device.safety_exception), "red", 25) + "</td>" +
                       "<tr><td>i2c Error:</td><td></td><td id=\"" + this.id + "-i2c\">" + led_html(parseInt(device.i2c_comms_error), "red", 25) + "</td>" +
                       "</table>";
+
+    this.set_parent(parent);
+
+//    $(this.parent).html(this.html_text);
+//    $('#' + this.id + '-dtbl').hide();
+//    $('#' + this.id + '-expbtn').click(function(){
+//        //alert("Clicked!! " + $(this).attr("id"));
+//        if ($('#' + $(this).attr("id").replace('-expbtn', '-dtbl')).is(':visible')){
+//            $('#' + $(this).attr("id").replace('-expbtn', '-dtbl')).hide();
+//            $('#' + $(this).attr("id").replace('-expbtn', '-expglp')).removeClass('glyphicon-resize-small');
+//            $('#' + $(this).attr("id").replace('-expbtn', '-expglp')).addClass('glyphicon-resize-full');
+//        } else {
+//            $('#' + $(this).attr("id").replace('-expbtn', '-dtbl')).show();
+//            $('#' + $(this).attr("id").replace('-expbtn', '-expglp')).removeClass('glyphicon-resize-full');
+//            $('#' + $(this).attr("id").replace('-expbtn', '-expglp')).addClass('glyphicon-resize-small');
+//        }
+//    });
+    this.update(device);
+  }
+
+  set_parent(parent)
+  {
+    this.parent = parent;
     $(this.parent).html(this.html_text);
     $('#' + this.id + '-dtbl').hide();
     $('#' + this.id + '-expbtn').click(function(){
@@ -121,7 +144,6 @@ class Monitor
             $('#' + $(this).attr("id").replace('-expbtn', '-expglp')).addClass('glyphicon-resize-small');
         }
     });
-    this.update(device);
   }
 
   hide()
@@ -138,8 +160,8 @@ class Monitor
   update(device)
   {
     if (this.device == "LTC2309"){
-      if (this.value != device.voltage){
-        this.update_value(device.voltage);
+      if (this.value != device.value){
+        this.update_value(device.value);
       }
     } else if (this.device == "MAX31730"){
       if (this.value != device.temperature){
@@ -200,7 +222,7 @@ class Monitor
     this.extreme_low_threshold = lolo_val;
     this.safety_exception = safety;
     this.i2c_comms_error = comms;
-    if (hihi_val == 1 || lolo_val == 1 || safety == 1){
+    if (comms == 1){
         $(this.parent).addClass("panel-danger");
     } else {
         $(this.parent).removeClass("panel-danger");
@@ -213,7 +235,8 @@ $( document ).ready(function()
   update_api_version();
   update_api_adapters();
   update_server_setup();
-  render('#/home-view');
+  //render('#/home-view');
+  render(decodeURI(window.location.hash));
 
   setInterval(update_server_setup, 1000);
   setInterval(update_api_read_monitors, 1000);
@@ -221,6 +244,9 @@ $( document ).ready(function()
   setInterval(update_api_read_status, 100);
   setInterval(update_server_command_status, 500);
 
+  $('#server-hw-reconnect').click(function(){
+    reconnect_hardware();
+  });
   $('#server-db-reconnect').click(function(){
     reconnect_db();
   });
@@ -241,6 +267,9 @@ $( document ).ready(function()
   });
   $('#server-set-channel-cmd').click(function(){
     send_set_channel_command();
+  });
+  $('#server-set-system-val-cmd').click(function(){
+      send_set_system_setting_command()
   });
   $('#server-set-point-cmd').click(function(){
     send_set_point_command();
@@ -266,6 +295,11 @@ $( document ).ready(function()
 		render(decodeURI(window.location.hash));
 	});
 });
+
+function reconnect_hardware()
+{
+    $.put('/api/' + api_version + '/percival/cmd_connect_hardware', function(response){});
+}
 
 function reconnect_db()
 {
@@ -315,6 +349,13 @@ function send_set_channel_command()
     $.put('/api/' + api_version + '/percival/cmd_set_channel?channel=' + set_name + '&value=' + set_value, process_cmd_response);
 }
 
+function send_set_system_setting_command()
+{
+    set_name = $('#set-system-value').find(":selected").text();
+    set_value = $('#server-set-system-val').val();
+    $.put('/api/' + api_version + '/percival/cmd_system_setting?setting=' + set_name + '&value=' + set_value, process_cmd_response);
+}
+
 function send_set_point_command()
 {
     set_name = $('#select-set-point').find(":selected").text();
@@ -358,11 +399,15 @@ function update_server_command_status()
         $('#ctrl-resp-success').text(response.response);
         $('#ctrl-resp-time').text(response.time);
         if (response.response == 'Failed'){
+            if ($('#ctrl-resp-message').text() != response.error){
+                alert(response.error);
+            }
             $('#ctrl-resp-message').text(response.error);
             $('#ctrl-msg-response').addClass("panel-danger");
             $('#ctrl-msg-response').removeClass("panel-default");
             $('#ctrl-msg-response').removeClass("panel-success");
         } else if (response.response == 'Active'){
+            $('#ctrl-resp-message').text("");
             $('#ctrl-msg-response').removeClass("panel-danger");
             $('#ctrl-msg-response').removeClass("panel-default");
             $('#ctrl-msg-response').addClass("panel-success");
@@ -471,6 +516,16 @@ function update_server_setup() {
             $('#select-sys-cmd').html(html);
         }
     });
+    $.getJSON('/api/' + api_version + '/percival/system_values/', function(response) {
+        percival.system_values = response.system_values.sort();
+		html = "";
+		for (var index=0; index < percival.system_values.length; index++){
+            html += "<option role=\"presentation\">" + percival.system_values[index] + "</option>";
+        }
+        if (html != $('#set-system-value').html()){
+            $('#set-system-value').html(html);
+        }
+    });
     $.getJSON('/api/' + api_version + '/percival/setpoints/', function(response) {
         //alert(response);
         percival.set_points = response.setpoints;
@@ -548,7 +603,7 @@ function update_api_read_boards() {
 function update_api_read_controls() {
 
     $.getJSON('/api/' + api_version + '/percival/controls/', function(response) {
-        percival.control_names = response["controls"];
+        percival.control_names = response["controls"].sort();
         percival.control_desc = response;
         percival.control_count = percival.control_names.length;
     });
@@ -557,7 +612,7 @@ function update_api_read_controls() {
 function update_api_read_monitors()
 {
     $.getJSON('/api/' + api_version + '/percival/monitors/', function(response) {
-        monitor_names = response["monitors"];
+        monitor_names = response["monitors"].sort();
         monitor_desc = response;
         percival.monitor_count = monitor_names.length;
     });

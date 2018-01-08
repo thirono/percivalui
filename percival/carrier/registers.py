@@ -592,6 +592,54 @@ class ClockSettingsMap(RegisterMap):
             self._mem_map[prefix + "_cycles_value"] = MapField(prefix + "_cycles_value",       address, 16,  0)
 
 
+class SensorDACMap(RegisterMap):
+    """Represent buffer command sensor DAC values
+    """
+    num_words = 7
+
+    def __init__(self):
+        object.__setattr__(self, '_mem_map', {})  # This prevents infinite recursion when setting attributes
+        self._mem_map = {"vRefPGA_H1":              MapField("vRefPGA_H1",              0,  6, 26),
+                         "vCasc_H1":                MapField("vCasc_H1",                0,  6, 20),
+                         "vRefADC_H1":              MapField("vRefADC_H1",              0,  6, 14),
+                         "vRefDB_H1":               MapField("vRefDB_H1",               0,  6,  8),
+                         "iBiasPLL_H1":             MapField("iBiasPLL_H1",             0,  6,  2),
+                         "unused_1":                MapField("unused_1",                0,  2,  0),
+                         "iBiasTail_H1":            MapField("iBiasTail_H1",            1,  6, 26),
+                         "iBiasCalibF_H1":          MapField("iBiasCalibF_H1",          1,  6, 20),
+                         "iBiasCalibC_H1":          MapField("iBiasCalibC_H1",          1,  6, 14),
+                         "iBiasSF_H1":              MapField("iBiasSF_H1",              1,  6,  8),
+                         "iBiasCOMP_H1":            MapField("iBiasCOMP_H1",            1,  6,  2),
+                         "unused_2":                MapField("unused_2",                1,  2,  0),
+                         "ADCBias2_H1":             MapField("ADCBias2_H1",             2,  6, 26),
+                         "ADCBias1_H1":             MapField("ADCBias1_H1",             2,  6, 20),
+                         "iFBiasN_H1":              MapField("iFBiasN_H1",              2,  6, 14),
+                         "iCBiasP_H1":              MapField("iCBiasP_H1",              2,  6,  8),
+                         "Master_DAC_Current_H1":   MapField("Master_DAC_Current_H1",   2,  6,  2),
+                         "unused_3":                MapField("unused_3",                2,  2,  0),
+                         "vRefPGA_H0":              MapField("vRefPGA_H0",              3,  6, 26),
+                         "vCasc_H0":                MapField("vCasc_H0",                3,  6, 20),
+                         "vRefADC_H0":              MapField("vRefADC_H0",              3,  6, 14),
+                         "vRefDB_H0":               MapField("vRefDB_H0",               3,  6,  8),
+                         "iBiasPLL_H0":             MapField("iBiasPLL_H0",             3,  6,  2),
+                         "unused_4":                MapField("unused_4",                3,  2,  0),
+                         "iBiasTail_H0":            MapField("iBiasTail_H0",            4,  6, 26),
+                         "iBiasCalibF_H0":          MapField("iBiasCalibF_H0",          4,  6, 20),
+                         "iBiasCalibC_H0":          MapField("iBiasCalibC_H0",          4,  6, 14),
+                         "iBiasSF_H0":              MapField("iBiasSF_H0",              4,  6,  8),
+                         "iBiasCOMP_H0":            MapField("iBiasCOMP_H0",            4,  6,  2),
+                         "unused_5":                MapField("unused_5",                4,  2,  0),
+                         "ADCBias2_H0":             MapField("ADCBias2_H0",             5,  6, 26),
+                         "ADCBias1_H0":             MapField("ADCBias1_H0",             5,  6, 20),
+                         "iFBiasN_H0":              MapField("iFBiasN_H0",              5,  6, 14),
+                         "iCBiasP_H0":              MapField("iCBiasP_H0",              5,  6,  8),
+                         "Master_DAC_Current_H0":   MapField("Master_DAC_Current_H0",   5,  6,  2),
+                         "unused_6":                MapField("unused_6",                5,  2,  0),
+                         "iBiasColTop_A":           MapField("iBiasColTop_A",           6,  6, 26),
+                         "unused_7":                MapField("unused_7",                6, 26,  0)
+                         }
+
+
 class IRegisterMap(with_metaclass(abc.ABCMeta, IABCMeta)):
     """
     Interface to a Device Setting bitmap.
