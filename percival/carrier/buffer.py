@@ -61,7 +61,9 @@ class BufferCommand(object):
         :param address: the starting address of the target to execute the command on
         :returns: percival.carrier.txrx.TxMessage
         """
-        if cmd == const.BufferCmd.no_operation:
+        self._log.debug("Cmd: %s  const.BufferCmd.no_operation: %s", cmd, const.BufferCmd.no_operation)
+        if cmd is const.BufferCmd.no_operation:
+            self._log.debug("No_op comparison True")
             self._reg_command.fields.buffer_cmd = 0
             self._reg_command.fields.buffer_cmd_destination = 0
             self._reg_command.fields.buffer_cmd_words = 0
@@ -79,7 +81,10 @@ class BufferCommand(object):
                 self._reg_command.fields.buffer_cmd_address = 0
 
         cmd_msg = self._reg_command.get_write_cmd_msg(eom=False)[1]
-        cmd_msg.num_response_msg = const.BufferCommands[self._target][cmd]["response"]
+        if cmd is const.BufferCmd.no_operation:
+            cmd_msg.num_response_msg = 1
+        else:
+            cmd_msg.num_response_msg = const.BufferCommands[self._target][cmd]["response"]
         return cmd_msg
 
     def _command(self, cmd, words=None, address=None):
@@ -96,6 +101,7 @@ class BufferCommand(object):
         :param address: the starting address of the target to execute the command on
         :returns: list of (address, dataword) tuples
         """
+        self._log.debug("Cmd: %s  Words: %s  Address: %s", cmd, words, address)
         cmd_msg = self._get_command_msg(cmd, words, address)
         self._log.debug("Command Message: %s", cmd_msg)
         response = self._txrx.send_recv_message(cmd_msg)
@@ -123,15 +129,17 @@ class BufferCommand(object):
         :param words: the number of words in the buffer to execute the command on
         :param address: the starting address of the target to execute the command on
         """
+        self._log.debug("Sending a no operation command")
         self.cmd_no_operation()
-        result = self._command(cmd, words, address)
+        self._log.debug("Now sending the command: %s", cmd)
+        result = self._command(cmd, words=words, address=address)
         return result
 
 
 class SensorBufferCommand(BufferCommand):
     def __init__(self, txrx):
         super(SensorBufferCommand, self).__init__(txrx, const.BufferTarget.percival_sensor)
-        self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+        #self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
 
     def cmd_no_operation(self):
         """
@@ -139,7 +147,7 @@ class SensorBufferCommand(BufferCommand):
 
         :returns: list of (address, dataword) tuples
         """
-        result = self._command(const.SensorBufferCmd.no_operation)
+        result = self._command(const.BufferCmd.no_operation)
         return result
 
     def write_words_to_buffer(self, words):
