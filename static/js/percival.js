@@ -330,6 +330,8 @@ function send_system_command()
 {
     cmd_name = $('#select-sys-cmd').find(":selected").text();
     $.put('/api/' + api_version + '/percival/cmd_system_command?name=' + cmd_name, process_cmd_response);
+    script_string = 'hl_system_command.py --command=' + cmd_name + '\n';
+    $('#last-command').text(script_string);
 }
 
 function send_load_config_command()
