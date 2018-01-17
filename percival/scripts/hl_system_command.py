@@ -32,7 +32,7 @@ def main():
     log.info(args)
 
     try:
-        system_command = const.SystemCmd[args.command.lower()]
+        system_command = const.SystemCmd[args.command]
     except KeyError:
         log.error("Invalid command \'%s\' supplied to --command", args.command)
         print("Invalid command: \'%s\'" % args.command)
