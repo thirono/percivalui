@@ -224,6 +224,10 @@ class Sensor(object):
         self._log.debug("Sensor debug words: %s", words)
         self._buffer_cmd.send_debug_setup_cmd(words)
 
+    def apply_roi(self):
+        self._log.debug("Applying sensor ROI")
+        self._buffer_cmd.send_roi_setup_cmd()
+
     def apply_calibration(self, calibration):
         #self._log.debug("Applying sensor calibration: %s", calibration)
         # We need to first verify the debug description

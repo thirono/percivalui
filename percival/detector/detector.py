@@ -745,6 +745,10 @@ class PercivalDetector(object):
         self._log.info("Downloading sensor DAC values to hardware")
         self._sensor.apply_dac_values(self._percival_params.sensor_dac_params.value_map)
 
+    def apply_sensor_roi(self):
+        self._log.info("Applying sensor ROI to hardware")
+        self._sensor.apply_roi()
+
     def load_channels(self):
         """
         Readout the settings from the hardware and create all control and monitoring devices according to the current
@@ -905,6 +909,10 @@ class PercivalDetector(object):
             if command.command_name in str(PercivalCommandNames.cmd_connect_db):
                 # No parameters required for this command
                 self.setup_db()
+                self._active_command.complete(success=True)
+            if command.command_name in str(PercivalCommandNames.cmd_apply_roi):
+                # No parameters required for this command
+                self.apply_sensor_roi()
                 self._active_command.complete(success=True)
             elif command.command_name in str(PercivalCommandNames.cmd_load_config):
                 # Parameter [config_type] one of setpoint, ctrl_group, mon_group, channels

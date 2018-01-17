@@ -8,7 +8,7 @@ from percival.log import log
 
 
 class PercivalClient(object):
-    def __init__(self, address="127.0.0.1:888", api=0.1):
+    def __init__(self, address="127.0.0.1:8888", api=0.1):
         self._address = address
         self._api = api
         self._url = "http://" + str(self._address) + "/api/" + str(self._api) + "/percival/"

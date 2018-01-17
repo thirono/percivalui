@@ -268,3 +268,12 @@ class SensorBufferCommand(BufferCommand):
         if not self.verify_response(result):
             raise RuntimeError("Sensor debug command failed")
 
+    def send_roi_setup_cmd(self):
+        self._log.debug("Executing sensor ROI command")
+
+        # Now send the ROI command with base address set as 1
+        result = self.send_command(const.SensorBufferCmd.send_ROI_setup, 0, 1)
+        # We expect to see FFFF, ABBABAC1 followed by FFF3 ABBA3333
+        if not self.verify_response(result):
+            raise RuntimeError("Sensor ROI command failed")
+
