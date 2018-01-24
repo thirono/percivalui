@@ -11,7 +11,8 @@ percival = {
   monitor_count: 0,
   monitor_divs: 0,
   groups: {},
-  control_names: []
+  control_names: [],
+  current_config: ''
   };
 
 
@@ -285,7 +286,7 @@ $( document ).ready(function()
     reader = new FileReader();
     reader.onloadend = function(event){
         //alert(event.target.result);
-        $('#config-display').text(event.target.result)
+        percival.current_config = event.target.result
     }
     reader.readAsText(event.target.files[0], 'UF-8');
   });
@@ -313,13 +314,12 @@ function auto_read(action)
 
 function send_config_command()
 {
-    //alert($('#config-display').text().replaceAll('=', '::'));
     config_type = $('#select-config').find(":selected").text();
     $.ajax({
         url: '/api/' + api_version + '/percival/cmd_load_config',
         type: 'PUT',
         dataType: 'json',
-        data: 'config=' + encodeURIComponent($('#config-display').text().replaceAll('=', '::')) + '&config_type=' + config_type,
+        data: 'config=' + encodeURIComponent(percival.current_config.replaceAll('=', '::')) + '&config_type=' + config_type,
         headers: {'Content-Type': 'application/json',
                   'Accept': 'application/json'},
         success: process_cmd_response
