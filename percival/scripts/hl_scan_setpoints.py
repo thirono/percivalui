@@ -25,12 +25,15 @@ def options():
     parser.add_argument("-n", "--number_of_steps", action="store", default=10, help=number_help)
     delay_help = "Delay time between steps in ms (default 1000)"
     parser.add_argument("-d", "--delay_between_steps", action="store", default=1000, help=delay_help)
+    wait_help = "Wait for the scan command to complete (default true)"
+    parser.add_argument("-w", "--wait", action="store", default="true", help=wait_help)
     args = parser.parse_args()
 
     return args
 
 
 def main():
+    return_value = 0
     args = options()
     log.info(args)
 
@@ -44,9 +47,14 @@ def main():
 
     pc = PercivalClient(args.address)
     result = pc.send_command('cmd_scan_setpoints', 'hl_scan_setpoints.py', arguments=data)
-
     log.info("Response: %s", result)
-    return result
+    if args.wait.lower() == "true":
+        result = pc.wait_for_command_completion()
+
+    if result['response'] == 'Failed':
+        return_value = -1
+
+    return return_value
 
 
 if __name__ == '__main__':

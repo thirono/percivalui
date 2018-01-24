@@ -57,6 +57,7 @@ class PercivalClient(object):
         return result
 
     def wait_for_command_completion(self, wait_time=1.0):
+        response = None
         command_active = True
         while command_active:
             response = self.get_status('action')
@@ -65,6 +66,7 @@ class PercivalClient(object):
                 time.sleep(wait_time)
             else:
                 command_active = False
+        return response
 
     def send_configuration(self, config_type, config_contents, command_id="python_script"):
         arguments = {
