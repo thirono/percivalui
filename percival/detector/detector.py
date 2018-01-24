@@ -579,7 +579,8 @@ class PercivalDetector(object):
         self._log.info("Setting up control interface")
         self.setup_control()
         self.connect()
-        self._command_queue = queue.Queue()
+        self._command_lock = threading.Lock()
+        self._command_queue = queue.Queue(1)
         self._command_thread = threading.Thread(target=self.command_loop)
         self._command_thread.start()
 
@@ -862,7 +863,11 @@ class PercivalDetector(object):
         self._setpoint_control.load_ini(self._percival_params.setpoint_params)
 
     def queue_command(self, command):
-        self._command_queue.put(command)
+        if self._command_lock.acquire(False):
+            self._command_queue.put(command, block=False)
+            self._command_lock.release()
+        else:
+            raise PercivalDetectorError("Cannot submit command whilst another is active")
 
     def command_loop(self):
         running = True
@@ -870,7 +875,8 @@ class PercivalDetector(object):
             try:
                 command = self._command_queue.get()
                 if command:
-                    self.execute_command(command)
+                    with self._command_lock:
+                        self.execute_command(command)
                 else:
                     running = False
             except PercivalDetectorError as e:
