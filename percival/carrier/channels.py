@@ -197,6 +197,20 @@ class ControlChannel(Channel):
         :param timeout: timeout for acknowledgement
         """
         self._log.debug("set_value=%s (\"%s\")", value, self._channel_ini.Channel_name)
+        self._log.debug(self._reg_control_settings.fields)
+        # Check the value is within range
+        if value < self._reg_control_settings.fields.channel_range_min:
+            self._log.debug("Cannot set value below minimum of %d", self._reg_control_settings.fields.channel_range_min)
+            raise PercivalControlDeviceError("Cannot set channel %s to %d, below minimum of %d",
+                                             self._channel_ini.Channel_name,
+                                             value,
+                                             self._reg_control_settings.fields.channel_range_min)
+        if value > self._reg_control_settings.fields.channel_range_max:
+            self._log.debug("Cannot set value above maximum of %d", self._reg_control_settings.fields.channel_range_max)
+            raise PercivalControlDeviceError("Cannot set channel %s to %d, above maximum of %d",
+                                             self._channel_ini.Channel_name,
+                                             value,
+                                             self._reg_control_settings.fields.channel_range_max)
         self.cmd_no_operation()
         self.cmd_control_set_value(value)
         self.cmd_no_operation()
