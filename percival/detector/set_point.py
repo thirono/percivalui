@@ -34,6 +34,7 @@ class SetPointControl(object):
         self._scanning = False
         self._start_scan = threading.Event()
         self._stop_scan = threading.Event()
+        self._wait_for_scan_complete = threading.Event()
         self._start_time = None
         self._scan_index = 0
         self._scan_delay = 0.0
@@ -150,13 +151,21 @@ class SetPointControl(object):
         self._scan_steps = steps
         # Now that the set of scan points have been generated for each device notify the scan_loop
         # that we are ready to begin the scan
+        # First clear the waiting flag
+        self._wait_for_scan_complete.clear()
         # Set the scanning flag to True
         self._scanning = True
         self._start_scan.set()
 
+    def wait_for_scan_to_complete(self):
+        while self._scanning:
+            self._wait_for_scan_complete.wait(1.0)
+
     def scan_loop(self):
         while self._executing:
             if not self._scanning:
+                # Notify any waiting threads a scan is complete
+                self._wait_for_scan_complete.set()
                 # Wait for the scan event
                 self._start_scan.wait()
                 # Reset the scan event

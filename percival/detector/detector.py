@@ -1002,6 +1002,7 @@ class PercivalDetector(object):
                         if command.has_param('steps'):
                             steps = int(command.get_param('steps'))
                             self._setpoint_control.scan_set_points(setpoints, steps, dwell)
+                            self._setpoint_control.wait_for_scan_to_complete()
                             self._active_command.complete(success=True)
                         else:
                             raise PercivalDetectorError("Number of scan steps required to scan")
