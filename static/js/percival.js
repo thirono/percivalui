@@ -272,9 +272,9 @@ $( document ).ready(function()
   $('#server-set-system-val-cmd').click(function(){
       send_set_system_setting_command()
   });
-  $('#server-set-point-cmd').click(function(){
-    send_set_point_command();
-  });
+//  $('#server-set-point-cmd').click(function(){
+//    send_set_point_command();
+//  });
   $('#server-scan-set-point-cmd').click(function(){
     send_scan_command();
   });
@@ -356,11 +356,11 @@ function send_set_system_setting_command()
     $.put('/api/' + api_version + '/percival/cmd_system_setting?setting=' + set_name + '&value=' + set_value, process_cmd_response);
 }
 
-function send_set_point_command()
-{
-    set_name = $('#select-set-point').find(":selected").text();
-    $.put('/api/' + api_version + '/percival/cmd_apply_setpoint?setpoint=' + set_name, process_cmd_response);
-}
+//function send_set_point_command()
+//{
+//    set_name = $('#select-set-point').find(":selected").text();
+//    $.put('/api/' + api_version + '/percival/cmd_apply_setpoint?setpoint=' + set_name, process_cmd_response);
+//}
 
 function send_scan_command()
 {
@@ -534,9 +534,9 @@ function update_server_setup() {
             html += "<option role=\"presentation\">" + percival.set_points[index] + "</option>";
         }
         //alert(html);
-        if (html != $('#select-set-point').html()){
-            $('#select-set-point').html(html);
-        }
+        //if (html != $('#select-set-point').html()){
+        //    $('#select-set-point').html(html);
+        //}
         if (html != $('#scan-set-point-start').html()){
             $('#scan-set-point-start').html(html);
         }
