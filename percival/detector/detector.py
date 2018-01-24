@@ -1108,8 +1108,8 @@ class PercivalDetector(object):
         if device in self._controls:
             self._controls[device].set_value(value, timeout)
 
-        elif device in self._sensor.dacs:
-            self._sensor.set_dac(device, value)
+        #elif device in self._sensor.dacs:
+        #    self._sensor.set_dac(device, value)
 
         elif device in self._control_groups.group_names:
             # A group name has been specified for the set value
