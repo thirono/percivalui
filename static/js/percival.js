@@ -528,7 +528,7 @@ function update_server_setup() {
     });
     $.getJSON('/api/' + api_version + '/percival/setpoints/', function(response) {
         //alert(response);
-        percival.set_points = response.setpoints;
+        percival.set_points = response.setpoints.sort();
 		html = "";
 		for (var index=0; index < percival.set_points.length; index++){
             html += "<option role=\"presentation\">" + percival.set_points[index] + "</option>";
