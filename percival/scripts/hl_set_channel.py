@@ -12,11 +12,7 @@ import getpass
 from datetime import datetime
 
 from percival.log import log
-
-from percival.carrier import const
-from percival.carrier.txrx import TxRxContext
-from percival.carrier.system import SystemCommand
-from percival.detector.detector import PercivalParameters
+from percival.scripts.util import PercivalClient
 
 
 def options():
@@ -29,38 +25,32 @@ def options():
     parser.add_argument("-c", "--channel", action="store", help=channel_help)
     value_help = "Value to set"
     parser.add_argument("-v", "--value", action="store", default=0, help=value_help)
+    wait_help = "Wait for the command to complete (default true)"
+    parser.add_argument("-w", "--wait", action="store", default="true", help=wait_help)
     args = parser.parse_args()
     return args
 
 
 def main():
+    return_value = 0
     args = options()
     log.info(args)
 
-    url = "http://" + args.address + "/api/0.1/percival/cmd_set_channel"
+    data = {
+               'channel': args.channel,
+               'value': args.value
+           }
 
-    log.debug("Sending msg to: %s", url)
-    try:
-        result = requests.put(url,
-                              data={
-                                  'channel': args.channel,
-                                  'value': args.value
-                              },
-                              headers={
-                                  'Content-Type': 'application/json',
-                                  'Accept': 'application/json',
-                                  'User': getpass.getuser(),
-                                  'Creation-Time': str(datetime.now()),
-                                  'User-Agent': 'hl_set_channel.py'
-                              }).json()
-    except requests.exceptions.RequestException:
-        result = {
-            "error": "Exception during HTTP request, check address and Odin server instance"
-        }
-        log.exception(result['error'])
-
+    pc = PercivalClient(args.address)
+    result = pc.send_command('cmd_set_channel', 'hl_set_channel.py', arguments=data)
     log.info("Response: %s", result)
-    return result
+    if args.wait.lower() == "true":
+        result = pc.wait_for_command_completion(0.2)
+
+    if result['response'] == 'Failed':
+        return_value = -1
+
+    return return_value
 
 
 if __name__ == '__main__':

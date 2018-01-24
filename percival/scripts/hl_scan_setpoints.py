@@ -25,7 +25,7 @@ def options():
     parser.add_argument("-n", "--number_of_steps", action="store", default=10, help=number_help)
     delay_help = "Delay time between steps in ms (default 1000)"
     parser.add_argument("-d", "--delay_between_steps", action="store", default=1000, help=delay_help)
-    wait_help = "Wait for the scan command to complete (default true)"
+    wait_help = "Wait for the command to complete (default true)"
     parser.add_argument("-w", "--wait", action="store", default="true", help=wait_help)
     args = parser.parse_args()
 

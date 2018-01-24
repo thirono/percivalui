@@ -5,18 +5,10 @@ Created on 17 May 2016
 '''
 from __future__ import print_function
 
-import sys
 import argparse
-import requests
-import getpass
-from datetime import datetime
 
 from percival.log import log
-
-from percival.carrier import const
-from percival.carrier.txrx import TxRxContext
-from percival.carrier.system import SystemCommand
-from percival.detector.detector import PercivalParameters
+from percival.scripts.util import PercivalClient
 
 
 def options():
@@ -25,32 +17,27 @@ def options():
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument("-a", "--address", action="store", default="127.0.0.1:8888",
                         help="Odin server address (default 127.0.0.1:8888)")
+    wait_help = "Wait for the command to complete (default true)"
+    parser.add_argument("-w", "--wait", action="store", default="true", help=wait_help)
     args = parser.parse_args()
     return args
 
 
 def main():
+    return_value = 0
     args = options()
     log.info(args)
 
-    url = "http://" + args.address + "/api/0.1/percival/cmd_initialise_channels"
+    pc = PercivalClient(args.address)
+    result = pc.send_command('cmd_initialise_channels', 'hl_initialise_channels.py')
+    log.info("Response: %s", result)
+    if args.wait.lower() == "true":
+        result = pc.wait_for_command_completion(0.2)
 
-    log.debug("Sending msg to: %s", url)
-    try:
-        result = requests.put(url,
-                              headers={
-                                  'Content-Type': 'application/json',
-                                  'Accept': 'application/json',
-                                  'User': getpass.getuser(),
-                                  'Creation-Time': str(datetime.now()),
-                                  'User-Agent': 'hl_initialise_channels.py'
-                              }).json()
-    except requests.exceptions.RequestException:
-        result = {
-            "error": "Exception during HTTP request, check address and Odin server instance"
-        }
-        log.exception(result['error'])
-    return result
+    if result['response'] == 'Failed':
+        return_value = -1
+
+    return return_value
 
 
 if __name__ == '__main__':
