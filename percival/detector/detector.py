@@ -902,6 +902,7 @@ class PercivalDetector(object):
             if command.command_name in str(PercivalCommandNames.cmd_download_channel_cfg):
                 # No parameters required for this command
                 self.load_configuration()
+                self.load_channels()
                 self._active_command.complete(success=True)
             if command.command_name in str(PercivalCommandNames.cmd_connect_hardware):
                 self.connect()
