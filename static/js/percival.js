@@ -488,7 +488,7 @@ function update_server_setup() {
         percival.groups = response
 
         // Group list
-        mg = percival.groups.monitor_groups.group_names;
+        mg = percival.groups.monitor_groups.group_names.sort();
         html = "<li role=\"presentation\"><a role=\"menuitem\" tabindex=\"-1\" href=\"#/status-view\" onclick=\"update_visible_monitors('All')\">All</a></li>";
         for (var index=0; index < mg.length; index++){
             html += "<li role=\"presentation\"><a role=\"menuitem\" tabindex=\"-1\" href=\"#/status-view\" onclick=\"update_visible_monitors('"+mg[index]+"')\">"+mg[index]+"</a></li>";
