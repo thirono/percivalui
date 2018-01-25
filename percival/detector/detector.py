@@ -579,7 +579,8 @@ class PercivalDetector(object):
         self._log.info("Setting up control interface")
         self.setup_control()
         self.connect()
-        self._command_queue = queue.Queue()
+        self._command_lock = threading.Lock()
+        self._command_queue = queue.Queue(1)
         self._command_thread = threading.Thread(target=self.command_loop)
         self._command_thread.start()
 
@@ -862,7 +863,11 @@ class PercivalDetector(object):
         self._setpoint_control.load_ini(self._percival_params.setpoint_params)
 
     def queue_command(self, command):
-        self._command_queue.put(command)
+        if self._command_lock.acquire(False):
+            self._command_queue.put(command, block=False)
+            self._command_lock.release()
+        else:
+            raise PercivalDetectorError("Cannot submit command whilst another is active")
 
     def command_loop(self):
         running = True
@@ -870,7 +875,8 @@ class PercivalDetector(object):
             try:
                 command = self._command_queue.get()
                 if command:
-                    self.execute_command(command)
+                    with self._command_lock:
+                        self.execute_command(command)
                 else:
                     running = False
             except PercivalDetectorError as e:
@@ -902,6 +908,7 @@ class PercivalDetector(object):
             if command.command_name in str(PercivalCommandNames.cmd_download_channel_cfg):
                 # No parameters required for this command
                 self.load_configuration()
+                self.load_channels()
                 self._active_command.complete(success=True)
             if command.command_name in str(PercivalCommandNames.cmd_connect_hardware):
                 self.connect()
@@ -1002,6 +1009,7 @@ class PercivalDetector(object):
                         if command.has_param('steps'):
                             steps = int(command.get_param('steps'))
                             self._setpoint_control.scan_set_points(setpoints, steps, dwell)
+                            self._setpoint_control.wait_for_scan_to_complete()
                             self._active_command.complete(success=True)
                         else:
                             raise PercivalDetectorError("Number of scan steps required to scan")
@@ -1107,8 +1115,8 @@ class PercivalDetector(object):
         if device in self._controls:
             self._controls[device].set_value(value, timeout)
 
-        elif device in self._sensor.dacs:
-            self._sensor.set_dac(device, value)
+        #elif device in self._sensor.dacs:
+        #    self._sensor.set_dac(device, value)
 
         elif device in self._control_groups.group_names:
             # A group name has been specified for the set value

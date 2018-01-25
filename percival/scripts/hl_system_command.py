@@ -23,11 +23,14 @@ def options():
                         help="Odin server address (default 127.0.0.1:8888)")
     action_help = "System command to send. Valid commands are: %s" % system_commands
     parser.add_argument("-c", "--command", action="store", default="no_operation", help=action_help)
+    wait_help = "Wait for the command to complete (default true)"
+    parser.add_argument("-w", "--wait", action="store", default="true", help=wait_help)
     args = parser.parse_args()
     return args
 
 
 def main():
+    return_value = 0
     args = options()
     log.info(args)
 
@@ -40,7 +43,15 @@ def main():
         sys.exit(-1)
 
     pc = PercivalClient(args.address)
-    pc.send_system_command(system_command, 'hl_system_command.py')
+    result = pc.send_system_command(system_command, 'hl_system_command.py')
+
+    if args.wait.lower() == "true":
+        result = pc.wait_for_command_completion(0.2)
+
+    if result['response'] == 'Failed':
+        return_value = -1
+
+    return return_value
 
 
 if __name__ == '__main__':

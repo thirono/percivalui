@@ -5,18 +5,10 @@ Created on 17 May 2016
 '''
 from __future__ import print_function
 
-import sys
 import argparse
-import requests
-import getpass
-from datetime import datetime
 
 from percival.log import log
-
-from percival.carrier import const
-from percival.carrier.txrx import TxRxContext
-from percival.carrier.system import SystemCommand
-from percival.detector.detector import PercivalParameters
+from percival.scripts.util import PercivalClient
 
 
 def options():
@@ -25,49 +17,44 @@ def options():
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument("-a", "--address", action="store", default="127.0.0.1:8888",
                         help="Odin server address (default 127.0.0.1:8888)")
-    action_help = "Set-points to scan over"
-    parser.add_argument("-s", "--setpoints", action="store", help=action_help)
-    number_help = "Set-points to scan over"
-    parser.add_argument("-n", "--number", action="store", default=10, help=number_help)
-    dwell_help = "Dwell time in ms at each scan step"
-    parser.add_argument("-d", "--dwell", action="store", default=1000, help=dwell_help)
+    initial_help = "Set-point to start the scan from"
+    parser.add_argument("-i", "--initial_setpoint", action="store", help=initial_help)
+    final_help = "Final set-point to scan to"
+    parser.add_argument("-f", "--final_setpoint", action="store", help=final_help)
+    number_help = "Number of steps in the scan (default 10)"
+    parser.add_argument("-n", "--number_of_steps", action="store", default=10, help=number_help)
+    delay_help = "Delay time between steps in ms (default 1000)"
+    parser.add_argument("-d", "--delay_between_steps", action="store", default=1000, help=delay_help)
+    wait_help = "Wait for the command to complete (default true)"
+    parser.add_argument("-w", "--wait", action="store", default="true", help=wait_help)
     args = parser.parse_args()
-    args.setpoints = [x for x in args.setpoints.split(',')]
 
     return args
 
 
 def main():
+    return_value = 0
     args = options()
     log.info(args)
 
-    set_points = args.setpoints
+    set_points = [args.initial_setpoint, args.final_setpoint]
 
-    url = "http://" + args.address + "/api/0.1/percival/cmd_scan_setpoints"
+    data = {
+               'setpoints': set_points,
+               'dwell': args.delay_between_steps,
+               'steps': args.number_of_steps
+           }
 
-    log.debug("Sending msg to: %s", url)
-    try:
-        result = requests.put(url,
-                              data={
-                                  'setpoints': set_points,
-                                  'dwell': args.dwell,
-                                  'steps': args.number
-                              },
-                              headers={
-                                  'Content-Type': 'application/json',
-                                  'Accept': 'application/json',
-                                  'User': getpass.getuser(),
-                                  'Creation-Time': str(datetime.now()),
-                                  'User-Agent': 'hl_scan_setpoints.py'
-                              }).json()
-    except requests.exceptions.RequestException:
-        result = {
-            "error": "Exception during HTTP request, check address and Odin server instance"
-        }
-        log.exception(result['error'])
-
+    pc = PercivalClient(args.address)
+    result = pc.send_command('cmd_scan_setpoints', 'hl_scan_setpoints.py', arguments=data)
     log.info("Response: %s", result)
-    return result
+    if args.wait.lower() == "true":
+        result = pc.wait_for_command_completion()
+
+    if result['response'] == 'Failed':
+        return_value = -1
+
+    return return_value
 
 
 if __name__ == '__main__':

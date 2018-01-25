@@ -83,7 +83,7 @@ setup(
             'percival-control=percival.percivalcontrol:main',
             'percival-client=percival.client:main',
             'percival-scan-devices=percival.scandevices:main',
-            'percival-hl-apply-sensor-dacs=percival.scripts.hl_apply_sensor_dacs:main',
+            'percival-hl-configure-sensor-dacs=percival.scripts.hl_configure_sensor_dacs:main',
             'percival-hl-apply-setpoint=percival.scripts.hl_apply_setpoint:main',
             'percival-hl-configure-system-settings=percival.scripts.hl_configure_system_settings:main',
             'percival-hl-configure-chip-readout-settings=percival.scripts.hl_configure_chip_readout_settings:main',

@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import requests
+import time
 import getpass
 from datetime import datetime
 
@@ -34,6 +35,38 @@ class PercivalClient(object):
             log.exception(result['error'])
 
         return result
+
+    def get_status(self, status_item, arguments=None):
+        try:
+            url = self._url + status_item
+            log.debug("Sending msg to: %s", url)
+            result = requests.get(url,
+                                  data=arguments,
+                                  headers={
+                                      'Content-Type': 'application/json',
+                                      'Accept': 'application/json',
+                                      'User': self._user,
+                                      'Creation-Time': str(datetime.now())
+                                  }).json()
+        except requests.exceptions.RequestException:
+            result = {
+                "error": "Exception during HTTP request, check address and Odin server instance"
+            }
+            log.exception(result['error'])
+
+        return result
+
+    def wait_for_command_completion(self, wait_time=1.0):
+        response = None
+        command_active = True
+        while command_active:
+            response = self.get_status('action')
+            log.debug(response)
+            if response['response'] == 'Active':
+                time.sleep(wait_time)
+            else:
+                command_active = False
+        return response
 
     def send_configuration(self, config_type, config_contents, command_id="python_script"):
         arguments = {

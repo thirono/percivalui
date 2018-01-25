@@ -11,7 +11,8 @@ percival = {
   monitor_count: 0,
   monitor_divs: 0,
   groups: {},
-  control_names: []
+  control_names: [],
+  current_config: ''
   };
 
 
@@ -271,9 +272,9 @@ $( document ).ready(function()
   $('#server-set-system-val-cmd').click(function(){
       send_set_system_setting_command()
   });
-  $('#server-set-point-cmd').click(function(){
-    send_set_point_command();
-  });
+//  $('#server-set-point-cmd').click(function(){
+//    send_set_point_command();
+//  });
   $('#server-scan-set-point-cmd').click(function(){
     send_scan_command();
   });
@@ -285,7 +286,7 @@ $( document ).ready(function()
     reader = new FileReader();
     reader.onloadend = function(event){
         //alert(event.target.result);
-        $('#config-display').text(event.target.result)
+        percival.current_config = event.target.result
     }
     reader.readAsText(event.target.files[0], 'UF-8');
   });
@@ -313,13 +314,12 @@ function auto_read(action)
 
 function send_config_command()
 {
-    //alert($('#config-display').text().replaceAll('=', '::'));
     config_type = $('#select-config').find(":selected").text();
     $.ajax({
         url: '/api/' + api_version + '/percival/cmd_load_config',
         type: 'PUT',
         dataType: 'json',
-        data: 'config=' + encodeURIComponent($('#config-display').text().replaceAll('=', '::')) + '&config_type=' + config_type,
+        data: 'config=' + encodeURIComponent(percival.current_config.replaceAll('=', '::')) + '&config_type=' + config_type,
         headers: {'Content-Type': 'application/json',
                   'Accept': 'application/json'},
         success: process_cmd_response
@@ -330,8 +330,6 @@ function send_system_command()
 {
     cmd_name = $('#select-sys-cmd').find(":selected").text();
     $.put('/api/' + api_version + '/percival/cmd_system_command?name=' + cmd_name, process_cmd_response);
-    script_string = 'hl_system_command.py --command=' + cmd_name + '\n';
-    $('#last-command').text(script_string);
 }
 
 function send_load_config_command()
@@ -358,11 +356,11 @@ function send_set_system_setting_command()
     $.put('/api/' + api_version + '/percival/cmd_system_setting?setting=' + set_name + '&value=' + set_value, process_cmd_response);
 }
 
-function send_set_point_command()
-{
-    set_name = $('#select-set-point').find(":selected").text();
-    $.put('/api/' + api_version + '/percival/cmd_apply_setpoint?setpoint=' + set_name, process_cmd_response);
-}
+//function send_set_point_command()
+//{
+//    set_name = $('#select-set-point').find(":selected").text();
+//    $.put('/api/' + api_version + '/percival/cmd_apply_setpoint?setpoint=' + set_name, process_cmd_response);
+//}
 
 function send_scan_command()
 {
@@ -530,15 +528,15 @@ function update_server_setup() {
     });
     $.getJSON('/api/' + api_version + '/percival/setpoints/', function(response) {
         //alert(response);
-        percival.set_points = response.setpoints;
+        percival.set_points = response.setpoints.sort();
 		html = "";
 		for (var index=0; index < percival.set_points.length; index++){
             html += "<option role=\"presentation\">" + percival.set_points[index] + "</option>";
         }
         //alert(html);
-        if (html != $('#select-set-point').html()){
-            $('#select-set-point').html(html);
-        }
+        //if (html != $('#select-set-point').html()){
+        //    $('#select-set-point').html(html);
+        //}
         if (html != $('#scan-set-point-start').html()){
             $('#scan-set-point-start').html(html);
         }
