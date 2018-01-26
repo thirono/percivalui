@@ -1,4 +1,4 @@
-echo PERCIVAL POWERUP STARTED
+echo PERCIVAL EMULATED POWERUP STARTED
 percival-hl-system-command -c enable_global_monitoring
 
 echo - Loading initial safe status...
@@ -25,8 +25,8 @@ percival-hl-configure-monitor-groups -i ./config/05_Spreadsheets/Group_and_Setpo
 percival-hl-configure-setpoints -i ./config/05_Spreadsheets/Group_and_Setpoint_Definitions.xls
 
 echo - Ramp UP Voltage Supplies and LVDS IOs...
-percival-hl-scan-setpoints -i 00_0_0V0A -f 01_0_VDD_ON -n 4 -d 100
-percival-hl-scan-setpoints -i 01_0_VDD_ON -f 02_0_LVDS_ON -n 4 -d 100
+# percival-hl-scan-setpoints -i 00_0_0V0A -f 01_0_VDD_ON -n 4 -d 100
+# percival-hl-scan-setpoints -i 01_0_VDD_ON -f 02_0_LVDS_ON -n 4 -d 100
 percival-hl-system-command -c enable_LVDS_IOs
 
 echo - Reset sensor
@@ -34,18 +34,18 @@ percival-hl-system-command -c assert_sensor_Master_Reset
 percival-hl-system-command -c deassert_sensor_Master_Reset
 
 echo - Ramp UP PixelVoltages...
-percival-hl-scan-setpoints -i 02_0_LVDS_ON -f 03_0_PixelVoltages_ON -n 4 -d 100
-percival-hl-scan-setpoints -i 03_0_PixelVoltages_ON -f 04_0_PixelVoltages_ON -n 4 -d 100
-percival-hl-scan-setpoints -i 04_0_PixelVoltages_ON -f 05_0_PixelVoltages_ON -n 4 -d 100
-percival-hl-scan-setpoints -i 05_0_PixelVoltages_ON -f 06_0_PixelVoltages_ON -n 4 -d 100
+# percival-hl-scan-setpoints -i 02_0_LVDS_ON -f 03_0_PixelVoltages_ON -n 4 -d 100
+# percival-hl-scan-setpoints -i 03_0_PixelVoltages_ON -f 04_0_PixelVoltages_ON -n 4 -d 100
+# percival-hl-scan-setpoints -i 04_0_PixelVoltages_ON -f 05_0_PixelVoltages_ON -n 4 -d 100
+# percival-hl-scan-setpoints -i 05_0_PixelVoltages_ON -f 06_0_PixelVoltages_ON -n 4 -d 100
 
 echo - Ramp UP Voltage references...
-percival-hl-scan-setpoints -i 06_0_PixelVoltages_ON -f 07_0_VoltageReferences_ON -n 4 -d 100
+# percival-hl-scan-setpoints -i 06_0_PixelVoltages_ON -f 07_0_VoltageReferences_ON -n 4 -d 100
 
 echo - Ramp UP Current Biases...
-percival-hl-scan-setpoints -i 07_0_VoltageReferences_ON -f 08_0_CurrentBiases_ON -n 4 -d 100
+# percival-hl-scan-setpoints -i 07_0_VoltageReferences_ON -f 08_0_CurrentBiases_ON -n 4 -d 100
 
-echo PERCIVAL POWERUP COMPLETED
+echo PERCIVAL EMULATED POWERUP COMPLETED
 
 echo Additional operations: 
 echo - Load default operating status
