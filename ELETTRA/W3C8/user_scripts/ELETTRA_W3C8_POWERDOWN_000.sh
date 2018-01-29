@@ -1,20 +1,20 @@
-echo PERCIVAL POWERDOWN STARTED / ...
-echo Applies to detector head with sensor ...
+echo PERCIVAL POWERDOWN STARTED / ELETTRA
+echo Applies to detector head with sensor Wafer 3,Chip 8
 echo
 
 echo - Exit armed status
 percival-hl-system-command -c exit_acquisition_armed_status
 
 echo - Loading initial safe status...
-percival-hl-configure-clock-settings -i ./config/01_Clock_Settings/ClockSettings_000_SAFE_START.ini
-percival-hl-configure-chip-readout-settings -i ./config/02_Chip_Readout_Settings/ChipReadoutSettings_000_SAFEstart.ini
-percival-hl-configure-system-settings -i ./config/03_System_Settings/SystemSettings_000_SAFE_START.ini
+percival-hl-configure-clock-settings -i ./ELETTRA/W3C8/config/01_Clock_Settings/ClockSettings_000_SAFE_START.ini
+percival-hl-configure-chip-readout-settings -i ./ELETTRA/W3C8/config/02_Chip_Readout_Settings/ChipReadoutSettings_000_SAFEstart.ini
+percival-hl-configure-system-settings -i ./ELETTRA/W3C8/config/03_System_Settings/SystemSettings_000_SAFE_START.ini
 
 echo - Ramp DOWN Current Biases...
-percival-hl-scan-setpoints -i 08_0_CurrentBiases_ON -f 07_0_VoltageReferences_ON -n 4 -d 2000
+percival-hl-scan-setpoints -i 08_2_CurrentBiases_ON -f 07_2_VoltageReferences_ON -n 4 -d 2000
 
 echo - Ramp DOWN Voltage references...
-percival-hl-scan-setpoints -i 07_0_VoltageReferences_ON -f 06_0_PixelVoltages_ON -n 4 -d 2000
+percival-hl-scan-setpoints -i 07_2_VoltageReferences_ON -f 06_0_PixelVoltages_ON -n 4 -d 2000
 
 echo - Ramp DOWN PixelVoltages...
 percival-hl-scan-setpoints -i 06_0_PixelVoltages_ON -f 05_0_PixelVoltages_ON -n 4 -d 2000

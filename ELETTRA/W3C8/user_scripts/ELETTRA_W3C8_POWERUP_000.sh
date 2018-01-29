@@ -1,5 +1,5 @@
-echo PERCIVAL POWERUP STARTED / ...
-echo Applies to detector head with sensor ...
+echo PERCIVAL POWERUP STARTED / ELETTRA
+echo Applies to detector head with sensor Wafer 3,Chip 8
 echo
 
 echo - Downloading device settings...
@@ -7,9 +7,9 @@ percival-hl-download-channel-settings
 percival-hl-system-command -c enable_global_monitoring
 
 echo - Loading initial safe status...
-percival-hl-configure-clock-settings -i ./config/01_Clock_Settings/ClockSettings_000_SAFE_START.ini
-percival-hl-configure-chip-readout-settings -i ./config/02_Chip_Readout_Settings/ChipReadoutSettings_000_SAFEstart.ini
-percival-hl-configure-system-settings -i ./config/03_System_Settings/SystemSettings_000_SAFE_START.ini
+percival-hl-configure-clock-settings -i ./ELETTRA/W3C8/config/01_Clock_Settings/ClockSettings_000_SAFE_START.ini
+percival-hl-configure-chip-readout-settings -i ./ELETTRA/W3C8/config/02_Chip_Readout_Settings/ChipReadoutSettings_000_SAFEstart.ini
+percival-hl-configure-system-settings -i ./ELETTRA/W3C8/config/03_System_Settings/SystemSettings_000_SAFE_START.ini
 
 echo - Preparing powerboard...
 percival-hl-system-command -c disable_LVDS_IOs
@@ -25,9 +25,9 @@ percival-hl-system-command -c disable_safety_actions
 percival-hl-system-command -c enable_device_level_safety_controls
 percival-hl-system-command -c enable_system_level_safety_controls
 percival-hl-system-command -c enable_experimental_level_safety_controls
-percival-hl-configure-control-groups -i ./config/05_Spreadsheets/Group_and_Setpoint_Definitions.xls
-percival-hl-configure-monitor-groups -i ./config/05_Spreadsheets/Group_and_Setpoint_Definitions.xls
-percival-hl-configure-setpoints -i ./config/05_Spreadsheets/Group_and_Setpoint_Definitions.xls
+percival-hl-configure-control-groups -i ./ELETTRA/W3C8/config/05_Spreadsheets/ELETTRA_W3C8_Group_and_Setpoint_Definitions.xls
+percival-hl-configure-monitor-groups -i ./ELETTRA/W3C8/config/05_Spreadsheets/ELETTRA_W3C8_Group_and_Setpoint_Definitions.xls
+percival-hl-configure-setpoints -i ./ELETTRA/W3C8/config/05_Spreadsheets/ELETTRA_W3C8_Group_and_Setpoint_Definitions.xls
 
 echo - Ramp UP Voltage Supplies and LVDS IOs...
 percival-hl-scan-setpoints -i 00_0_0V0A -f 01_0_VDD_ON -n 4 -d 2000
@@ -45,18 +45,18 @@ percival-hl-scan-setpoints -i 04_0_PixelVoltages_ON -f 05_0_PixelVoltages_ON -n 
 percival-hl-scan-setpoints -i 05_0_PixelVoltages_ON -f 06_0_PixelVoltages_ON -n 4 -d 2000
 
 echo - Ramp UP Voltage references...
-percival-hl-scan-setpoints -i 06_0_PixelVoltages_ON -f 07_0_VoltageReferences_ON -n 4 -d 2000
+percival-hl-scan-setpoints -i 06_0_PixelVoltages_ON -f 07_2_VoltageReferences_ON -n 4 -d 2000
 
 echo - Ramp UP Current Biases...
-percival-hl-scan-setpoints -i 07_0_VoltageReferences_ON -f 08_0_CurrentBiases_ON -n 4 -d 2000
+percival-hl-scan-setpoints -i 07_2_VoltageReferences_ON -f 08_2_CurrentBiases_ON -n 4 -d 2000
 
 echo PERCIVAL POWERUP COMPLETED
 
 echo Additional operations: 
 echo - Load default operating status
-percival-hl-configure-clock-settings -i ./config/01_Clock_Settings/ClockSettings_005_120MHz.ini
-percival-hl-configure-chip-readout-settings -i ./config/02_Chip_Readout_Settings/ChipReadoutSettings_005_3T_120MHz.ini
-percival-hl-configure-system-settings -i ./config/03_System_Settings/SystemSettings_006_pixel_Test_FEL_MODE.ini
+percival-hl-configure-clock-settings -i ./ELETTRA/W3C8/config/01_Clock_Settings/ClockSettings_005_120MHz.ini
+percival-hl-configure-chip-readout-settings -i ./ELETTRA/W3C8/config/02_Chip_Readout_Settings/ChipReadoutSettings_005_3T_120MHz.ini
+percival-hl-configure-system-settings -i ./ELETTRA/W3C8/config/03_System_Settings/SystemSettings_006_pixel_Test_FEL_MODE.ini
 
 echo - Enter armed status
 percival-hl-apply-sensor-roi
