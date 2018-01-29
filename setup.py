@@ -95,6 +95,7 @@ setup(
             'percival-hl-configure-monitor-groups=percival.scripts.hl_configure_monitor_groups:main',
             'percival-hl-configure-setpoints=percival.scripts.hl_configure_setpoints:main',
             'percival-hl-initialise-channels=percival.scripts.hl_initialise_channels:main',
+            'percival-hl-download-channel-settings=percival.scripts.hl_download_channel_settings:main',
             'percival-hl-scan-setpoints=percival.scripts.hl_scan_setpoints:main',
             'percival-hl-set-channel=percival.scripts.hl_set_channel:main',
             'percival-hl-system-command=percival.scripts.hl_system_command:main',
