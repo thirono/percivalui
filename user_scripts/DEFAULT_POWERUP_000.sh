@@ -25,9 +25,9 @@ percival-hl-system-command -c disable_safety_actions
 percival-hl-system-command -c enable_device_level_safety_controls
 percival-hl-system-command -c enable_system_level_safety_controls
 percival-hl-system-command -c enable_experimental_level_safety_controls
-percival-hl-configure-control-groups -i ./config/05_Spreadsheets/Group_and_Setpoint_Definitions.xls
-percival-hl-configure-monitor-groups -i ./config/05_Spreadsheets/Group_and_Setpoint_Definitions.xls
-percival-hl-configure-setpoints -i ./config/05_Spreadsheets/Group_and_Setpoint_Definitions.xls
+percival-hl-configure-control-groups -i ./config/05_Spreadsheets/Group_Definitions.xls
+percival-hl-configure-monitor-groups -i ./config/05_Spreadsheets/Group_Definitions.xls
+percival-hl-configure-setpoints -i ./config/05_Spreadsheets/Setpoint_Definitions.xls
 
 echo - Ramp UP Voltage Supplies and LVDS IOs...
 percival-hl-scan-setpoints -i 00_0_0V0A -f 01_0_VDD_ON -n 4 -d 2000

@@ -3,6 +3,7 @@ echo Applies to detector head with sensor ...
 echo
 
 echo - Exit armed status
+percival-hl-system-command -c stop_acquisition
 percival-hl-system-command -c exit_acquisition_armed_status
 
 echo - Loading initial safe status...
