@@ -101,6 +101,7 @@ setup(
             'percival-hl-system-command=percival.scripts.hl_system_command:main',
             'percival-hl-update-monitors=percival.scripts.hl_update_monitors:main',
             'percival-hl-apply-sensor-roi=percival.scripts.hl_apply_sensor_roi:main',
+            'percival-hl-set-system-setting=percival.scripts.hl_set_system_setting:main',
         ],
     },
 )
