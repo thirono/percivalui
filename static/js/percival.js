@@ -278,6 +278,9 @@ $( document ).ready(function()
   $('#server-scan-set-point-cmd').click(function(){
     send_scan_command();
   });
+  $('#server-abort-scan-cmd').click(function(){
+    send_abort_scan_command();
+  });
   $('#server-config-cmd').click(function(){
     send_config_command();
   });
@@ -385,6 +388,11 @@ function send_scan_command()
                   'Accept': 'application/json'},
         success: process_cmd_response
     });
+}
+
+function send_abort_scan_command()
+{
+    $.put('/api/' + api_version + '/percival/cmd_abort_scan', process_cmd_response);
 }
 
 function process_cmd_response(response)
