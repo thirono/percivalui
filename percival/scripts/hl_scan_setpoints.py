@@ -6,6 +6,7 @@ Created on 17 May 2016
 from __future__ import print_function
 
 import argparse
+import signal
 
 from percival.log import log
 from percival.scripts.util import PercivalClient
@@ -30,6 +31,15 @@ def options():
     args = parser.parse_args()
 
     return args
+
+
+def sigint_handler(signum, frame):
+    args = options()
+    pc = PercivalClient(args.address)
+    result = pc.send_command('cmd_abort_scan', 'hl_scan_setpoints.py')
+    log.info("Response: %s", result)
+
+signal.signal(signal.SIGINT, sigint_handler)
 
 
 def main():
