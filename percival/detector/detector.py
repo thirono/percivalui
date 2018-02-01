@@ -863,11 +863,25 @@ class PercivalDetector(object):
         self._setpoint_control.load_ini(self._percival_params.setpoint_params)
 
     def queue_command(self, command):
-        if self._command_lock.acquire(False):
-            self._command_queue.put(command, block=False)
-            self._command_lock.release()
-        else:
-            raise PercivalDetectorError("Cannot submit command whilst another is active")
+        # Special command case is an abort of a scan
+        if not self.check_for_abort_command(command):
+            if self._command_lock.acquire(False):
+                self._command_queue.put(command, block=False)
+                self._command_lock.release()
+            else:
+                raise PercivalDetectorError("Cannot submit command whilst another is active")
+
+    def check_for_abort_command(self, command):
+        if 'PUT' in command.command_type:
+            if command.command_name in str(PercivalCommandNames.cmd_abort_scan):
+                # Log the trace information from the command object
+                self._trace_log.info("{} Command [{}] executed, parameters: {}".format(command.command_type,
+                                                                                       command.command_name,
+                                                                                       command.parameters))
+                self._trace_log.info(command.format_trace)
+                self._setpoint_control.abort_scan()
+                return True
+        return False
 
     def command_loop(self):
         running = True

@@ -41,6 +41,7 @@ class SetPointControl(object):
         self._scan_steps = 0
         self._thread = None
         self._scan_points = None
+        self._error = None
         self._log.info("SetPointControl object created")
 
     def load_ini(self, set_point_ini):
@@ -63,6 +64,10 @@ class SetPointControl(object):
         self._executing = False
         self._scanning = False
         self._start_scan.set()
+        self._stop_scan.set()
+
+    def abort_scan(self):
+        self._scanning = False
         self._stop_scan.set()
 
     @property
@@ -154,12 +159,15 @@ class SetPointControl(object):
         # First clear the waiting flag
         self._wait_for_scan_complete.clear()
         # Set the scanning flag to True
+        self._error = None
         self._scanning = True
         self._start_scan.set()
 
     def wait_for_scan_to_complete(self):
         while self._scanning:
             self._wait_for_scan_complete.wait(1.0)
+        if self._error is not None:
+            raise self._error
 
     def scan_loop(self):
         while self._executing:
@@ -179,7 +187,16 @@ class SetPointControl(object):
             # Apply the current set of set-points
             if self._scanning:
                 for sp in self._scan_points:
-                    self._detector.set_value(sp, int(self._scan_points[sp][self._scan_index]))
+                    try:
+                        self._detector.set_value(sp, int(self._scan_points[sp][self._scan_index]))
+                    except Exception as ex:
+                        # Caught an exception whilst scanning, so exit out and set error
+                        self._scanning = False
+                        self._error = ex
+
+                    if not self._scanning:
+                        break
+
                 # Increment the scan index
                 self._scan_index += 1
                 if self._scan_index == self._scan_steps:

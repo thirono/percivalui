@@ -33,6 +33,7 @@ class PercivalCommandNames(Enum):
     cmd_connect_hardware = 11     # Put only
     cmd_system_setting = 12       # Put only
     cmd_apply_roi = 13            # Put only
+    cmd_abort_scan = 14           # Put only
 
 
 @unique
