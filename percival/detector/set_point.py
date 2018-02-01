@@ -263,10 +263,7 @@ class SetPointControl(object):
                     self._scanning = False
 
             if self._scanning:
-                # Calculate the time delay required for the next scan point
-                delta_t = datetime.now() - self._start_time
-                delta_t = (self._scan_index * self._scan_delay) - delta_t.total_seconds()
-                self._log.debug("Pausing for %f seconds", delta_t)
+                self._log.debug("Pausing for %f seconds", self._scan_delay)
                 # Wait for either a stop scan or the calculated time delay
                 self._stop_scan.wait(self._scan_delay)
                 self._stop_scan.clear()
