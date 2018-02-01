@@ -142,6 +142,9 @@ class AD5242(object):
         """
         self._channel.set_value(value, timeout)
 
+    def get_value(self):
+        return self._channel.get_value()
+
     @property
     def name(self):
         return self._name
@@ -172,6 +175,9 @@ class AD5263(object):
         """
         self._channel.set_value(value, timeout)
 
+    def get_value(self):
+        return self._channel.get_value()
+
     @property
     def name(self):
         return self._name
@@ -201,6 +207,9 @@ class AD5669(object):
         :param timeout: timeout for the set to complete
         """
         self._channel.set_value(value, timeout)
+
+    def get_value(self):
+        return self._channel.get_value()
 
     @property
     def name(self):

@@ -1010,25 +1010,39 @@ class PercivalDetector(object):
                     self._setpoint_control.apply_set_point(command.get_param('setpoint'))
                     self._active_command.complete(success=True)
             elif command.command_name in str(PercivalCommandNames.cmd_scan_setpoints):
-                # Parameter [setpoints] is a list of setpoints to scan
+                # Parameter [setpoints] is a list of setpoints to scan or a single setpoint to scan to
                 # Parameter [dwell] is the dwell time in ms at each point
                 # Parameter [steps] is the number of steps between the points
                 if command.has_param('setpoints'):
                     # Check there are at least two setpoints
                     setpoints = command.get_param('setpoints')
-                    if len(setpoints) < 2:
-                        raise PercivalDetectorError("Scanning requires two setpoints")
-                    if command.has_param('dwell'):
-                        dwell = int(command.get_param('dwell'))
-                        if command.has_param('steps'):
-                            steps = int(command.get_param('steps'))
-                            self._setpoint_control.scan_set_points(setpoints, steps, dwell)
-                            self._setpoint_control.wait_for_scan_to_complete()
-                            self._active_command.complete(success=True)
+                    if isinstance(setpoints, list):
+                        if len(setpoints) < 2:
+                            raise PercivalDetectorError("Scanning requires two setpoints")
+                        if command.has_param('dwell'):
+                            dwell = int(command.get_param('dwell'))
+                            if command.has_param('steps'):
+                                steps = int(command.get_param('steps'))
+                                self._setpoint_control.scan_set_points(setpoints, steps, dwell)
+                                self._setpoint_control.wait_for_scan_to_complete()
+                                self._active_command.complete(success=True)
+                            else:
+                                raise PercivalDetectorError("Number of scan steps required to scan")
                         else:
-                            raise PercivalDetectorError("Number of scan steps required to scan")
+                            raise PercivalDetectorError("Dwell time (ms) required to scan")
                     else:
-                        raise PercivalDetectorError("Dwell time (ms) required to scan")
+                        # This is a safety scan starting from the current position
+                        if command.has_param('dwell'):
+                            dwell = int(command.get_param('dwell'))
+                            if command.has_param('steps'):
+                                steps = int(command.get_param('steps'))
+                                self._setpoint_control.safety_scan_set_point(setpoints, steps, dwell)
+                                self._setpoint_control.wait_for_scan_to_complete()
+                                self._active_command.complete(success=True)
+                            else:
+                                raise PercivalDetectorError("Number of scan steps required to scan")
+                        else:
+                            raise PercivalDetectorError("Dwell time (ms) required to scan")
                 else:
                     raise PercivalDetectorError("No setpoints defined to scan between")
             elif command.command_name in str(PercivalCommandNames.cmd_update_monitors):
@@ -1141,6 +1155,25 @@ class PercivalDetector(object):
         else:
             self._log.info("Device  %s not found", device)
             raise PercivalDetectorError("Cannot set value, device {} does not exist".format(device))
+
+    def get_value(self, device):
+        """
+        Get the last set value of a control device.
+
+        :param device: Name of device to set the value of
+        :type device: str
+        """
+        value = 0
+        self._log.info("Getting last value of %s", device)
+        if device in self._controls:
+            value = self._controls[device].get_value()
+            self._log.info("Value of %s is %d", device, value)
+
+        else:
+            self._log.info("Device %s not found", device)
+            raise PercivalDetectorError("Cannot get value, device {} does not exist".format(device))
+
+        return value
 
     def apply_sensor_dac_values(self):
         self._sensor.apply_dac_values()

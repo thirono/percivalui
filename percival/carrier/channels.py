@@ -237,6 +237,9 @@ class ControlChannel(Channel):
             self._log.debug("####### Retrying (%d) reading ECHO word. Got: %s", retries, result)
         return result[0]
 
+    def get_value(self):
+        return self._reg_control_settings.fields.value
+
 
 class MonitoringChannel(Channel):
     """
