@@ -30,7 +30,6 @@ def options():
 
 
 def main():
-    return_value = 0
     args = options()
     log.info(args)
 
@@ -43,15 +42,8 @@ def main():
         sys.exit(-1)
 
     pc = PercivalClient(args.address)
-    result = pc.send_system_command(system_command, 'hl_system_command.py')
-
-    if args.wait.lower() == "true":
-        result = pc.wait_for_command_completion(0.2)
-
-    if result['response'] == 'Failed':
-        return_value = -1
-
-    return return_value
+    result = pc.send_system_command(system_command, 'hl_system_command.py', wait=(args.wait.lower() == "true"))
+    log.info("Response: %s", result)
 
 
 if __name__ == '__main__':

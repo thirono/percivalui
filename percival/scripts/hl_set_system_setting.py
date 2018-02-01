@@ -35,7 +35,6 @@ def options():
 
 
 def main():
-    return_value = 0
     args = options()
     log.info(args)
 
@@ -45,15 +44,11 @@ def main():
     }
 
     pc = PercivalClient(args.address)
-    result = pc.send_command('cmd_system_setting', 'hl_set_system_setting.py', arguments=data)
+    result = pc.send_command('cmd_system_setting',
+                             'hl_set_system_setting.py',
+                             arguments=data,
+                             wait=(args.wait.lower() == "true"))
     log.info("Response: %s", result)
-    if args.wait.lower() == "true":
-        result = pc.wait_for_command_completion(0.2)
-
-    if result['response'] == 'Failed':
-        return_value = -1
-
-    return return_value
 
 
 if __name__ == '__main__':
