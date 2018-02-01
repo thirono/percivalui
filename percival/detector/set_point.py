@@ -188,7 +188,11 @@ class SetPointControl(object):
             if self._scanning:
                 for sp in self._scan_points:
                     try:
-                        self._detector.set_value(sp, int(self._scan_points[sp][self._scan_index]))
+                        # For a scan index of greater than 0 check to see if we are being asked to scan to the
+                        # same point.  If we are then do not actually send the demand
+                        if self._scan_index == 0 or int(self._scan_points[sp][self._scan_index]) != \
+                                    int(self._scan_points[sp][self._scan_index - 1]):
+                            self._detector.set_value(sp, int(self._scan_points[sp][self._scan_index]))
                     except Exception as ex:
                         # Caught an exception whilst scanning, so exit out and set error
                         self._scanning = False
