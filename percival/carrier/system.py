@@ -12,7 +12,7 @@ from __future__ import print_function
 
 import logging
 from percival.carrier import const
-from percival.carrier.registers import UARTRegister
+from percival.carrier.registers import UARTRegister, generate_register_maps
 from percival.carrier.errors import PercivalSystemCommandError
 
 
@@ -88,6 +88,37 @@ class SystemCommand(object):
         """
         self.cmd_no_operation()
         self._command(cmd)
+
+
+class SystemStatus(object):
+    # Constants used for limits
+    def __init__(self, txrx):
+        """
+        Constructor
+
+        :param txrx: Percival communication context
+        :type  txrx: TxRx
+        """
+        self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+        self._txrx = txrx
+        self._value_block = const.READ_VALUES_STATUS
+        self._reg_status_values = UARTRegister(self._value_block)
+        self._cmd_msg = self._reg_status_values.get_read_cmd_msg()
+
+    def read_values(self):
+        """Read all carrier monitor channels with one READ VALUES shortcut command
+
+        Parse the resuling [(address, data), (address, data)...] array of tuples into a list of
+        :class:`percival.carrier.register.ReadValueMap` objects.
+
+        :returns: list of :class:`percival.carrier.register.ReadValueMap` objects.
+        :rtype: list
+        """
+        response = self._txrx.send_recv_message(self._cmd_msg)
+        self._log.debug(response)
+        read_maps = generate_register_maps(response)
+        self._log.debug(read_maps)
+        return response
 
 
 class SystemSettings(object):

@@ -279,6 +279,91 @@ class ReadValueMap(RegisterMap):
                          "sample_number":                MapField("sample_number",                0,   8, 24),
                          }
 
+class SystemStatusMap(RegisterMap):
+    """Represents the system settings block that is submitted through the buffer interface
+    """
+    num_words = 8
+
+    def __init__(self):
+        object.__setattr__(self, '_mem_map', {})  # This prevents infinite recursion when setting attributes
+        self._mem_map = {"Image_counter":
+                             MapField("Image_counter",                               0,   32,  0),
+                         "Acquisition_counter":
+                             MapField("Acquisition_counter",                         1,   32,  0),
+                         "Train_number_MSB":
+                             MapField("Train_number_MSB",                            2,   32,  0),
+                         "Train_number_LSB":
+                             MapField("Train_number_LSB",                            3,   32,  0),
+                         "LVDS_IOs_enabled":
+                             MapField("LVDS_IOs_enabled",                            4,   1,   0),
+                         "Master_reset":
+                             MapField("Master_reset",                                4,   1,   1),
+                         "PLL_reset":
+                             MapField("PLL_reset",                                   4,   1,   2),
+                         "dmux_CDN":
+                             MapField("dmux_CDN",                                    4,   1,   3),
+                         "sr7DIn_0":
+                             MapField("sr7DIn_0",                                    4,   1,   4),
+                         "sr7DIn_1":
+                             MapField("sr7DIn_1",                                    4,   1,   5),
+                         "horiz_data_in_0":
+                             MapField("horiz_data_in_0",                             4,   1,   6),
+                         "horiz_data_in_1":
+                             MapField("horiz_data_in_1",                             4,   1,   7),
+                         "enable_testpoints":
+                             MapField("enable_testpoints",                           4,   1,   8),
+                         "startup_mode_enabled":
+                             MapField("startup_mode_enabled",                        4,   1,   9),
+                         "global_monitoring_enabled":
+                             MapField("global_monitoring_enabled",                   4,   1,  10),
+                         "device_level_safety_controls_enabled":
+                             MapField("device_level_safety_controls_enabled",        4,   1,  11),
+                         "system_level_safety_controls_enabled":
+                             MapField("system_level_safety_controls_enabled",        4,   1,  12),
+                         "experimental_level_safety_controls_enabled":
+                             MapField("experimental_level_safety_controls_enabled",  4,   1,  13),
+                         "safety_actions_enabled":
+                             MapField("safety_actions_enabled",                      4,   1,  14),
+                         "system_armed":
+                             MapField("system_armed",                                4,   1,  15),
+                         "acquiring":
+                             MapField("acquiring",                                   4,   1,  16),
+                         "wait_for_trigger":
+                             MapField("wait_for_trigger",                            4,   1,  17),
+                         "sensor_active_for_acquisition":
+                             MapField("sensor_active_for_acquisition",               4,   1,  18),
+                         "MEZZ_A_PHY_OK":
+                             MapField("MEZZ_A_PHY_OK",                               4,   1,  19),
+                         "MEZZ_A_MGT_OK":
+                             MapField("MEZZ_A_MGT_OK",                               4,   1,  20),
+                         "MEZZ_A_RESET":
+                             MapField("MEZZ_A_RESET",                                4,   1,  21),
+                         "MEZZ_B_PHY_OK":
+                             MapField("MEZZ_B_PHY_OK",                               4,   1,  22),
+                         "MEZZ_B_MGT_OK":
+                             MapField("MEZZ_B_MGT_OK",                               4,   1,  23),
+                         "MEZZ_B_RESET":
+                             MapField("MEZZ_B_RESET",                                4,   1,  24),
+                         "MARKER_OUT":
+                             MapField("MARKER_OUT",                                  4,   4,  25),
+                         "include_train_number_in_status_record":
+                             MapField("include_train_number_in_status_record",       4,   1,  29),
+                         "PLUGIN_RESET":
+                             MapField("PLUGIN_RESET",                                4,   1,  30),
+                         "HIGH_FREQ_ADJ_CLOCK_0_clock_enable":
+                             MapField("HIGH_FREQ_ADJ_CLOCK_0_clock_enable",          5,   1,   0),
+                         "HIGH_FREQ_ADJ_CLOCK_1_clock_enable":
+                             MapField("HIGH_FREQ_ADJ_CLOCK_1_clock_enable",          5,   1,   1),
+                         "HIGH_FREQ_ADJ_CLOCK_2_clock_enable":
+                             MapField("HIGH_FREQ_ADJ_CLOCK_2_clock_enable",          5,   1,   2),
+                         "HIGH_FREQ_ADJ_CLOCK_3_clock_enable":
+                             MapField("HIGH_FREQ_ADJ_CLOCK_3_clock_enable",          5,   1,   3),
+                         "LOW_FREQ_ADJ_CLOCK_0_clock_enable":
+                             MapField("LOW_FREQ_ADJ_CLOCK_0_clock_enable",           5,   1,   4),
+                         "LOW_FREQ_ADJ_CLOCK_1_clock_enable":
+                             MapField("LOW_FREQ_ADJ_CLOCK_1_clock_enable",           5,   1,   5),
+                         }
+
 
 class SystemSettingsMap(RegisterMap):
     """Represents the system settings block that is submitted through the buffer interface
@@ -737,6 +822,7 @@ CarrierUARTRegisters = {
     const.CLOCK_SETTINGS:               ("Clock settings",              const.READBACK_CLOCK_SETTINGS,               ClockSettingsMap),
     const.COMMAND:                      ("CommandMap",                  None,                                        CommandMap),
     const.READ_ECHO_WORD:               ("Read Echo Word",              const.READBACK_READ_ECHO_WORD,               EchoWordMap),
+    const.READ_VALUES_STATUS:           ("Read system status",          const.READBACK_READ_VALUES_STATUS,           SystemStatusMap),
 }
 """Look-up table of UART addresses and the corresponding details
 
