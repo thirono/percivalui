@@ -15,7 +15,7 @@ class PercivalClient(object):
         self._url = "http://" + str(self._address) + "/api/" + str(self._api) + "/percival/"
         self._user = getpass.getuser()
 
-    def send_command(self, command, command_id="python_script", arguments=None):
+    def send_command(self, command, command_id="python_script", arguments=None, wait=True):
         try:
             url = self._url + command
             log.debug("Sending msg to: %s", url)
@@ -33,6 +33,10 @@ class PercivalClient(object):
                 "error": "Exception during HTTP request, check address and Odin server instance"
             }
             log.exception(result['error'])
+
+        if wait:
+            if result['response'] != 'Failed':
+                result = self.wait_for_command_completion()
 
         return result
 
@@ -56,7 +60,7 @@ class PercivalClient(object):
 
         return result
 
-    def wait_for_command_completion(self, wait_time=1.0):
+    def wait_for_command_completion(self, wait_time=0.5):
         response = None
         command_active = True
         while command_active:
@@ -68,21 +72,21 @@ class PercivalClient(object):
                 command_active = False
         return response
 
-    def send_configuration(self, config_type, config_contents, command_id="python_script"):
+    def send_configuration(self, config_type, config_contents, command_id="python_script", wait=True):
         arguments = {
             'config_type': config_type,
             'config': config_contents.replace('=', '::')
         }
-        return self.send_command('cmd_load_config', command_id, arguments)
+        return self.send_command('cmd_load_config', command_id, arguments, wait=wait)
 
-    def send_system_command(self, system_command, command_id="python_script"):
+    def send_system_command(self, system_command, command_id="python_script", wait=True):
         arguments = {
             'name': system_command.name
         }
-        return self.send_command('cmd_system_command', command_id, arguments)
+        return self.send_command('cmd_system_command', command_id, arguments, wait=wait)
 
-    def apply_setpoint(self, set_point, command_id="python_script"):
+    def apply_setpoint(self, set_point, command_id="python_script", wait=True):
         arguments = {
             'setpoint': set_point
         }
-        return self.send_command('cmd_apply_setpoint', command_id, arguments)
+        return self.send_command('cmd_apply_setpoint', command_id, arguments, wait=wait)

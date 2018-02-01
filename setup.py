@@ -97,10 +97,12 @@ setup(
             'percival-hl-initialise-channels=percival.scripts.hl_initialise_channels:main',
             'percival-hl-download-channel-settings=percival.scripts.hl_download_channel_settings:main',
             'percival-hl-scan-setpoints=percival.scripts.hl_scan_setpoints:main',
+            'percival-hl-safety-setpoint-scan=percival.scripts.hl_safety_setpoint_scan:main',
             'percival-hl-set-channel=percival.scripts.hl_set_channel:main',
             'percival-hl-system-command=percival.scripts.hl_system_command:main',
             'percival-hl-update-monitors=percival.scripts.hl_update_monitors:main',
             'percival-hl-apply-sensor-roi=percival.scripts.hl_apply_sensor_roi:main',
+            'percival-hl-set-system-setting=percival.scripts.hl_set_system_setting:main',
         ],
     },
 )

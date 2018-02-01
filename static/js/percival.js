@@ -278,6 +278,12 @@ $( document ).ready(function()
   $('#server-scan-set-point-cmd').click(function(){
     send_scan_command();
   });
+  $('#server-sscan-set-point-cmd').click(function(){
+    send_sscan_command();
+  });
+  $('#server-abort-scan-cmd').click(function(){
+    send_abort_scan_command();
+  });
   $('#server-config-cmd').click(function(){
     send_config_command();
   });
@@ -385,6 +391,36 @@ function send_scan_command()
                   'Accept': 'application/json'},
         success: process_cmd_response
     });
+}
+
+function send_sscan_command()
+{
+    //data = {}
+    sp = $('#sscan-set-point-end').find(":selected").text();
+    //data = {'setpoints': sp};
+    //alert(data)
+    steps = $('#sscan-sp-steps').val();
+    dwell = $('#sscan-sp-dwell').val();
+    //$.put('/api/' + api_version + '/percival/cmd_scan_setpoints?dwell=' + dwell + '&steps=' + steps, data, process_cmd_response, 'json');
+    //alert('/api/' + api_version + '/percival/cmd_scan_setpoints?dwell=' + dwell + '&steps=' + steps);
+    $.ajax({
+        url: '/api/' + api_version + '/percival/cmd_scan_setpoints',
+        type: 'PUT',
+        dataType: 'json',
+        data: {
+            'dwell' : dwell,
+            'steps' : steps,
+            'setpoints' : sp
+        },
+        headers: {'Content-Type': 'application/json',
+                  'Accept': 'application/json'},
+        success: process_cmd_response
+    });
+}
+
+function send_abort_scan_command()
+{
+    $.put('/api/' + api_version + '/percival/cmd_abort_scan', process_cmd_response);
 }
 
 function process_cmd_response(response)
@@ -542,6 +578,9 @@ function update_server_setup() {
         }
         if (html != $('#scan-set-point-end').html()){
             $('#scan-set-point-end').html(html);
+        }
+        if (html != $('#sscan-set-point-end').html()){
+            $('#sscan-set-point-end').html(html);
         }
         $('#sp-scan-scanning').text(response.status.scanning);
         $('#sp-scan-index').text(response.status.scan_index);

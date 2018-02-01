@@ -26,7 +26,7 @@ from percival.carrier.database import InfluxDB
 from percival.carrier.registers import generate_register_maps, BoardValueRegisters
 from percival.carrier.sensor import Sensor
 from percival.carrier.settings import BoardSettings
-from percival.carrier.system import SystemCommand, SystemSettings, ClockSettings
+from percival.carrier.system import SystemCommand, SystemSettings, ClockSettings, SystemStatus
 from percival.carrier.chip import ChipReadoutSettings
 from percival.carrier.txrx import TxRx
 from percival.carrier.values import BoardValues
@@ -555,6 +555,7 @@ class PercivalDetector(object):
         self._monitors = {}
         self._controls = {}
         self._sys_cmd = None
+        self._system_status = None
         self._sensor_buffer_cmd = None
         self._sensor = None
         self._control_groups = None
@@ -583,6 +584,7 @@ class PercivalDetector(object):
         self._command_queue = queue.Queue(1)
         self._command_thread = threading.Thread(target=self.command_loop)
         self._command_thread.start()
+        self._system_status.read_values()
 
     def cleanup(self):
         self.queue_command(None)
@@ -622,6 +624,7 @@ class PercivalDetector(object):
         self._chip_readout_settings.set_txrx(self._txrx)
         self._clock_settings.set_txrx(self._txrx)
         self._sys_cmd = SystemCommand(self._txrx)
+        self._system_status = SystemStatus(self._txrx)
         self._sensor_buffer_cmd = SensorBufferCommand(self._txrx)
         self._sensor = Sensor(self._sensor_buffer_cmd)
 
@@ -863,11 +866,26 @@ class PercivalDetector(object):
         self._setpoint_control.load_ini(self._percival_params.setpoint_params)
 
     def queue_command(self, command):
-        if self._command_lock.acquire(False):
-            self._command_queue.put(command, block=False)
-            self._command_lock.release()
-        else:
-            raise PercivalDetectorError("Cannot submit command whilst another is active")
+        # Special command case is an abort of a scan
+        if not self.check_for_abort_command(command):
+            if self._command_lock.acquire(False):
+                self._command_queue.put(command, block=False)
+                self._command_lock.release()
+            else:
+                raise PercivalDetectorError("Cannot submit command whilst another is active")
+
+    def check_for_abort_command(self, command):
+        if command is not None:
+            if 'PUT' in command.command_type:
+                if command.command_name in str(PercivalCommandNames.cmd_abort_scan):
+                    # Log the trace information from the command object
+                    self._trace_log.info("{} Command [{}] executed, parameters: {}".format(command.command_type,
+                                                                                           command.command_name,
+                                                                                           command.parameters))
+                    self._trace_log.info(command.format_trace)
+                    self._setpoint_control.abort_scan()
+                    return True
+        return False
 
     def command_loop(self):
         running = True
@@ -996,25 +1014,39 @@ class PercivalDetector(object):
                     self._setpoint_control.apply_set_point(command.get_param('setpoint'))
                     self._active_command.complete(success=True)
             elif command.command_name in str(PercivalCommandNames.cmd_scan_setpoints):
-                # Parameter [setpoints] is a list of setpoints to scan
+                # Parameter [setpoints] is a list of setpoints to scan or a single setpoint to scan to
                 # Parameter [dwell] is the dwell time in ms at each point
                 # Parameter [steps] is the number of steps between the points
                 if command.has_param('setpoints'):
                     # Check there are at least two setpoints
                     setpoints = command.get_param('setpoints')
-                    if len(setpoints) < 2:
-                        raise PercivalDetectorError("Scanning requires two setpoints")
-                    if command.has_param('dwell'):
-                        dwell = int(command.get_param('dwell'))
-                        if command.has_param('steps'):
-                            steps = int(command.get_param('steps'))
-                            self._setpoint_control.scan_set_points(setpoints, steps, dwell)
-                            self._setpoint_control.wait_for_scan_to_complete()
-                            self._active_command.complete(success=True)
+                    if isinstance(setpoints, list):
+                        if len(setpoints) < 2:
+                            raise PercivalDetectorError("Scanning requires two setpoints")
+                        if command.has_param('dwell'):
+                            dwell = int(command.get_param('dwell'))
+                            if command.has_param('steps'):
+                                steps = int(command.get_param('steps'))
+                                self._setpoint_control.scan_set_points(setpoints, steps, dwell)
+                                self._setpoint_control.wait_for_scan_to_complete()
+                                self._active_command.complete(success=True)
+                            else:
+                                raise PercivalDetectorError("Number of scan steps required to scan")
                         else:
-                            raise PercivalDetectorError("Number of scan steps required to scan")
+                            raise PercivalDetectorError("Dwell time (ms) required to scan")
                     else:
-                        raise PercivalDetectorError("Dwell time (ms) required to scan")
+                        # This is a safety scan starting from the current position
+                        if command.has_param('dwell'):
+                            dwell = int(command.get_param('dwell'))
+                            if command.has_param('steps'):
+                                steps = int(command.get_param('steps'))
+                                self._setpoint_control.safety_scan_set_point(setpoints, steps, dwell)
+                                self._setpoint_control.wait_for_scan_to_complete()
+                                self._active_command.complete(success=True)
+                            else:
+                                raise PercivalDetectorError("Number of scan steps required to scan")
+                        else:
+                            raise PercivalDetectorError("Dwell time (ms) required to scan")
                 else:
                     raise PercivalDetectorError("No setpoints defined to scan between")
             elif command.command_name in str(PercivalCommandNames.cmd_update_monitors):
@@ -1127,6 +1159,25 @@ class PercivalDetector(object):
         else:
             self._log.info("Device  %s not found", device)
             raise PercivalDetectorError("Cannot set value, device {} does not exist".format(device))
+
+    def get_value(self, device):
+        """
+        Get the last set value of a control device.
+
+        :param device: Name of device to set the value of
+        :type device: str
+        """
+        value = 0
+        self._log.info("Getting last value of %s", device)
+        if device in self._controls:
+            value = self._controls[device].get_value()
+            self._log.info("Value of %s is %d", device, value)
+
+        else:
+            self._log.info("Device %s not found", device)
+            raise PercivalDetectorError("Cannot get value, device {} does not exist".format(device))
+
+        return value
 
     def apply_sensor_dac_values(self):
         self._sensor.apply_dac_values()

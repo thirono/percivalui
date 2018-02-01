@@ -41,6 +41,7 @@ class SetPointControl(object):
         self._scan_steps = 0
         self._thread = None
         self._scan_points = None
+        self._error = None
         self._log.info("SetPointControl object created")
 
     def load_ini(self, set_point_ini):
@@ -63,6 +64,10 @@ class SetPointControl(object):
         self._executing = False
         self._scanning = False
         self._start_scan.set()
+        self._stop_scan.set()
+
+    def abort_scan(self):
+        self._scanning = False
         self._stop_scan.set()
 
     @property
@@ -154,12 +159,71 @@ class SetPointControl(object):
         # First clear the waiting flag
         self._wait_for_scan_complete.clear()
         # Set the scanning flag to True
+        self._error = None
+        self._scanning = True
+        self._start_scan.set()
+
+    def safety_scan_set_point(self, set_point, steps, delay, device_list=None):
+        # Need to create a dictionary of discrete position steps for each channel
+        self._log.info("!!! Safety scan initiated to setpoint %s !!!", set_point)
+        set_point_map = {}
+        if set_point in self.set_points:
+            sps = self._set_point_ini.get_setpoints(self._sp_dict[set_point])
+            # If device_list is left as default then append all values in the set_point
+            if not device_list:
+                for sp in sps:
+                    value = int(float(sps[sp]))
+                    self._log.info("Construct scan over set_point [%s] = %d", sp, value)
+                    if sp not in set_point_map:
+                        set_point_map[sp] = []
+                    set_point_map[sp].append(value)
+            elif isinstance(device_list, list):
+                # Iterate through the list appending the set point
+                for item in device_list:
+                    if item in sps:
+                        self._log.debug("Construct scan over set_point [%s] = %d", item, sps[item])
+                        if item not in set_point_map:
+                            set_point_map[item] = []
+                        set_point_map[item].append(sps[item])
+            else:
+                # Single item requested, so append the set point
+                if device_list in sps:
+                    item = device_list
+                    self._log.debug("Construct scan over set_point [%s] = %d", item, sps[item])
+                    if item not in set_point_map:
+                        set_point_map[item] = []
+                    set_point_map[item].append(sps[item])
+        else:
+            # Serious error, generate exception
+            self._log.error("The set point [%s] is not available", set_point)
+            raise ValueError("Set point is not available", set_point)
+
+        self._log.debug("Setpoints: %s", set_point_map)
+        # Now use the steps value to create the full scan range
+        self._scan_points = {}
+        for sp in set_point_map:
+            self._scan_points[sp] = numpy.empty([0], dtype=float)
+            start_value = self._detector.get_value(sp)
+            stop_value = set_point_map[sp][0]
+            self._scan_points[sp] = numpy.append(self._scan_points[sp],
+                                                 numpy.linspace(start_value, stop_value, steps))
+        self._log.debug("Scan description: %s", self._scan_points)
+        self._scan_delay = float(delay) / 1000.0
+        self._scan_steps = steps
+        # Now that the set of scan points have been generated for each device notify the scan_loop
+        # that we are ready to begin the scan
+        # First clear the waiting flag
+        self._wait_for_scan_complete.clear()
+        # Set the scanning flag to True
+        self._error = None
         self._scanning = True
         self._start_scan.set()
 
     def wait_for_scan_to_complete(self):
         while self._scanning:
             self._wait_for_scan_complete.wait(1.0)
+        if self._error is not None:
+            raise self._error
 
     def scan_loop(self):
         while self._executing:
@@ -179,19 +243,29 @@ class SetPointControl(object):
             # Apply the current set of set-points
             if self._scanning:
                 for sp in self._scan_points:
-                    self._detector.set_value(sp, int(self._scan_points[sp][self._scan_index]))
+                    try:
+                        # For a scan index of greater than 0 check to see if we are being asked to scan to the
+                        # same point.  If we are then do not actually send the demand
+                        if self._scan_index == 0 or int(self._scan_points[sp][self._scan_index]) != \
+                                    int(self._scan_points[sp][self._scan_index - 1]):
+                            self._detector.set_value(sp, int(self._scan_points[sp][self._scan_index]))
+                    except Exception as ex:
+                        # Caught an exception whilst scanning, so exit out and set error
+                        self._scanning = False
+                        self._error = ex
+
+                    if not self._scanning:
+                        break
+
                 # Increment the scan index
                 self._scan_index += 1
                 if self._scan_index == self._scan_steps:
                     self._scanning = False
 
             if self._scanning:
-                # Calculate the time delay required for the next scan point
-                delta_t = datetime.now() - self._start_time
-                delta_t = (self._scan_index * self._scan_delay) - delta_t.total_seconds()
-                self._log.debug("Pausing for %f seconds", delta_t)
+                self._log.debug("Pausing for %f seconds", self._scan_delay)
                 # Wait for either a stop scan or the calculated time delay
-                self._stop_scan.wait(delta_t)
+                self._stop_scan.wait(self._scan_delay)
                 self._stop_scan.clear()
 
         self._log.debug("Scan set-point thread exiting...")

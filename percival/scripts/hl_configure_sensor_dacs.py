@@ -25,7 +25,6 @@ def options():
 
 
 def main():
-    return_value = 0
     args = options()
     log.info(args)
 
@@ -33,16 +32,11 @@ def main():
         ini_str = ini_file.read()
 
     pc = PercivalClient(args.address)
-    result = pc.send_configuration('sensor_dacs', ini_str, 'hl_configure_sensor_dacs.py')
-
+    result = pc.send_configuration('sensor_dacs',
+                                   ini_str,
+                                   'hl_configure_sensor_dacs.py',
+                                   wait=(args.wait.lower() == "true"))
     log.info("Response: %s", result)
-    if args.wait.lower() == "true":
-        result = pc.wait_for_command_completion(0.2)
-
-    if result['response'] == 'Failed':
-        return_value = -1
-
-    return return_value
 
 
 if __name__ == '__main__':

@@ -1,5 +1,5 @@
 '''
-Created on 17 May 2016
+Created on 31 Jan 2018
 
 @author: gnx91527
 '''
@@ -10,9 +10,12 @@ import argparse
 
 from percival.log import log
 from percival.carrier import const
+from percival.carrier.registers import UARTRegister
 from percival.scripts.util import PercivalClient
 
-system_commands = "\n\t".join([name for name, tmp in const.SystemCmd.__members__.items()])
+system_settings = [name for name in UARTRegister(const.SYSTEM_SETTINGS).fields.map_fields]
+system_settings.sort()
+system_settings = "\n\t".join(system_settings)
 
 
 def options():
@@ -21,8 +24,10 @@ def options():
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument("-a", "--address", action="store", default="127.0.0.1:8888",
                         help="Odin server address (default 127.0.0.1:8888)")
-    action_help = "System command to send. Valid commands are: %s" % system_commands
-    parser.add_argument("-c", "--command", action="store", default="no_operation", help=action_help)
+    action_help = "System setting to set. Valid settings are: %s" % system_settings
+    parser.add_argument("-s", "--setting", action="store", default="ACQUISTION_Acquisition_mode", help=action_help)
+    value_help = "The value to set (default 0)"
+    parser.add_argument("-v", "--value", action="store", default=0, help=value_help)
     wait_help = "Wait for the command to complete (default true)"
     parser.add_argument("-w", "--wait", action="store", default="true", help=wait_help)
     args = parser.parse_args()
@@ -33,16 +38,16 @@ def main():
     args = options()
     log.info(args)
 
-    try:
-        system_command = const.SystemCmd[args.command]
-    except KeyError:
-        log.error("Invalid command \'%s\' supplied to --command", args.command)
-        print("Invalid command: \'%s\'" % args.command)
-        print("Valid commands are: \n\t%s" % system_commands)
-        sys.exit(-1)
+    data = {
+        'setting': args.setting,
+        'value': args.value
+    }
 
     pc = PercivalClient(args.address)
-    result = pc.send_system_command(system_command, 'hl_system_command.py', wait=(args.wait.lower() == "true"))
+    result = pc.send_command('cmd_system_setting',
+                             'hl_set_system_setting.py',
+                             arguments=data,
+                             wait=(args.wait.lower() == "true"))
     log.info("Response: %s", result)
 
 

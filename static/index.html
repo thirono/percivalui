@@ -318,10 +318,26 @@
 									<select id="scan-set-point-end">
 									</select>
 								</div></small>
-								<span>Number of steps:<input type="text" id="scan-sp-steps" value="10"></input></span>
-								<span>Dwell time (ms):<input type="text" id="scan-sp-dwell" value="1000"></input></span>
+								<span>Number of steps:<input type="text" size="8" id="scan-sp-steps" value="10"></input></span>
+								<span>Dwell time (ms):<input type="text" size="8" id="scan-sp-dwell" value="1000"></input></span><br>
 								<span><button id="server-scan-set-point-cmd">Execute</button></span>
+								<span><button id="server-abort-scan-cmd" style="background-color: #f44336;">Abort</button></span>
 								<span><button data-toggle="modal" data-target="#sp-scan-modal">View Details</button></span>
+							</div>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-2">&nbsp;</div>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-2">Safety Scan:</div>
+							<div class="col-xs-5 status vertical-align">
+								<small>Final setpoint:<div class="dropdown">
+									<select id="sscan-set-point-end">
+									</select>
+								</div></small>
+								<span>Number of steps:<input type="text" size="8" id="sscan-sp-steps" value="10"></input></span>
+								<span>Dwell time (ms):<input type="text" size="8" id="sscan-sp-dwell" value="1000"></input></span><br>
+								<span><button id="server-sscan-set-point-cmd">Execute</button></span>
 							</div>
 						</div>
 						<div class="row sidebar-row vertical-align">
