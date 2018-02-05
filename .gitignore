@@ -89,3 +89,32 @@ venv35/
 /*.hdf5
 /*.h5
 
+config/Previous release/00_Device_Settings/Board BOTTOM.ini
+config/Previous release/00_Device_Settings/Board CARRIER.ini
+config/Previous release/00_Device_Settings/Board LEFT.ini
+config/Previous release/00_Device_Settings/Board PLUGIN.ini
+config/Previous release/00_Device_Settings/Channel parameters.ini
+config/Previous release/01_Clock_Settings/ClockSettings_000_SAFE_START.ini
+config/Previous release/01_Clock_Settings/ClockSettings_005_120MHz.ini
+config/Previous release/02_Chip_Readout_Settings/ChipReadoutSettings_000_NOtimings.ini
+config/Previous release/02_Chip_Readout_Settings/ChipReadoutSettings_000_SAFEstart.ini
+config/Previous release/02_Chip_Readout_Settings/ChipReadoutSettings_002_PSvolt_scan.ini
+config/Previous release/02_Chip_Readout_Settings/ChipReadoutSettings_003_Vin_scan.ini
+config/Previous release/02_Chip_Readout_Settings/ChipReadoutSettings_004_VRSTscan_120MHz.ini
+config/Previous release/02_Chip_Readout_Settings/ChipReadoutSettings_005_3T_120MHz.ini
+config/Previous release/02_Chip_Readout_Settings/ChipReadoutSettings_006_3T_120MHz_ELETTRA_RESET.ini
+config/Previous release/03_System_Settings/SystemSettings_000_SAFE_START.ini
+config/Previous release/03_System_Settings/SystemSettings_002_PSVoltscan.ini
+config/Previous release/03_System_Settings/SystemSettings_005_pixel_Test.ini
+config/Previous release/03_System_Settings/SystemSettings_006_pixel_Test_FEL_MODE.ini
+config/Previous release/04_Sensor_Settings/SensorCalibration_000_SAFE_START.ini
+config/Previous release/04_Sensor_Settings/SensorConfiguration_000_SAFE_START.ini
+config/Previous release/04_Sensor_Settings/SensorDAC_000_SAFE_START.ini
+config/Previous release/04_Sensor_Settings/SensorDAC_001_TEST.ini
+config/Previous release/04_Sensor_Settings/SensorDebug_000_SAFE_START.ini
+config/Previous release/04_Sensor_Settings/SensorDebug_001_TEST.ini
+config/Previous release/04_Sensor_Settings/SensorDebug_002_SET_CPNI.ini
+config/Previous release/05_Spreadsheets/Group_Definitions.xls
+config/Previous release/05_Spreadsheets/Setpoint_Definitions.xls
+config/Previous release/percival.ini
+DESY/W3C3/config/Previous release/

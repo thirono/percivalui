@@ -8,9 +8,9 @@ percival-hl-system-command -c forced_stop_acquisition
 percival-hl-system-command -c exit_acquisition_armed_status
 
 echo - Loading initial safe status...
-percival-hl-configure-clock-settings -i ./ELETTRA/W3C8/config/01_Clock_Settings/ClockSettings_000_SAFE_START.ini
-percival-hl-configure-chip-readout-settings -i ./ELETTRA/W3C8/config/02_Chip_Readout_Settings/ChipReadoutSettings_000_SAFEstart.ini
-percival-hl-configure-system-settings -i ./ELETTRA/W3C8/config/03_System_Settings/SystemSettings_000_SAFE_START.ini
+percival-hl-configure-clock-settings -i ./ELETTRA/W3C8/config/01_Clock_Settings/ClockSettings_N00_SAFE_START.ini
+percival-hl-configure-chip-readout-settings -i ./ELETTRA/W3C8/config/02_Chip_Readout_Settings/ChipReadoutSettings_N00_SAFEstart.ini
+percival-hl-configure-system-settings -i ./ELETTRA/W3C8/config/03_System_Settings/SystemSettings_N00_SAFE_START.ini
 
 echo - Ramp DOWN Current Biases...
 percival-hl-scan-setpoints -i 08_2_CurrentBiases_ON -f 07_2_VoltageReferences_ON -n 4 -d 2000

@@ -3,9 +3,9 @@ percival-hl-download-channel-settings
 percival-hl-system-command -c enable_global_monitoring
 
 echo - Loading initial safe status...
-percival-hl-configure-clock-settings -i ./config/01_Clock_Settings/ClockSettings_000_SAFE_START.ini
-percival-hl-configure-chip-readout-settings -i ./config/02_Chip_Readout_Settings/ChipReadoutSettings_000_SAFEstart.ini
-percival-hl-configure-system-settings -i ./config/03_System_Settings/SystemSettings_000_SAFE_START.ini
+percival-hl-configure-clock-settings -i ./config/01_Clock_Settings/ClockSettings_N00_SAFE_START.ini
+percival-hl-configure-chip-readout-settings -i ./config/02_Chip_Readout_Settings/ChipReadoutSettings_N00_SAFEstart.ini
+percival-hl-configure-system-settings -i ./config/03_System_Settings/SystemSettings_N00_SAFE_START.ini
 
 echo - Preparing powerboard...
 percival-hl-system-command -c disable_LVDS_IOs
@@ -45,9 +45,9 @@ echo PERCIVAL EMULATED POWERUP COMPLETED
 
 echo Additional operations: 
 echo - Load default operating status
-percival-hl-configure-clock-settings -i ./config/01_Clock_Settings/ClockSettings_005_120MHz.ini
-percival-hl-configure-chip-readout-settings -i ./config/02_Chip_Readout_Settings/ChipReadoutSettings_005_3T_120MHz.ini
-percival-hl-configure-system-settings -i ./config/03_System_Settings/SystemSettings_006_pixel_Test_FEL_MODE.ini
+percival-hl-configure-clock-settings -i ./config/01_Clock_Settings/ClockSettings_N05_120MHz.ini
+percival-hl-configure-chip-readout-settings -i ./config/02_Chip_Readout_Settings/ChipReadoutSettings_N05_3T_120MHz.ini
+percival-hl-configure-system-settings -i ./config/03_System_Settings/SystemSettings_N06_pixel_Test_FEL_MODE.ini
 
 echo - Enter armed status
 percival-hl-apply-sensor-roi

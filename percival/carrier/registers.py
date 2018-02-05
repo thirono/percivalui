@@ -350,6 +350,8 @@ class SystemStatusMap(RegisterMap):
                              MapField("include_train_number_in_status_record",       4,   1,  29),
                          "PLUGIN_RESET":
                              MapField("PLUGIN_RESET",                                4,   1,  30),
+                         "DataSynchError":
+                             MapField("DataSynchError",                              4,   1,  31),
                          "HIGH_FREQ_ADJ_CLOCK_0_clock_enable":
                              MapField("HIGH_FREQ_ADJ_CLOCK_0_clock_enable",          5,   1,   0),
                          "HIGH_FREQ_ADJ_CLOCK_1_clock_enable":
@@ -404,6 +406,10 @@ class SystemSettingsMap(RegisterMap):
                              MapField("INTEGRATION_Integration_mode",                          3,   1,  16),
                          "INTEGRATION_Integration_window_width":
                              MapField("INTEGRATION_Integration_window_width",                  3,   16, 0),
+                         "TRIGGERING_Trigger_acquisition_delay":
+                             MapField("TRIGGERING_Trigger_acquisition_delay",                  4,   16, 16),
+                         "TRIGGERING_Number_of_frames_per_trigger":
+                             MapField("TRIGGERING_Number_of_frames_per_trigger",               4,   6, 10),
                          "TRIGGERING_Gate_polarity":
                              MapField("TRIGGERING_Gate_polarity",                              4,   1,  9),
                          "TRIGGERING_External_gate_signal":
@@ -420,10 +426,8 @@ class SystemSettingsMap(RegisterMap):
                              MapField("TRIGGERING_Trigger_source",                             4,   1,  0),
                          "TRIGGERING_Repetition_rate":
                              MapField("TRIGGERING_Repetition_rate",                            5,   32, 0),
-                         "TRIGGERING_Number_of_frames_per_trigger":
-                             MapField("TRIGGERING_Number_of_frames_per_trigger",               6,   16, 16),
-                         "TRIGGERING_Trigger_acquisition_delay":
-                             MapField("TRIGGERING_Trigger_acquisition_delay",                  6,   16, 0),
+                         "TRIGGERING_Burst_period":
+                             MapField("TRIGGERING_Burst_period",				               6,   32, 0),
                          "ADVANCED_Custom_global_disable_duration":
                              MapField("ADVANCED_Custom_global_disable_duration",               7,   16, 9),
                          "ADVANCED_Custom_global_disable_before_each_new_frame":
@@ -641,15 +645,13 @@ class ChipReadoutSettingsMap(RegisterMap):
                          "ADC_RAMPS_PHASE_FConvEn_fall":     MapField("ADC_RAMPS_PHASE_FConvEn_fall",     24, 16, 16),
                          "STREAMOUT_PHASE_sr7CDNin_rise":    MapField("STREAMOUT_PHASE_sr7CDNin_rise",    25, 16,  0),
                          "STREAMOUT_PHASE_LoadDO_rise":      MapField("STREAMOUT_PHASE_LoadDO_rise",      25, 16, 16),
-                         "MISC_Force_DebugSel":              MapField("MISC_Force_DebugSel",              26,  1,  0),
-                         "MISC_PrstCol_options":             MapField("MISC_PrstCol_options",             26,  2,  1),
-                         "MISC_Switch_off_ClkADC_intg":      MapField("MISC_Switch_off_ClkADC_intg",      26,  1,  3),
-                         "MISC_Switch_off_ext_signals_intg": MapField("MISC_Switch_off_ext_signals_intg", 26,  1,  4),
-                         "UNUSED_1":                         MapField("UNUSED_1",                         27, 32,  0),
-                         "UNUSED_2":                         MapField("UNUSED_2",                         28, 32,  0),
-                         "UNUSED_3":                         MapField("UNUSED_3",                         29, 32,  0),
-                         "UNUSED_4":                         MapField("UNUSED_4",                         30, 32,  0),
-                         "UNUSED_5":                         MapField("UNUSED_5",                         31, 32,  0)
+                         "STREAMOUT_PHASE_LoadDO_fall":      MapField("STREAMOUT_PHASE_LoadDO_fall",      26, 16,  0),
+                         "MISC_Force_DebugSel":              MapField("MISC_Force_DebugSel",              27,  1,  0),
+                         "MISC_PrstCol_options":             MapField("MISC_PrstCol_options",             27,  2,  1),
+                         "UNUSED_1":                         MapField("UNUSED_1",                         28, 32,  0),
+                         "UNUSED_2":                         MapField("UNUSED_2",                         29, 32,  0),
+                         "UNUSED_3":                         MapField("UNUSED_3",                         30, 32,  0),
+                         "UNUSED_4":                         MapField("UNUSED_4",                         31, 32,  0)
                          }
 
 
