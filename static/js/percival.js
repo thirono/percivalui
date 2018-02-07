@@ -729,6 +729,11 @@ function render(url)
   // depending on the current url hash value.
   // Get the keyword from the url.
   var temp = "." + url.split('/')[1];
+  if (url.split('/')[1]){
+    document.title = url.split('/')[1] + " (Percival)";
+  } else {
+    document.title = "Percival";
+  }
   // Hide whatever page is currently shown.
   $(".page").hide();
 		
