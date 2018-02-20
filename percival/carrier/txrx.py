@@ -114,13 +114,14 @@ class TxRx(object):
         self._fpga_addr = (fpga_addr, port)
         self._connected = False
         self._mutex = Lock()
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.settimeout(timeout)
-        self.connect()
+        self.sock = None
+        self.connect(timeout)
 
-    def connect(self):
+    def connect(self, timeout=2.0):
         if not self._connected:
             try:
+                self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.sock.settimeout(timeout)
                 self.log.debug("connecting to FPGA: %s", str(self._fpga_addr))
                 self.sock.connect(self._fpga_addr)
                 self._connected = True
@@ -165,6 +166,7 @@ class TxRx(object):
                 self.sock.sendall(msg)
             except socket.error as e:
                 self._connected = False
+                self.clean()
                 raise_with_traceback(PercivalCommsError("Unable to send message (%s)" % e))
         else:
             self._connected = False
@@ -195,11 +197,13 @@ class TxRx(object):
                     chunk = self.sock.recv(block_read_bytes)
                 except socket.error as e:
                     self._connected = False
+                    self.clean()
                     raise raise_with_traceback(PercivalCommsError("socket connection broken (%s)" % e))
                 if isinstance(chunk, str):
                     chunk = bytes(chunk, encoding=DATA_ENCODING)
                 if len(chunk) == 0:
                     self._connected = False
+                    self.clean()
                     raise raise_with_traceback(
                         PercivalCommsError("socket connection broken (expected a multiple of 6 bytes)"))
                 msg = msg + chunk
@@ -226,12 +230,14 @@ class TxRx(object):
                     self.tx_msg(msg)
                 except PercivalCommsError as e:
                     self._connected = False
+                    self.clean()
                     self.log.exception("Failed to send message %s. ERROR: %s" % (msg, e))
                     raise
                 try:
                     resp = self.rx_msg(expected_bytes)
                 except PercivalCommsError as e:
                     self._connected = False
+                    self.clean()
                     self.log.exception("Failed to receive response to message %s. ERROR: %s" % (msg, e))
                     raise
             else:
@@ -261,12 +267,14 @@ class TxRx(object):
                     self.tx_msg(message.message)
                 except PercivalCommsError as e:
                     self._connected = False
+                    self.clean()
                     self.log.exception("Failed to send message %s. ERROR: %s" % (message, e))
                     raise
                 try:
                     resp = self.rx_msg(message.expected_bytes)
                 except PercivalCommsError as e:
                     self._connected = False
+                    self.clean()
                     self.log.exception("Failed to receive response to message %s. ERROR: %s" % (message, e))
                     raise
             result = decode_message(resp)
