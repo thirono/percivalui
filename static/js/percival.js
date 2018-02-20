@@ -84,8 +84,7 @@ class Monitor
     this.raw_value = 0;
     this.sample_number = 0;
     this.html_text = "<div class=\"panel-heading clearfix\">" +
-                     "<span class=\"panel-title pull-left\">" + this.disp_name + " [" + this.device +
-                     "]</span>" +
+                     "<span class=\"panel-title pull-left\">" + this.disp_name + "</span>" +
                      "<button type=\"button\" id=\"" + this.id +
                      "-expbtn\" class=\"btn btn-outline-info btn-sm pull-right float-align-vertical\">" +
                      "<span id=\"" + this.id + "-expglp\" class=\"glyphicon glyphicon-resize-full\"></span></button></div>" +
@@ -729,6 +728,11 @@ function render(url)
   // depending on the current url hash value.
   // Get the keyword from the url.
   var temp = "." + url.split('/')[1];
+  if (url.split('/')[1]){
+    document.title = url.split('/')[1] + " (Percival)";
+  } else {
+    document.title = "Percival";
+  }
   // Hide whatever page is currently shown.
   $(".page").hide();
 		
