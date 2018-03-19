@@ -217,7 +217,14 @@ class MonitoringChannelMap(RegisterMap):
                          "channel_low_threshold":        MapField("channel_low_threshold",       2, 16, 16),
                          "channel_high_threshold":       MapField("channel_high_threshold",      2, 16,  0),
 
-                         "channel_monitoring":           MapField("channel_monitoring",          3,  8, 16),
+                         "safety_action_0_select":       MapField("safety_action_7_select",      3,  1, 23),
+                         "safety_action_1_select":       MapField("safety_action_7_select",      3,  1, 22),
+                         "safety_action_2_select":       MapField("safety_action_7_select",      3,  1, 21),
+                         "safety_action_3_select":       MapField("safety_action_7_select",      3,  1, 20),
+                         "safety_action_4_select":       MapField("safety_action_7_select",      3,  1, 19),
+                         "safety_action_5_select":       MapField("safety_action_7_select",      3,  1, 18),
+                         "safety_action_6_select":       MapField("safety_action_7_select",      3,  1, 17),
+                         "safety_action_7_select":       MapField("safety_action_7_select",      3,  1, 16),
                          "safety_exception_threshold":   MapField("safety_exception_threshold",  3,  8,  8),
                          "read_frequency":               MapField("read_frequency",              3,  8,  0),
                          }
