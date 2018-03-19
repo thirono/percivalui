@@ -115,7 +115,14 @@ class BoardSettings:
             self._monitoring_settings[address].fields.channel_ext_high_threshold = channel.Extreme_high_threshold
             self._monitoring_settings[address].fields.channel_low_threshold = channel.Low_threshold
             self._monitoring_settings[address].fields.channel_high_threshold = channel.High_threshold
-            self._monitoring_settings[address].fields.channel_monitoring = channel.Monitoring
+            self._monitoring_settings[address].fields.safety_action_0_select = channel.Safety_action_0_select
+            self._monitoring_settings[address].fields.safety_action_1_select = channel.Safety_action_1_select
+            self._monitoring_settings[address].fields.safety_action_2_select = channel.Safety_action_2_select
+            self._monitoring_settings[address].fields.safety_action_3_select = channel.Safety_action_3_select
+            self._monitoring_settings[address].fields.safety_action_4_select = channel.Safety_action_4_select
+            self._monitoring_settings[address].fields.safety_action_5_select = channel.Safety_action_5_select
+            self._monitoring_settings[address].fields.safety_action_6_select = channel.Safety_action_6_select
+            self._monitoring_settings[address].fields.safety_action_7_select = channel.Safety_action_7_select			
             self._monitoring_settings[address].fields.safety_exception_threshold = channel.Safety_exception_threshold
             self._monitoring_settings[address].fields.read_frequency = channel.Read_frequency
             try:
