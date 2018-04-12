@@ -104,6 +104,7 @@ class SystemStatus(object):
         self._value_block = const.READ_VALUES_STATUS
         self._reg_status_values = UARTRegister(self._value_block)
         self._cmd_msg = self._reg_status_values.get_read_cmd_msg()
+        self._read_maps = None
 
     def read_values(self):
         """Read all carrier monitor channels with one READ VALUES shortcut command
@@ -116,8 +117,55 @@ class SystemStatus(object):
         """
         response = self._txrx.send_recv_message(self._cmd_msg)
         self._log.debug(response)
-        read_maps = generate_register_maps(response)
-        self._log.debug(read_maps)
+        self._read_maps = generate_register_maps(response)[0]
+        self._log.debug(self._read_maps)
+        return response
+
+    def get_status(self):
+        response = {
+            "Image_counter": self._read_maps.Image_counter,
+            "Acquisition_counter": self._read_maps.Acquisition_counter,
+            "Train_number": (self._read_maps.Train_number_MSB << 32) + self._read_maps.Train_number_LSB,
+            "LVDS_IOs_enabled": self._read_maps.LVDS_IOs_enabled,
+            "Master_reset": self._read_maps.Master_reset,
+            "PLL_reset": self._read_maps.PLL_reset,
+            "dmux_CDN": self._read_maps.dmux_CDN,
+            "sr7DIn_0": self._read_maps.sr7DIn_0,
+            "sr7DIn_1": self._read_maps.sr7DIn_1,
+            "horiz_data_in_0": self._read_maps.horiz_data_in_0,
+            "horiz_data_in_1": self._read_maps.horiz_data_in_1,
+            "enable_testpoints": self._read_maps.enable_testpoints,
+            "startup_mode_enabled": self._read_maps.startup_mode_enabled,
+            "global_monitoring_enabled": self._read_maps.global_monitoring_enabled,
+            "device_level_safety_controls_enabled": self._read_maps.device_level_safety_controls_enabled,
+            "system_level_safety_controls_enabled": self._read_maps.system_level_safety_controls_enabled,
+            "experimental_level_safety_controls_enabled": self._read_maps.experimental_level_safety_controls_enabled,
+            "safety_actions_enabled": self._read_maps.safety_actions_enabled,
+            "system_armed": self._read_maps.system_armed,
+            "acquiring": self._read_maps.acquiring,
+            "wait_for_trigger": self._read_maps.wait_for_trigger,
+            "sensor_active_for_acquisition": self._read_maps.sensor_active_for_acquisition,
+            "MEZZ_A_PHY_OK": self._read_maps.MEZZ_A_PHY_OK,
+            "MEZZ_A_MGT_OK": self._read_maps.MEZZ_A_MGT_OK,
+            "MEZZ_A_RESET": self._read_maps.MEZZ_A_RESET,
+            "MEZZ_B_PHY_OK": self._read_maps.MEZZ_B_PHY_OK,
+            "MEZZ_B_MGT_OK": self._read_maps.MEZZ_B_MGT_OK,
+            "MEZZ_B_RESET": self._read_maps.MEZZ_B_RESET,
+            "MARKER_OUT_0": self._read_maps.MARKER_OUT_0,
+            "MARKER_OUT_1": self._read_maps.MARKER_OUT_1,
+            "MARKER_OUT_2": self._read_maps.MARKER_OUT_2,
+            "MARKER_OUT_3": self._read_maps.MARKER_OUT_3,
+            "include_train_number_in_status_record": self._read_maps.include_train_number_in_status_record,
+            "PLUGIN_RESET": self._read_maps.PLUGIN_RESET,
+            "DataSynchError": self._read_maps.DataSynchError,
+            "HIGH_FREQ_ADJ_CLOCK_0_clock_enable": self._read_maps.HIGH_FREQ_ADJ_CLOCK_0_clock_enable,
+            "HIGH_FREQ_ADJ_CLOCK_1_clock_enable": self._read_maps.HIGH_FREQ_ADJ_CLOCK_1_clock_enable,
+            "HIGH_FREQ_ADJ_CLOCK_2_clock_enable": self._read_maps.HIGH_FREQ_ADJ_CLOCK_2_clock_enable,
+            "HIGH_FREQ_ADJ_CLOCK_3_clock_enable": self._read_maps.HIGH_FREQ_ADJ_CLOCK_3_clock_enable,
+            "LOW_FREQ_ADJ_CLOCK_0_clock_enable": self._read_maps.LOW_FREQ_ADJ_CLOCK_0_clock_enable,
+            "LOW_FREQ_ADJ_CLOCK_1_clock_enable": self._read_maps.LOW_FREQ_ADJ_CLOCK_1_clock_enable
+        }
+
         return response
 
 
