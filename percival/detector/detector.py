@@ -7,6 +7,7 @@ from __future__ import print_function
 import os
 import logging
 import threading
+import time
 from percival.log import get_exclusive_file_logger
 from datetime import datetime, timedelta
 import getpass
@@ -547,9 +548,20 @@ class PercivalDetector(object):
         self._command_queue = queue.Queue(1)
         self._command_thread = threading.Thread(target=self.command_loop)
         self._command_thread.start()
-        self._system_status.read_values()
+        self._run_status_loop = True
+        self._status_thread = threading.Thread(target=self.system_status_loop)
+        self._status_thread.start()
+
+    def system_status_loop(self):
+        while self._run_status_loop:
+            try:
+                self._system_status.read_values()
+            except:
+                pass
+            time.sleep(0.25)
 
     def cleanup(self):
+        self._run_status_loop = False
         self.queue_command(None)
         self._setpoint_control.stop_scan_loop()
 
@@ -1275,7 +1287,7 @@ class PercivalDetector(object):
             }
 
         elif parameter == "status":
-            reply = {}
+            reply = {'detector': self._system_status.get_status()}
             for monitor in self._monitors:
                 reply[monitor] = self._monitors[monitor].status
 
