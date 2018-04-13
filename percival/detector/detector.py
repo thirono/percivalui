@@ -7,6 +7,7 @@ from __future__ import print_function
 import os
 import logging
 import threading
+import time
 from percival.log import get_exclusive_file_logger
 from datetime import datetime, timedelta
 import getpass
@@ -76,24 +77,7 @@ class PercivalParameters(object):
                 raise PercivalDetectorError("Could not process the Percival initialisation file")
 
         self._board_params = None
-
-        #self._board_params = {
-        #    const.BoardTypes.left: BoardParameters("config/Board LEFT.ini"),
-        #    const.BoardTypes.bottom: BoardParameters("config/Board BOTTOM.ini"),
-        #    const.BoardTypes.carrier: BoardParameters("config/Board CARRIER.ini"),
-        #    const.BoardTypes.plugin: BoardParameters("config/Board PLUGIN.ini")
-        #}
-
-
         self._channel_params = None
-#        self._buffer_params = None
-
-        #self._channel_params = ChannelParameters("config/Channel parameters.ini")
-        #self._buffer_params = BufferParameters("config/SensorDAC.ini")
-        #self._control_group_params = ChannelGroupParameters("config/ControlGroups.ini")
-        #self._monitor_group_params = ChannelGroupParameters("config/MonitorGroups.ini")
-        #print(self._control_params.setpoint_ini_file)
-        #self._setpoint_group_params = SetpointGroupParameters("config/SetpointGroups.ini")
         self._system_settings_params = None
         self._chip_readout_settings_params = None
         self._clock_settings_params = None
@@ -133,16 +117,6 @@ class PercivalParameters(object):
             self._log.error("Could not initialise channel parameters from ini file")
             raise PercivalDetectorError("Could not initialise channel parameters from ini file")
 
-#        try:
-#            self._buffer_params = BufferParameters(self._control_params.sensor_dac_file)
-#            self._buffer_params.load_ini()
-#        except:
-#            self._log.error("Could not initialise buffer parameters from ini file")
-#            raise PercivalDetectorError("Could not initialise buffer parameters from ini file")
-
-        #self._control_group_params.load_ini()
-        #self._monitor_group_params.load_ini()
-        #self._setpoint_group_params.load_ini()
         try:
             self.load_system_settings_ini(self._control_params.system_settings_file)
         except:
@@ -475,16 +449,6 @@ class PercivalParameters(object):
         """
         return self._channel_params.control_channels
 
-#    @property
-#    def sensor_dac_channels(self):
-#        """
-#        Return a list of `BufferDACIniParameters`
-#
-#        :returns: List of control channel ini parameters for sensor DACs
-#        :rtype: list
-#        """
-#        return self._buffer_params.dac_channels
-
     @property
     def system_settings_params(self):
         return self._system_settings_params
@@ -584,9 +548,20 @@ class PercivalDetector(object):
         self._command_queue = queue.Queue(1)
         self._command_thread = threading.Thread(target=self.command_loop)
         self._command_thread.start()
-        self._system_status.read_values()
+        self._run_status_loop = True
+        self._status_thread = threading.Thread(target=self.system_status_loop)
+        self._status_thread.start()
+
+    def system_status_loop(self):
+        while self._run_status_loop:
+            try:
+                self._system_status.read_values()
+            except:
+                pass
+            time.sleep(0.25)
 
     def cleanup(self):
+        self._run_status_loop = False
         self.queue_command(None)
         self._setpoint_control.stop_scan_loop()
 
@@ -1312,7 +1287,7 @@ class PercivalDetector(object):
             }
 
         elif parameter == "status":
-            reply = {}
+            reply = {'detector': self._system_status.get_status()}
             for monitor in self._monitors:
                 reply[monitor] = self._monitors[monitor].status
 

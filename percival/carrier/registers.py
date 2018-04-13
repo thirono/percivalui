@@ -351,8 +351,14 @@ class SystemStatusMap(RegisterMap):
                              MapField("MEZZ_B_MGT_OK",                               4,   1,  23),
                          "MEZZ_B_RESET":
                              MapField("MEZZ_B_RESET",                                4,   1,  24),
-                         "MARKER_OUT":
-                             MapField("MARKER_OUT",                                  4,   4,  25),
+                         "MARKER_OUT_0":
+                             MapField("MARKER_OUT_0",                                4,   1,  25),
+                         "MARKER_OUT_1":
+                             MapField("MARKER_OUT_1",                                4,   1,  26),
+                         "MARKER_OUT_2":
+                             MapField("MARKER_OUT_2",                                4,   1,  27),
+                         "MARKER_OUT_3":
+                             MapField("MARKER_OUT_3",                                4,   1,  28),
                          "include_train_number_in_status_record":
                              MapField("include_train_number_in_status_record",       4,   1,  29),
                          "PLUGIN_RESET":

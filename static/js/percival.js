@@ -696,6 +696,52 @@ function render_config_view()
 function update_api_read_status()
 {
   $.getJSON('/api/' + api_version + '/percival/status/', function(response) {
+    var detector = response['detector'];
+    $('#det-image-counter').html(detector['Image_counter']);
+    $('#det-acq-counter').html(detector['Acquisition_counter']);
+    $('#det-train-number').html(detector['Train_number']);
+
+    $('#det-lvds-enabled').html(led_html(detector['LVDS_IOs_enabled'],'green', 20));
+    $('#det-master-reset').html(led_html(detector['Master_reset'],'green', 20));
+    $('#det-pll-reset').html(led_html(detector['PLL_reset'],'green', 20));
+    $('#det-dmux-cdn').html(led_html(detector['dmux_CDN'],'green', 20));
+    $('#det-sr7din-0').html(led_html(detector['sr7DIn_0'],'green', 20));
+    $('#det-sr7din-1').html(led_html(detector['sr7DIn_1'],'green', 20));
+    $('#det-horiz-data-in-0').html(led_html(detector['horiz_data_in_0'],'green', 20));
+    $('#det-horiz-data-in-1').html(led_html(detector['horiz_data_in_1'],'green', 20));
+    $('#det-enable-testpoints').html(led_html(detector['enable_testpoints'],'green', 20));
+    $('#det-startup-mode-enabled').html(led_html(detector['startup_mode_enabled'],'green', 20));
+    $('#det-global-monitoring').html(led_html(detector['global_monitoring_enabled'],'green', 20));
+    $('#det-device-safety').html(led_html(detector['device_level_safety_controls_enabled'],'green', 20));
+    $('#det-system-safety').html(led_html(detector['system_level_safety_controls_enabled'],'green', 20));
+    $('#det-exp-safety').html(led_html(detector['experimental_level_safety_controls_enabled'],'green', 20));
+    $('#det-safety-actions').html(led_html(detector['safety_actions_enabled'],'green', 20));
+    $('#det-system-armed').html(led_html(detector['system_armed'],'green', 20));
+
+    $('#det-acquiring').html(led_html(detector['acquiring'],'green', 20));
+    $('#det-waiting-for-trigger').html(led_html(detector['wait_for_trigger'],'green', 20));
+    $('#det-sensor-active').html(led_html(detector['sensor_active_for_acquisition'],'green', 20));
+    $('#det-mezz-a-phy-ok').html(led_html(detector['MEZZ_A_PHY_OK'],'green', 20));
+    $('#det-mezz-a-mgt-ok').html(led_html(detector['MEZZ_A_MGT_OK'],'green', 20));
+    $('#det-mezz-a-reset').html(led_html(detector['MEZZ_A_RESET'],'green', 20));
+    $('#det-mezz-b-phy-ok').html(led_html(detector['MEZZ_B_PHY_OK'],'green', 20));
+    $('#det-mezz-b-mgt-ok').html(led_html(detector['MEZZ_B_MGT_OK'],'green', 20));
+    $('#det-mezz-b-reset').html(led_html(detector['MEZZ_B_RESET'],'green', 20));
+    $('#det-marker-out-0').html(led_html(detector['MARKER_OUT_0'],'green', 20));
+    $('#det-marker-out-1').html(led_html(detector['MARKER_OUT_1'],'green', 20));
+    $('#det-marker-out-2').html(led_html(detector['MARKER_OUT_2'],'green', 20));
+    $('#det-marker-out-3').html(led_html(detector['MARKER_OUT_3'],'green', 20));
+    $('#det-include-train').html(led_html(detector['include_train_number_in_status_record'],'green', 20));
+    $('#det-plugin-reset').html(led_html(detector['PLUGIN_RESET'],'green', 20));
+    $('#det-data-synch-error').html(led_html(detector['DataSynchError'],'green', 20));
+
+    $('#det-hclock-0').html(led_html(detector['HIGH_FREQ_ADJ_CLOCK_0_clock_enable'],'green', 20));
+    $('#det-hclock-1').html(led_html(detector['HIGH_FREQ_ADJ_CLOCK_1_clock_enable'],'green', 20));
+    $('#det-hclock-2').html(led_html(detector['HIGH_FREQ_ADJ_CLOCK_2_clock_enable'],'green', 20));
+    $('#det-hclock-3').html(led_html(detector['HIGH_FREQ_ADJ_CLOCK_3_clock_enable'],'green', 20));
+    $('#det-lclock-0').html(led_html(detector['LOW_FREQ_ADJ_CLOCK_0_clock_enable'],'green', 20));
+    $('#det-lclock-1').html(led_html(detector['LOW_FREQ_ADJ_CLOCK_1_clock_enable'],'green', 20));
+    //alert(detector['LVDS_IOs_enabled']);
     var len = monitor_names.length;
     render_status_view();
     var tableData = [];

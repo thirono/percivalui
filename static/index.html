@@ -35,6 +35,9 @@
                         class="glyphicon glyphicon-home"></span> <strong>Home</strong><span
                         class="label"></span></a></li>
 
+                <li class="av navbar-nav"><a href="#/detector-view"
+                    class="dropdown-toggle" role="button" aria-expanded="false"> <strong>Detector</strong>
+                </a></li>
                 <li class="av navbar-nav"><a href="#/configuration-view"
                     class="dropdown-toggle" role="button" aria-expanded="false"> <strong>Configuration</strong>
                         <span class="label">Percival Setup</span>
@@ -146,7 +149,139 @@
 		</div> <!-- row fluid-row -->	
 	</div> <!--  container-fluid -->
 
-<!-- CONFIGURATION PAGE -->
+<!-- HOME PAGE -->
+	<div class="container-fluid detector-view page">
+		<div class="row fluid-row">
+			<div class="span3">
+				<div class="well sidebar-nav-fixed">
+					<div class="container-fluid">
+						<div class="row sidebar-title">
+							<h3>Detector Status</h3>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-2">Acquisition:</div>
+							<div class="col-xs-6 m-5 status vertical-align">
+								<table>
+									<tr><td>Acquisition Counter:</td>
+                                        <td width="10px"></td>
+                                        <td>Image Counter:</td>
+                                        <td width="10px"></td>
+                                        <td>Train Number:</td></tr>
+                                    <tr>
+                                        <td align="center" id="det-acq-counter" width="200px" style="border: 1px solid black;"></td>
+                                        <td width="10px"></td>
+									    <td align="center" id="det-image-counter" width="200px" style="border: 1px solid black;"></td>
+                                        <td width="10px"></td>
+									    <td align="center" id="det-train-number" width="200px" style="border: 1px solid black;"></td>
+                                    </tr>
+								</table>
+                            </div>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-3">&nbsp;</div>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-2">Status Flags [0]:</div>
+							<div class="col-xs-7 status vertical-align">
+								<table>
+									<tr>
+                                        <td align="center" id="det-lvds-enabled" width="30px"></td><td width="300px">LVDS IOs Enabled</td>
+                                        <td align="center" id="det-acquiring" width="30px"></td><td width="300px">Acquiring</td>
+                                    </tr>
+									<tr>
+                                        <td align="center" id="det-master-reset" width="30px"></td><td width="300px">Master Reset</td>
+                                        <td align="center" id="det-waiting-for-trigger" width="30px"></td><td width="300px">Waiting For Trigger</td>
+                                    </tr>
+									<tr>
+                                        <td align="center" id="det-pll-reset" width="30px"></td><td width="300px">PLL Reset</td>
+                                        <td align="center" id="det-sensor-active" width="30px"></td><td width="300px">Sensor Active For Acquisition</td>
+                                    </tr>
+									<tr>
+                                        <td align="center" id="det-dmux-cdn" width="30px"></td><td width="300px">dmuxCDN</td>
+                                        <td align="center" id="det-mezz-a-phy-ok" width="30px"></td><td width="300px">Mezz A Phy OK</td>
+                                    </tr>
+									<tr>
+                                        <td align="center" id="det-sr7din-0" width="30px"></td><td width="300px">sr7DIn[0]</td>
+                                        <td align="center" id="det-mezz-a-mgt-ok" width="30px"></td><td width="300px">Mezz A Mgt OK</td>
+                                    </tr>
+									<tr>
+                                        <td align="center" id="det-sr7din-1" width="30px"></td><td width="300px">sr7DIn[1]</td>
+                                        <td align="center" id="det-mezz-a-reset" width="30px"></td><td width="300px">Mezz A Reset</td>
+                                    </tr>
+									<tr>
+                                        <td align="center" id="det-horiz-data-in-0" width="30px"></td><td width="300px">Horiz Data In[0]</td>
+                                        <td align="center" id="det-mezz-b-phy-ok" width="30px"></td><td width="300px">Mezz B Phy OK</td>
+                                    </tr>
+									<tr>
+                                        <td align="center" id="det-horiz-data-in-1" width="30px"></td><td width="300px">Horiz Data In[1]</td>
+                                        <td align="center" id="det-mezz-b-mgt-ok" width="30px"></td><td width="300px">Mezz B Mgt OK</td>
+                                    </tr>
+									<tr>
+                                        <td align="center" id="det-enable-testpoints" width="30px"></td><td width="300px">Enable Testpoints</td>
+                                        <td align="center" id="det-mezz-b-reset" width="30px"></td><td width="300px">Mezz B Reset</td>
+                                    </tr>
+									<tr>
+                                        <td align="center" id="det-startup-mode-enabled" width="30px"></td><td width="300px">Startup Mode Enabled</td>
+                                        <td align="center" id="det-marker-out-0" width="30px"></td><td width="300px">Marker Out[0]</td>
+                                    </tr>
+									<tr>
+                                        <td align="center" id="det-global-monitoring" width="30px"></td><td width="300px">Global Monitoring Enabled</td>
+                                        <td align="center" id="det-marker-out-1" width="30px"></td><td width="300px">Marker Out[1]</td>
+                                    </tr>
+									<tr>
+                                        <td align="center" id="det-device-safety" width="30px"></td><td width="300px">Device Level Safety Controls Enabled</td>
+                                        <td align="center" id="det-marker-out-2" width="30px"></td><td width="300px">Marker Out[2]</td>
+                                    </tr>
+									<tr>
+                                        <td align="center" id="det-system-safety" width="30px"></td><td width="300px">System Level Safety Controls Enabled</td>
+                                        <td align="center" id="det-marker-out-3" width="30px"></td><td width="300px">Marker Out[3]</td>
+                                    </tr>
+									<tr>
+                                        <td align="center" id="det-exp-safety" width="30px"></td><td width="300px">Experimental Level Safety Controls Enabled</td>
+                                        <td align="center" id="det-include-train" width="30px"></td><td width="300px">Include Train Number In Status Record</td>
+                                    </tr>
+									<tr>
+                                        <td align="center" id="det-safety-actions" width="30px"></td><td width="300px">Safety Actions Enabled</td>
+                                        <td align="center" id="det-plugin-reset" width="30px"></td><td width="300px">Plugin Reset</td>
+                                    </tr>
+									<tr>
+                                        <td align="center" id="det-system-armed" width="30px"></td><td width="300px">System Armed</td>
+                                        <td align="center" id="det-data-synch-error" width="30px"></td><td width="300px">Data Synch Error</td>
+                                    </tr>
+								</table>
+                            </div>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-3">&nbsp;</div>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-2">Status Flags [1]:</div>
+							<div class="col-xs-7 status vertical-align">
+								<table>
+									<tr>
+                                        <td align="center" id="det-hclock-0" width="30px"></td><td width="300px">HIGH_FREQ_ADJ_CLOCK_0_clock_enable</td>
+                                        <td align="center" id="det-lclock-0" width="30px"></td><td width="300px">LOW_FREQ_ADJ_CLOCK_0_clock_enable</td>
+                                    </tr>
+									<tr>
+                                        <td align="center" id="det-hclock-1" width="30px"></td><td width="300px">HIGH_FREQ_ADJ_CLOCK_1_clock_enable</td>
+                                        <td align="center" id="det-lclock-1" width="30px"></td><td width="300px">LOW_FREQ_ADJ_CLOCK_1_clock_enable</td>
+                                    </tr>
+									<tr>
+                                        <td align="center" id="det-hclock-2" width="30px"></td><td width="300px">HIGH_FREQ_ADJ_CLOCK_2_clock_enable</td>
+                                    </tr>
+									<tr>
+                                        <td align="center" id="det-hclock-3" width="30px"></td><td width="300px">HIGH_FREQ_ADJ_CLOCK_3_clock_enable</td>
+                                    </tr>
+								</table>
+                            </div>
+						</div>
+					</div> <!-- container-fluid -->
+				</div> <!--  well sidebar-nav-fixed -->
+			</div> <!-- span3 -->
+		</div> <!-- row fluid-row -->
+	</div> <!--  container-fluid -->
+
+	<!-- CONFIGURATION PAGE -->
 	<div class="container-fluid configuration-view page">
 		<div class="row fluid-row">
 			<div class="span3">
