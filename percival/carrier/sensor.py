@@ -170,6 +170,24 @@ class Sensor(object):
             self._log.debug("Applying sensor configuration: %s", config)
             # We need to verify the configuration
             if 'H1' in config and 'H0' in config and 'G' in config:
+                for item in config['H1']:
+                    value = int(float(item))
+                    if value < 0:
+                        raise PercivalControlDeviceError("Sensor configuration value cannot be negative")
+                    if value > 7:
+                        raise PercivalControlDeviceError("Maximum sensor configuration value is 7")
+                for item in config['H0']:
+                    value = int(float(item))
+                    if value < 0:
+                        raise PercivalControlDeviceError("Sensor configuration value cannot be negative")
+                    if value > 7:
+                        raise PercivalControlDeviceError("Maximum sensor configuration value is 7")
+                for item in config['G']:
+                    value = int(float(item))
+                    if value < 0:
+                        raise PercivalControlDeviceError("Sensor configuration value cannot be negative")
+                    if value > 7:
+                        raise PercivalControlDeviceError("Maximum sensor configuration value is 7")
                 h1_values = config['H1']
                 words = []
                 while len(h1_values) > 9:
@@ -270,9 +288,61 @@ class Sensor(object):
                 calibration_set = calibration[key]
                 if all(name in calibration_set_names for name in calibration_set):
                     calibration_set_1 = calibration_set['Cal0']
+                    for item in calibration_set_1['Right']:
+                        value = int(float(item))
+                        if value < 0:
+                            raise PercivalControlDeviceError("Sensor configuration value cannot be negative")
+                        if value > 511:
+                            raise PercivalControlDeviceError("Maximum sensor configuration value is 511")
+                    for item in calibration_set_1['Left']:
+                        value = int(float(item))
+                        if value < 0:
+                            raise PercivalControlDeviceError("Sensor configuration value cannot be negative")
+                        if value > 511:
+                            raise PercivalControlDeviceError("Maximum sensor configuration value is 511")
+
                     calibration_set_2 = calibration_set['Cal1']
+                    for item in calibration_set_2['Right']:
+                        value = int(float(item))
+                        if value < 0:
+                            raise PercivalControlDeviceError("Sensor configuration value cannot be negative")
+                        if value > 511:
+                            raise PercivalControlDeviceError("Maximum sensor configuration value is 511")
+                    for item in calibration_set_2['Left']:
+                        value = int(float(item))
+                        if value < 0:
+                            raise PercivalControlDeviceError("Sensor configuration value cannot be negative")
+                        if value > 511:
+                            raise PercivalControlDeviceError("Maximum sensor configuration value is 511")
+
                     calibration_set_3 = calibration_set['Cal2']
+                    for item in calibration_set_3['Right']:
+                        value = int(float(item))
+                        if value < 0:
+                            raise PercivalControlDeviceError("Sensor configuration value cannot be negative")
+                        if value > 511:
+                            raise PercivalControlDeviceError("Maximum sensor configuration value is 511")
+                    for item in calibration_set_3['Left']:
+                        value = int(float(item))
+                        if value < 0:
+                            raise PercivalControlDeviceError("Sensor configuration value cannot be negative")
+                        if value > 511:
+                            raise PercivalControlDeviceError("Maximum sensor configuration value is 511")
+
                     calibration_set_4 = calibration_set['Cal3']
+                    for item in calibration_set_4['Right']:
+                        value = int(float(item))
+                        if value < 0:
+                            raise PercivalControlDeviceError("Sensor configuration value cannot be negative")
+                        if value > 511:
+                            raise PercivalControlDeviceError("Maximum sensor configuration value is 511")
+                    for item in calibration_set_4['Left']:
+                        value = int(float(item))
+                        if value < 0:
+                            raise PercivalControlDeviceError("Sensor configuration value cannot be negative")
+                        if value > 511:
+                            raise PercivalControlDeviceError("Maximum sensor configuration value is 511")
+
                     col1_values = self.combine_9bit_lists_into_8bit_list(calibration_set_1['Right'],
                                                                          calibration_set_1['Left'])
                     col2_values = self.combine_9bit_lists_into_8bit_list(calibration_set_2['Right'],
