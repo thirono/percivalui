@@ -734,6 +734,13 @@ function update_api_read_status()
     $('#det-include-train').html(led_html(detector['include_train_number_in_status_record'],'green', 20));
     $('#det-plugin-reset').html(led_html(detector['PLUGIN_RESET'],'green', 20));
     $('#det-data-synch-error').html(led_html(detector['DataSynchError'],'green', 20));
+
+    $('#det-hclock-0').html(led_html(detector['HIGH_FREQ_ADJ_CLOCK_0_clock_enable'],'green', 20));
+    $('#det-hclock-1').html(led_html(detector['HIGH_FREQ_ADJ_CLOCK_1_clock_enable'],'green', 20));
+    $('#det-hclock-2').html(led_html(detector['HIGH_FREQ_ADJ_CLOCK_2_clock_enable'],'green', 20));
+    $('#det-hclock-3').html(led_html(detector['HIGH_FREQ_ADJ_CLOCK_3_clock_enable'],'green', 20));
+    $('#det-lclock-0').html(led_html(detector['LOW_FREQ_ADJ_CLOCK_0_clock_enable'],'green', 20));
+    $('#det-lclock-1').html(led_html(detector['LOW_FREQ_ADJ_CLOCK_1_clock_enable'],'green', 20));
     //alert(detector['LVDS_IOs_enabled']);
     var len = monitor_names.length;
     render_status_view();
