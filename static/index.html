@@ -323,8 +323,8 @@
 				<div class="well sidebar-nav-fixed">
 					<div class="container-fluid" id="stat-container">
 						<div class="row sidebar-title">
-							<h3>Status
-								<small><div class="dropdown"><span class="btn-group">
+							<table><tr><td><h3>Status</h3></td><td width="20px"></td>
+								<td><small><div class="dropdown"><span class="btn-group">
 									<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
 										<div id="status-group-name">Channels [ All ] </div></button>
 									<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown"><span class="caret"></span>
@@ -333,7 +333,9 @@
 										<li role="presentation"><a role="menuitem" tabindex="-1" href="#">All</a></li>
 									</ul>
 									</span>
-							</div></small></h3>
+							</div></small></td><td width="20px"></td><td>
+									<span><button id="refresh-monitors">Refresh Monitors</button></span>
+								</td></tr></table>
 						</div>
 					</div> <!-- container-fluid -->
 				</div> <!--  well sidebar-nav-fixed -->

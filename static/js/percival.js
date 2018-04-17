@@ -274,6 +274,9 @@ $( document ).ready(function()
 //  $('#server-set-point-cmd').click(function(){
 //    send_set_point_command();
 //  });
+  $('#refresh-monitors').click(function(){
+    send_refresh_monitors_command();
+  });
   $('#server-scan-set-point-cmd').click(function(){
     send_scan_command();
   });
@@ -315,6 +318,11 @@ function reconnect_db()
 function auto_read(action)
 {
     $.put('/api/' + api_version + '/percival/auto_read/' + action, function(response){});
+}
+
+function send_refresh_monitors_command()
+{
+    $.put('/api/' + api_version + '/percival/cmd_update_monitors', function(response){});
 }
 
 function send_config_command()
