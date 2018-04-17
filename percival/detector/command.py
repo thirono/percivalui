@@ -104,8 +104,17 @@ class Command(object):
         parsed_params = {}
         for key in self._parameters:
             param_value = str(self._parameters[key])
-            if len(param_value) > 40:
-                param_value = "{ too long to display }"
+            if key == 'config':
+                if len(param_value) > 1024:
+                    param_value = "{ too long to display }"
+            parsed_params[key] = param_value
+        return parsed_params
+
+    @property
+    def log_parameters(self):
+        parsed_params = {}
+        for key in self._parameters:
+            param_value = str(self._parameters[key])
             parsed_params[key] = param_value
         return parsed_params
 
