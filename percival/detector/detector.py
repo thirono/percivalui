@@ -900,6 +900,7 @@ class PercivalDetector(object):
             # Check if the command is a connection request to the DB
             if command.command_name in str(PercivalCommandNames.cmd_download_channel_cfg):
                 # No parameters required for this command
+                self._percival_params.load_ini()
                 self.load_configuration()
                 self.load_channels()
                 self._active_command.complete(success=True)
