@@ -150,7 +150,7 @@ class SetPointControl(object):
                 start_value = set_point_map[sp][index]
                 stop_value = set_point_map[sp][index+1]
                 self._scan_points[sp] = numpy.append(self._scan_points[sp],
-                                                     numpy.linspace(start_value, stop_value, steps))
+                                                     numpy.linspace(start_value, stop_value, steps, dtype=int))
         self._log.debug("Scan description: %s", self._scan_points)
         self._scan_delay = float(delay) / 1000.0
         self._scan_steps = steps
@@ -206,7 +206,7 @@ class SetPointControl(object):
             start_value = self._detector.get_value(sp)
             stop_value = set_point_map[sp][0]
             self._scan_points[sp] = numpy.append(self._scan_points[sp],
-                                                 numpy.linspace(start_value, stop_value, steps))
+                                                 numpy.linspace(start_value, stop_value, steps, dtype=int))
         self._log.debug("Scan description: %s", self._scan_points)
         self._scan_delay = float(delay) / 1000.0
         self._scan_steps = steps
