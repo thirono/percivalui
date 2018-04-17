@@ -327,16 +327,24 @@ function send_refresh_monitors_command()
 
 function send_config_command()
 {
-    config_type = $('#select-config').find(":selected").text();
-    $.ajax({
-        url: '/api/' + api_version + '/percival/cmd_load_config',
-        type: 'PUT',
-        dataType: 'json',
-        data: 'config=' + encodeURIComponent(percival.current_config.replaceAll('=', '::')) + '&config_type=' + config_type,
-        headers: {'Content-Type': 'application/json',
-                  'Accept': 'application/json'},
-        success: process_cmd_response
-    });
+    element = $('#select-config-file')[0];
+    reader = new FileReader();
+    reader.onloadend = function(event){
+        //alert(event.target.result);
+        percival.current_config = event.target.result
+
+        config_type = $('#select-config').find(":selected").text();
+        $.ajax({
+            url: '/api/' + api_version + '/percival/cmd_load_config',
+            type: 'PUT',
+            dataType: 'json',
+            data: 'config=' + encodeURIComponent(percival.current_config.replaceAll('=', '::')) + '&config_type=' + config_type,
+            headers: {'Content-Type': 'application/json',
+                      'Accept': 'application/json'},
+            success: process_cmd_response
+        });
+    }
+    reader.readAsText(element.files[0], 'UF-8');
 }
 
 function send_system_command()
