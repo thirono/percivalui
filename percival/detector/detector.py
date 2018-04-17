@@ -1002,7 +1002,7 @@ class PercivalDetector(object):
                         if command.has_param('dwell'):
                             dwell = int(command.get_param('dwell'))
                             if command.has_param('steps'):
-                                steps = int(command.get_param('steps'))
+                                steps = int(command.get_param('steps')) + 1
                                 self._setpoint_control.scan_set_points(setpoints, steps, dwell)
                                 self._setpoint_control.wait_for_scan_to_complete()
                                 self._active_command.complete(success=True)
