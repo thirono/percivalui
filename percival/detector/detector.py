@@ -977,7 +977,7 @@ class PercivalDetector(object):
                 if command.has_param('setting'):
                     channel = command.get_param('setting')
                     if command.has_param('value'):
-                        value = command.get_param('value')
+                        value = int(command.get_param('value'))
                         self.set_system_setting(channel, value)
                         self._active_command.complete(success=True)
                     else:
@@ -1105,7 +1105,7 @@ class PercivalDetector(object):
         Set the value of a system setting.
 
         """
-        self._log.info("Setting %s to %d", setting, value)
+        self._log.info("Setting %s to %s", setting, str(value))
         self._system_settings.set_value(setting, value)
 
     def set_value(self, device, value, timeout=0.1):
