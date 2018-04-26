@@ -298,9 +298,9 @@ class SystemStatusMap(RegisterMap):
                          "Acquisition_counter":
                              MapField("Acquisition_counter",                         1,   32,  0),
                          "Train_number_MSB":
-                             MapField("Train_number_MSB",                            2,   32,  0),
+                             MapField("Train_number_LSB",                            2,   32,  0),
                          "Train_number_LSB":
-                             MapField("Train_number_LSB",                            3,   32,  0),
+                             MapField("Train_number_MSB",                            3,   32,  0),
                          "LVDS_IOs_enabled":
                              MapField("LVDS_IOs_enabled",                            4,   1,   0),
                          "Master_reset":
@@ -366,17 +366,34 @@ class SystemStatusMap(RegisterMap):
                          "DataSynchError":
                              MapField("DataSynchError",                              4,   1,  31),
                          "HIGH_FREQ_ADJ_CLOCK_0_clock_enable":
-                             MapField("HIGH_FREQ_ADJ_CLOCK_0_clock_enable",          5,   1,   0),
+                             MapField("HIGH_FREQ_ADJ_CLOCK_0_clock_enable",          			5,   1,   0),
                          "HIGH_FREQ_ADJ_CLOCK_1_clock_enable":
-                             MapField("HIGH_FREQ_ADJ_CLOCK_1_clock_enable",          5,   1,   1),
+                             MapField("HIGH_FREQ_ADJ_CLOCK_1_clock_enable",          			5,   1,   1),
                          "HIGH_FREQ_ADJ_CLOCK_2_clock_enable":
-                             MapField("HIGH_FREQ_ADJ_CLOCK_2_clock_enable",          5,   1,   2),
+                             MapField("HIGH_FREQ_ADJ_CLOCK_2_clock_enable",          			5,   1,   2),
                          "HIGH_FREQ_ADJ_CLOCK_3_clock_enable":
-                             MapField("HIGH_FREQ_ADJ_CLOCK_3_clock_enable",          5,   1,   3),
+                             MapField("HIGH_FREQ_ADJ_CLOCK_3_clock_enable",          			5,   1,   3),
                          "LOW_FREQ_ADJ_CLOCK_0_clock_enable":
-                             MapField("LOW_FREQ_ADJ_CLOCK_0_clock_enable",           5,   1,   4),
+                             MapField("LOW_FREQ_ADJ_CLOCK_0_clock_enable",           			5,   1,   4),
                          "LOW_FREQ_ADJ_CLOCK_1_clock_enable":
-                             MapField("LOW_FREQ_ADJ_CLOCK_1_clock_enable",           5,   1,   5),
+                             MapField("LOW_FREQ_ADJ_CLOCK_1_clock_enable",          			5,   1,   5),
+                         "safety_driven_assert_marker_out_3_completed":
+                             MapField("safety_driven_assert_marker_out_3_completed", 			5,   1,   6),
+                         "safety_driven_assert_marker_out_2_completed":
+                             MapField("safety_driven_assert_marker_out_2_completed", 			5,   1,   7),
+                         "safety_driven_assert_marker_out_1_completed":
+                             MapField("safety_driven_assert_marker_out_1_completed", 			5,   1,   8),
+                         "safety_driven_assert_marker_out_0_completed":
+                             MapField("safety_driven_assert_marker_out_0_completed", 			5,   1,   9),
+                         "safety_driven_fast_enable_control_standby_completed":
+                             MapField("safety_driven_fast_enable_control_standby_completed",    5,   1,  10),
+                         "safety_driven_fast_sensor_powerdown_completed":
+                             MapField("safety_driven_fast_sensor_powerdown_completed",          5,   1,  11),
+                         "safety_driven_exit_acquisition_armed_status_completed":
+                             MapField("safety_driven_exit_acquisition_armed_status_completed",  5,   1,  12),
+                         "safety_driven_stop_acquisition_completed":
+                             MapField("safety_driven_stop_acquisition_completed",         		5,   1,  13),
+							 
                          }
 
 

@@ -163,8 +163,16 @@ class SystemStatus(object):
             "HIGH_FREQ_ADJ_CLOCK_2_clock_enable": self._read_maps.HIGH_FREQ_ADJ_CLOCK_2_clock_enable,
             "HIGH_FREQ_ADJ_CLOCK_3_clock_enable": self._read_maps.HIGH_FREQ_ADJ_CLOCK_3_clock_enable,
             "LOW_FREQ_ADJ_CLOCK_0_clock_enable": self._read_maps.LOW_FREQ_ADJ_CLOCK_0_clock_enable,
-            "LOW_FREQ_ADJ_CLOCK_1_clock_enable": self._read_maps.LOW_FREQ_ADJ_CLOCK_1_clock_enable
-        }
+            "LOW_FREQ_ADJ_CLOCK_1_clock_enable": self._read_maps.LOW_FREQ_ADJ_CLOCK_1_clock_enable,
+            "safety_driven_assert_marker_out_3_completed": self._read_maps.safety_driven_assert_marker_out_3_completed,
+            "safety_driven_assert_marker_out_2_completed": self._read_maps.safety_driven_assert_marker_out_2_completed,
+            "safety_driven_assert_marker_out_1_completed": self._read_maps.safety_driven_assert_marker_out_1_completed,
+            "safety_driven_assert_marker_out_0_completed": self._read_maps.safety_driven_assert_marker_out_0_completed,
+            "safety_driven_fast_enable_control_standby_completed": self._read_maps.safety_driven_fast_enable_control_standby_completed,
+            "safety_driven_fast_sensor_powerdown_completed": self._read_maps.safety_driven_fast_sensor_powerdown_completed,
+            "safety_driven_exit_acquisition_armed_status_completed": self._read_maps.safety_driven_exit_acquisition_armed_status_completed,
+            "safety_driven_stop_acquisition_completed": self._read_maps.safety_driven_stop_acquisition_completed
+			}
 
         return response
 
