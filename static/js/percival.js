@@ -757,6 +757,15 @@ function update_api_read_status()
     $('#det-hclock-3').html(led_html(detector['HIGH_FREQ_ADJ_CLOCK_3_clock_enable'],'green', 20));
     $('#det-lclock-0').html(led_html(detector['LOW_FREQ_ADJ_CLOCK_0_clock_enable'],'green', 20));
     $('#det-lclock-1').html(led_html(detector['LOW_FREQ_ADJ_CLOCK_1_clock_enable'],'green', 20));
+
+    $('#safety-3').html(led_html(detector['safety_driven_assert_marker_out_3_completed'],'green', 20));
+    $('#safety-2').html(led_html(detector['safety_driven_assert_marker_out_2_completed'],'green', 20));
+    $('#safety-1').html(led_html(detector['safety_driven_assert_marker_out_1_completed'],'green', 20));
+    $('#safety-0').html(led_html(detector['safety_driven_assert_marker_out_0_completed'],'green', 20));
+    $('#safety-fast-standby').html(led_html(detector['safety_driven_fast_enable_control_standby_completed'],'green', 20));
+    $('#safety-fast-powerdown').html(led_html(detector['safety_driven_fast_sensor_powerdown_completed'],'green', 20));
+    $('#safety-exit-armed').html(led_html(detector['safety_driven_exit_acquisition_armed_status_completed'],'green', 20));
+    $('#safety-stop-acq').html(led_html(detector['safety_driven_stop_acquisition_completed'],'green', 20));
     //alert(detector['LVDS_IOs_enabled']);
     var len = monitor_names.length;
     render_status_view();
