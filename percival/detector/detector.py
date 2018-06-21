@@ -502,6 +502,8 @@ class PercivalDetector(object):
     """
     def __init__(self, ini_file=None, download_config=True, initialise_hardware=True):
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+        logging.getLogger('requests').setLevel(self._log.level)
+        logging.getLogger('urllib3').setLevel(self._log.level)
         self._trace_log = logging.getLogger("percival_trace")
         self._trace_log.info("Percival execution trace logging")
         self._log.info("Executing detector constructor")
