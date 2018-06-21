@@ -19,7 +19,7 @@ from __future__ import print_function
 import logging
 
 from percival.carrier import const
-from percival.carrier.encoding import encode_multi_message
+from percival.carrier.encoding import encode_message, encode_multi_message, decode_message
 from percival.carrier.registers import UARTRegister
 from percival.carrier.txrx import TxMessage
 
@@ -107,6 +107,29 @@ class BufferCommand(object):
         response = self._txrx.send_recv_message(cmd_msg)
         self._log.debug("Response Message: %s", response)
         return response
+
+    def write_words_to_buffer(self, words):
+        # Encode the words into the correct message format and send the values
+        msg = encode_multi_message(const.WRITE_BUFFER.start_address, words)
+        self._log.debug("Writing buffer words to address: %X ...", const.WRITE_BUFFER.start_address)
+        try:
+            for item in msg:
+                self._txrx.send_recv_message(TxMessage(item))
+        except RuntimeError:
+            self._log.exception("No response (addr: %X)", const.WRITE_BUFFER.start_address)
+            raise
+
+    def read_words_from_write_buffer(self):
+        msg = encode_message(const.READBACK_WRITE_BUFFER.start_address, 0x00000000)
+        resp = self._txrx.send_recv(msg, 6*64)
+        data = decode_message(resp)
+        return data
+
+    def read_words_from_read_buffer(self):
+        msg = encode_message(const.READBACK_READ_BUFFER.start_address, 0x00000000)
+        resp = self._txrx.send_recv(msg, 6*64)
+        data = decode_message(resp)
+        return data
 
     def cmd_no_operation(self):
         """

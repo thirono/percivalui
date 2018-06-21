@@ -11,6 +11,7 @@ from __future__ import print_function
 from enum import Enum, unique
 from tornado import escape
 
+import json
 import logging
 from datetime import datetime
 
@@ -34,6 +35,11 @@ class PercivalCommandNames(Enum):
     cmd_system_setting = 12       # Put only
     cmd_apply_roi = 13            # Put only
     cmd_abort_scan = 14           # Put only
+    cmd_write_buffer = 15         # Put only
+    cmd_read_buffer = 16          # Put only
+    cmd_refresh_write_buffer = 17 # Put only
+    cmd_refresh_read_buffer = 18  # Put only
+    cmd_buffer_transfer = 19      # Put only
 
 
 @unique
@@ -205,6 +211,9 @@ class Command(object):
 
         # Check request body to see if we can parse it
         if request.body:
-            #self.parse_parameters(str(request.body.encode('ascii')))
-            self.parse_parameters(str(escape.url_unescape(request.body))) #.decode("utf-8")))
+            try:
+                self._parameters.update(json.loads(request.body))
+            except:
+                #self.parse_parameters(str(request.body.encode('ascii')))
+                self.parse_parameters(str(escape.url_unescape(request.body))) #.decode("utf-8")))
 

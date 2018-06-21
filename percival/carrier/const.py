@@ -303,6 +303,11 @@ BufferCommands = {
         BufferCmd.no_operation: {"command": int(0), "response": 1},
         BufferCmd.write:        {"command": int(0), "response": 3}
                                     },
+    BufferTarget.plugin_board: {
+        BufferCmd.no_operation: {"command": int(0), "response": 1},
+        BufferCmd.write:        {"command": int(0), "response": 2},
+        BufferCmd.read:         {"command": int(1), "response": 2}
+                               },
     BufferTarget.percival_sensor: {
         SensorBufferCmd.no_operation:             {"command": int(0), "response": 2},
         SensorBufferCmd.send_DACs_setup:          {"command": int(0), "response": 2},

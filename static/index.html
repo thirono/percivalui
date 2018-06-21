@@ -40,19 +40,18 @@
                 </a></li>
                 <li class="av navbar-nav"><a href="#/configuration-view"
                     class="dropdown-toggle" role="button" aria-expanded="false"> <strong>Configuration</strong>
-                        <span class="label">Percival Setup</span>
                 </a></li>
                 <li class="av navbar-nav"><a href="#/status-view"
                     class="dropdown-toggle" role="button" aria-expanded="false"> <strong>Status</strong>
-                        <span class="label">Live Monitoring</span>
                 </a></li>
                 <li class="av navbar-nav"><a href="#/control-view"
                     class="dropdown-toggle" role="button" aria-expanded="false"> <strong>Control</strong>
-                        <span class="label">Control Channel Setpoints</span>
+                </a></li>
+                <li class="av navbar-nav"><a href="#/buffer-view"
+                    class="dropdown-toggle" role="button" aria-expanded="false"> <strong>Buffer</strong>
                 </a></li>
                 <li class="av navbar-nav"><a href="#/data-view"
                     class="dropdown-toggle" role="button" aria-expanded="false"> <strong>Data</strong>
-                        <span class="label">Archived Data</span>
                 </a></li>
             </ul>
         </div>
@@ -529,6 +528,140 @@
 
 		</div> <!-- row fluid-row -->
 	</div> <!--  container-fluid -->
+
+	<!-- BUFFER PAGE -->
+	<div class="container-fluid buffer-view page">
+		<div class="row fluid-row">
+			<div class="span3">
+				<div class="well sidebar-nav-fixed">
+					<div class="container-fluid">
+						<div class="row sidebar-title">
+							<h3>Buffer Transfer</h3>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-2">Write Buffer:</div>
+							<div class="col-xs-7 status vertical-align">
+								<small>
+									<table>
+										<tr>
+											<td>No of words:</td>
+											<td width="10px"></td>
+											<td>
+												<span>
+													<input size="6" type="text" id="buffer-no-words" />
+												</span>
+											</td>
+											<td width="10px"></td>
+											<td>Fill Style:</td>
+											<td width="10px"></td>
+											<td><div class="dropdown"><select id="buffer-fill-type">
+												<option>Zeros</option>
+												<option>Ones</option>
+												<option>Incrementing</option>
+												<option>Decrementing</option>
+											</select></div></td>
+										</tr>
+									</table>
+								</small>
+							</div>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-2"></div>
+							<div class="col-xs-4 m-4 status vertical-align">Generated values</div>
+							<div class="col-xs-4 m-4 status vertical-align">Currently loaded values in the write buffer</div>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-2"></div>
+							<div id="write-buffer" class="col-xs-4 m-4 status vertical-align"></div>
+							<div id="write-buffer-rbv" class="col-xs-4 m-4 status vertical-align"></div>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-2"></div>
+							<div class="col-xs-5 m-4 status vertical-align">&nbsp;
+								<span><button id="buffer-write-to-hw">Write To Buffer</button></span>
+							</div>
+							<div class="col-xs-5 m-4 status vertical-align">&nbsp;
+								<span><button id="buffer-write-read">Refresh</button></span>
+							</div>
+						</div>
+   						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-3">&nbsp;</div>
+						</div>
+
+        				<div class="row sidebar-row vertical-align">
+        					<div class="col-xs-2">Buffer Transfer:</div>
+							<div class="col-xs-8 status vertical-align">
+								<small>
+									<table>
+										<tr>
+											<td>Target:</td>
+											<td width="10px"></td>
+											<td><div class="dropdown"><select id="buffer-trns-target">
+												<option value="mezzanine_board_A">Mezzanine Board A</option>
+												<option value="mezzanine_board_B">Mezzanine Board B</option>
+												<option value="both_mezzanine_boards">Both Mezzanine Boards</option>
+												<option value="plugin_board">Plugin Board</option>
+											</select></div></td>
+											<td width="10px"></td>
+											<td>Command:</td>
+											<td width="10px"></td>
+											<td><div class="dropdown"><select id="buffer-trns-cmd">
+												<option value="write">WRITE</option>
+												<option value="read">READBACK</option>
+											</select></div></td>
+											<td width="10px"></td>
+											<td>No of words:</td>
+											<td width="10px"></td>
+											<td>
+												<span>
+													<input size="6" type="text" id="buffer-trns-no-words" />
+												</span>
+											</td>
+											<td width="10px"></td>
+											<td>Base Address:</td>
+											<td width="10px"></td>
+											<td>
+												<span>
+													<input size="6" type="text" id="buffer-trns-address" />
+												</span>
+											</td>
+											<td width="10px"></td>
+											<td><span><button id="buffer-trns-apply">Execute</button></span></td>
+										</tr>
+									</table>
+								</small>
+							</div>
+						</div>
+
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-2"></div>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-3">&nbsp;</div>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-2">Read Buffer:</div>
+							<div class="col-xs-4 m-4 status vertical-align">Values read out from mezzanine A</div>
+						</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-2"></div>
+							<div id="read-buffer-rbv" class="col-xs-4 status vertical-align"></div>
+                        </div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-2"></div>
+							<div class="col-xs-4 m-4 status vertical-align">&nbsp;
+								<span><button id="buffer-read-refresh">Refresh</button></span>
+							</div>
+	  					</div>
+						<div class="row sidebar-row vertical-align">
+							<div class="col-xs-2">&nbsp;</div>
+						</div>
+					</div> <!-- container-fluid -->
+				</div> <!--  well sidebar-nav-fixed -->
+			</div> <!-- span3 -->
+		</div> <!-- row fluid-row -->
+	</div> <!--  container-fluid -->
+
 
 	<div class="container-fluid data-view page">
 		<div class="row fluid-row">
