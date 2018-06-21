@@ -20,7 +20,7 @@ else:
     import queue as queue
 
 from percival.carrier import const
-from percival.carrier.buffer import SensorBufferCommand
+from percival.carrier.buffer import BufferCommand, SensorBufferCommand
 from percival.carrier.channels import ControlChannel, MonitoringChannel
 from percival.carrier.devices import DeviceFactory
 from percival.carrier.database import InfluxDB
@@ -527,6 +527,8 @@ class PercivalDetector(object):
         self._control_groups = None
         self._monitor_groups = None
         self._active_command = None
+        self._write_buffer = []
+        self._read_buffer = []
         self._log.info("Creating SystemSettings object")
         self._system_settings = SystemSettings()
         self._log.info("SystemSettings : %s", self._system_settings.settings)
@@ -1027,6 +1029,45 @@ class PercivalDetector(object):
                             raise PercivalDetectorError("Dwell time (ms) required to scan")
                 else:
                     raise PercivalDetectorError("No setpoints defined to scan between")
+            elif command.command_name in str(PercivalCommandNames.cmd_write_buffer):
+                # Manual buffer write operation
+                if command.has_param('data'):
+                    data_words = command.get_param('data')
+                    buffer_cmd = BufferCommand(self._txrx, const.BufferTarget.none)
+                    if isinstance(data_words, str):
+                        data_words = [data_words]
+                    buffer_cmd.write_words_to_buffer([int(word) for word in data_words])
+                    data = buffer_cmd.read_words_from_write_buffer()
+                    self._write_buffer = []
+                    for addr, value in data:
+                        self._write_buffer.append(value)
+                    self._active_command.complete(success=True)
+                else:
+                    raise PercivalDetectorError("No data supplied to the write buffer command")
+            elif command.command_name in str(PercivalCommandNames.cmd_refresh_write_buffer):
+                buffer_cmd = BufferCommand(self._txrx, const.BufferTarget.none)
+                data = buffer_cmd.read_words_from_write_buffer()
+                self._write_buffer = []
+                for addr, value in data:
+                    self._write_buffer.append(value)
+                self._log.error("WRITE BUFFER: %s", self._write_buffer)
+                self._active_command.complete(success=True)
+            elif command.command_name in str(PercivalCommandNames.cmd_refresh_read_buffer):
+                buffer_cmd = BufferCommand(self._txrx, const.BufferTarget.none)
+                data = buffer_cmd.read_words_from_read_buffer()
+                self._read_buffer = []
+                for addr, value in data:
+                    self._read_buffer.append(value)
+                self._log.error("READ BUFFER: %s", self._read_buffer)
+                self._active_command.complete(success=True)
+            elif command.command_name in str(PercivalCommandNames.cmd_buffer_transfer):
+                target = const.BufferTarget[command.get_param('target')]
+                cmd = const.BufferCmd[command.get_param('command')]
+                no_of_words = int(command.get_param('words'))
+                address = int(command.get_param('address'))
+                buffer_cmd = BufferCommand(self._txrx, target)
+                buffer_cmd.send_command(cmd, no_of_words, address)
+                self._active_command.complete(success=True)
             elif command.command_name in str(PercivalCommandNames.cmd_update_monitors):
                 # Force a read of the monitors.  This will result in values being written to db
                 self.update_status()
@@ -1203,6 +1244,12 @@ class PercivalDetector(object):
                          'parameters': '',
                          'time': ''
                          }
+
+        elif parameter == "write_buffer":
+            reply = {'data': self._write_buffer}
+
+        elif parameter == "read_buffer":
+            reply = {'data': self._read_buffer}
 
         elif parameter == "groups":
             # Construct dictionaries of control and monitor groups
