@@ -981,10 +981,10 @@ function update_api_read_status()
     $('#det-sensor-active').html(led_html(detector['sensor_active_for_acquisition'],'green', 20));
     $('#det-mezz-a-phy-ok').html(led_html(detector['MEZZ_A_PHY_OK'],'green', 20));
     $('#det-mezz-a-mgt-ok').html(led_html(detector['MEZZ_A_MGT_OK'],'green', 20));
-    $('#det-mezz-a-reset').html(led_html(detector['MEZZ_A_RESET'],'green', 20));
+    $('#det-mezz-a-reset').html(led_html(detector['MEZZ_A_RESET'],'red', 20));
     $('#det-mezz-b-phy-ok').html(led_html(detector['MEZZ_B_PHY_OK'],'green', 20));
     $('#det-mezz-b-mgt-ok').html(led_html(detector['MEZZ_B_MGT_OK'],'green', 20));
-    $('#det-mezz-b-reset').html(led_html(detector['MEZZ_B_RESET'],'green', 20));
+    $('#det-mezz-b-reset').html(led_html(detector['MEZZ_B_RESET'],'red', 20));
     $('#det-marker-out-0').html(led_html(detector['MARKER_OUT_0'],'green', 20));
     $('#det-marker-out-1').html(led_html(detector['MARKER_OUT_1'],'green', 20));
     $('#det-marker-out-2').html(led_html(detector['MARKER_OUT_2'],'green', 20));
