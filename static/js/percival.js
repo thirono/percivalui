@@ -5,15 +5,37 @@ current_page = "configuration-view";
 config_files = "";
 
 percival = {
-  api_version: '0.1',
-  current_page: '.home-view',
-  monitors: {},
-  monitor_count: 0,
-  monitor_divs: 0,
-  groups: {},
-  control_names: [],
-  current_config: ''
-  };
+    api_version: '0.1',
+    current_page: '.home-view',
+    monitors: {},
+    monitor_count: 0,
+    monitor_divs: 0,
+    groups: {},
+    control_names: [],
+    current_config: '',
+    buffer_values: [],
+    write_buffer_rbv: [
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1
+    ],
+    read_buffer_rbv: [
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1
+    ]
+
+};
 
 
 String.prototype.replaceAll = function(search, replacement) {
@@ -241,8 +263,11 @@ $( document ).ready(function()
   setInterval(update_server_setup, 1000);
   setInterval(update_api_read_monitors, 1000);
   setInterval(update_api_read_controls, 1000);
+  setInterval(update_api_read_write_buffer, 1000);
   setInterval(update_api_read_status, 100);
   setInterval(update_server_command_status, 500);
+
+  create_write_buffer(16, 'Zeros');
 
   $('#server-hw-reconnect').click(function(){
     reconnect_hardware();
@@ -295,9 +320,28 @@ $( document ).ready(function()
     reader.onloadend = function(event){
         //alert(event.target.result);
         percival.current_config = event.target.result
-    }
+    };
     reader.readAsText(event.target.files[0], 'UF-8');
   });
+  $('#buffer-fill-type').on('change', function(event){
+      update_buffer_values();
+  });
+  $('#buffer-no-words').on('change', function(event){
+      update_buffer_values();
+  });
+  $('#buffer-write-to-hw').click(function(){
+      write_buffer_values();
+  });
+  $('#buffer-write-read').click(function(){
+      write_buffer_refresh();
+  });
+  $('#buffer-read-refresh').click(function(){
+      read_buffer_refresh();
+  });
+  $('#buffer-trns-apply').click(function(){
+      buffer_transfer_apply();
+  });
+
   $(window).on('hashchange', function(){
 		// On every hash change the render function is called with the new hash.
 		// This is how the navigation of the app is executed.
@@ -426,6 +470,78 @@ function send_sscan_command()
             'dwell' : dwell,
             'steps' : steps,
             'setpoints' : sp
+        },
+        headers: {'Content-Type': 'application/json',
+                  'Accept': 'application/json'},
+        success: process_cmd_response
+    });
+}
+
+function write_buffer_values()
+{
+    $.ajax({
+        url: '/api/' + api_version + '/percival/cmd_write_buffer',
+        type: 'PUT',
+        dataType: 'json',
+        data: {
+            'data' : percival.buffer_values
+        },
+        headers: {'Content-Type': 'application/json',
+                  'Accept': 'application/json'},
+        success: process_cmd_response
+    });
+}
+
+function write_buffer_refresh()
+{
+    $.ajax({
+        url: '/api/' + api_version + '/percival/cmd_refresh_write_buffer',
+        type: 'PUT',
+        dataType: 'json',
+        headers: {'Content-Type': 'application/json',
+                  'Accept': 'application/json'},
+        success: process_cmd_response
+    });
+}
+
+function read_buffer_refresh()
+{
+    $.ajax({
+        url: '/api/' + api_version + '/percival/cmd_refresh_read_buffer',
+        type: 'PUT',
+        dataType: 'json',
+        headers: {'Content-Type': 'application/json',
+                  'Accept': 'application/json'},
+        success: process_cmd_response
+    });
+}
+
+function buffer_transfer_apply()
+{
+    target = $('#buffer-trns-target').find(":selected").val();
+    cmd = $('#buffer-trns-cmd').find(":selected").val();
+//    alert("Target: " + target + " Cmd: " + cmd);
+    pts = parseInt($('#buffer-trns-no-words').val());
+    if (isNaN(pts) || pts < 1 || pts > 64){
+        alert("Number of words must be an integer between 1 and 64");
+        return;
+    }
+    address = parseInt($('#buffer-trns-address').val());
+    if (isNaN(address) || address < 0){
+        alert("Number of words must be an integer 0 or greater");
+        return;
+    }
+//    alert("Number: " + pts + " Address: " + address);
+
+    $.ajax({
+        url: '/api/' + api_version + '/percival/cmd_buffer_transfer',
+        type: 'PUT',
+        dataType: 'json',
+        data: {
+            'target' : target,
+            'command' : cmd,
+            'words': pts,
+            'address': address
         },
         headers: {'Content-Type': 'application/json',
                   'Accept': 'application/json'},
@@ -670,6 +786,132 @@ function update_api_read_monitors()
         monitor_desc = response;
         percival.monitor_count = monitor_names.length;
     });
+}
+
+function update_buffer_values()
+{
+    ft = $('#buffer-fill-type').find(":selected").val();
+    pts = parseInt($('#buffer-no-words').val());
+    if (isNaN(pts) || pts < 1 || pts > 64){
+        alert("Number of words must be an integer between 1 and 64");
+    } else {
+        create_write_buffer(pts, ft);
+    }
+}
+
+function create_write_buffer(no_of_words, fill_type)
+{
+    data_words = [];
+    for (index = 0; index < no_of_words; index++){
+        switch (fill_type){
+            case 'Zeros':
+                // Filling with zeros
+                data_words.push(0);
+                break;
+            case 'Ones':
+                // Filling with ones
+                data_words.push(4294967295);
+                break;
+            case 'Incrementing':
+                // Incrementing
+                data_words.push(index+1);
+                break;
+            case 'Decrementing':
+                // Decrementing
+                data_words.push(no_of_words-index);
+                break;
+        }
+    }
+    percival.buffer_values = data_words;
+    render_write_buffer(data_words);
+}
+
+function render_write_buffer(data_words)
+{
+    $('#write-buffer').tabulator({
+        height: "220px",
+        pagination: "local",
+        columns: [
+            {title: "Index", field: "index", sorter: "string", width: "20%"},
+            {title: "Value", field: "value", sorter: "string", width: "70%"}
+        ]
+    });
+    var tableData = [];
+    for (var index = 0; index < data_words.length; index++) {
+        tableData[index] = {
+            id: index,
+            index: index,
+            value: data_words[index].toString(2).padStart(32, 0)
+        };
+    }
+    $('#write-buffer').tabulator("setData", tableData);
+}
+
+function update_api_read_write_buffer() {
+
+    $.getJSON('/api/' + api_version + '/percival/write_buffer/', function(response) {
+        match = 1;
+        for (var index = 0; index < response["data"].length; index++) {
+            if (response["data"][index] != percival.write_buffer_rbv[index]){
+                match = 0;
+            }
+        }
+        if (match == 0){
+            percival.write_buffer_rbv = response["data"];
+            render_write_buffer_rbv(response["data"]);
+        }
+    });
+    $.getJSON('/api/' + api_version + '/percival/read_buffer/', function(response) {
+        match = 1;
+        for (var index = 0; index < response["data"].length; index++) {
+            if (response["data"][index] != percival.read_buffer_rbv[index]){
+                match = 0;
+            }
+        }
+        if (match == 0){
+            percival.read_buffer_rbv = response["data"];
+            render_read_buffer_rbv(response["data"]);
+        }
+    });
+}
+
+
+function render_write_buffer_rbv(data_words)
+{
+    $('#write-buffer-rbv').tabulator({height:"220px",
+                                  pagination:"local",
+                                  columns:[
+                                  {title:"Index", field:"index", sorter:"string", width:"20%"},
+                                  {title:"Value", field:"value", sorter:"string", width:"70%"}
+                                  ]
+                                });
+    var tableData = [];
+    for (var index = 0; index < data_words.length; index++){
+        tableData[index] = { id: index,
+                             index:index,
+                             value:data_words[index].toString(2).padStart(32, 0)};
+    }
+    $('#write-buffer-rbv').tabulator("setData", tableData);
+
+}
+
+function render_read_buffer_rbv(data_words)
+{
+    $('#read-buffer-rbv').tabulator({height:"220px",
+                                  pagination:"local",
+                                  columns:[
+                                  {title:"Index", field:"index", sorter:"string", width:"20%"},
+                                  {title:"Value", field:"value", sorter:"string", width:"70%"}
+                                  ]
+                                });
+    var tableData = [];
+    for (var index = 0; index < data_words.length; index++){
+        tableData[index] = { id: index,
+                             index:index,
+                             value:data_words[index].toString(2).padStart(32, 0)};
+    }
+    $('#read-buffer-rbv').tabulator("setData", tableData);
+
 }
 
 function render_config_view()
