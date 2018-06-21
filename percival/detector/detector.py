@@ -560,6 +560,13 @@ class PercivalDetector(object):
         while self._run_status_loop:
             try:
                 self._system_status.read_values()
+                if self._db:
+                    time_now = datetime.utcnow()
+                    data = self._system_status.get_status()
+                    point = {}
+                    for key in ['Image_counter', 'system_armed', 'acquiring']:
+                        point[key] = data[key]
+                    self._db.log_point(time_now, 'Detector', point)
             except:
                 pass
             time.sleep(0.25)
