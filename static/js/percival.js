@@ -572,17 +572,20 @@ function update_server_command_status()
             $('#ctrl-resp-message').text(response.error);
             $('#ctrl-msg-response').addClass("panel-danger");
             $('#ctrl-msg-response').removeClass("panel-default");
+            $('#ctrl-msg-response').removeClass("panel-warning");
             $('#ctrl-msg-response').removeClass("panel-success");
         } else if (response.response == 'Active'){
             $('#ctrl-resp-message').text("");
             $('#ctrl-msg-response').removeClass("panel-danger");
             $('#ctrl-msg-response').removeClass("panel-default");
-            $('#ctrl-msg-response').addClass("panel-success");
+            $('#ctrl-msg-response').addClass("panel-warning");
+            $('#ctrl-msg-response').removeClass("panel-success");
         } else {
             $('#ctrl-resp-message').text("");
-            $('#ctrl-msg-response').addClass("panel-default");
+            $('#ctrl-msg-response').removeClass("panel-default");
             $('#ctrl-msg-response').removeClass("panel-danger");
-            $('#ctrl-msg-response').removeClass("panel-success");
+            $('#ctrl-msg-response').removeClass("panel-warning");
+            $('#ctrl-msg-response').addClass("panel-success");
         }
         pn = response.param_names;
         html = "<table>";
