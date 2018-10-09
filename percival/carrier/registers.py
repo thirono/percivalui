@@ -669,6 +669,7 @@ class ChipReadoutSettingsMap(RegisterMap):
                          "RESET_PHASE_AB_reset_start":       MapField("RESET_PHASE_AB_reset_start",       21, 16,  0),
                          "RESET_PHASE_AB_reset_stop":        MapField("RESET_PHASE_AB_reset_stop",        21, 16, 16),
                          "DURATION_ADC_ramps_phase":         MapField("DURATION_ADC_ramps_phase",         22, 16,  0),
+						 "ADC_RAMPS_PHASE_Fskip_duration":   MapField("ADC_RAMPS_PHASE_Fskip_duration",   22, 16, 16),
                          "ADC_RAMPS_PHASE_CConvEn_rise":     MapField("ADC_RAMPS_PHASE_CConvEn_rise",     23, 16,  0),
                          "ADC_RAMPS_PHASE_CConvEn_fall":     MapField("ADC_RAMPS_PHASE_CConvEn_fall",     23, 16, 16),
                          "ADC_RAMPS_PHASE_FConvEn_rise":     MapField("ADC_RAMPS_PHASE_FConvEn_rise",     24, 16,  0),
