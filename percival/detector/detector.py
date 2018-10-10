@@ -855,6 +855,8 @@ class PercivalDetector(object):
         # Special command case is an abort of a scan
         if not self.check_for_abort_command(command):
             if self._command_lock.acquire(False):
+                command.activate()
+                self._active_command = command
                 self._command_queue.put(command, block=False)
                 self._command_lock.release()
             else:
