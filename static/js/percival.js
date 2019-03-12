@@ -33,8 +33,8 @@ percival = {
         -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1
-    ]
-
+    ],
+    status: {}
 };
 
 
@@ -572,17 +572,20 @@ function update_server_command_status()
             $('#ctrl-resp-message').text(response.error);
             $('#ctrl-msg-response').addClass("panel-danger");
             $('#ctrl-msg-response').removeClass("panel-default");
+            $('#ctrl-msg-response').removeClass("panel-warning");
             $('#ctrl-msg-response').removeClass("panel-success");
         } else if (response.response == 'Active'){
             $('#ctrl-resp-message').text("");
             $('#ctrl-msg-response').removeClass("panel-danger");
             $('#ctrl-msg-response').removeClass("panel-default");
-            $('#ctrl-msg-response').addClass("panel-success");
+            $('#ctrl-msg-response').addClass("panel-warning");
+            $('#ctrl-msg-response').removeClass("panel-success");
         } else {
             $('#ctrl-resp-message').text("");
-            $('#ctrl-msg-response').addClass("panel-default");
+            $('#ctrl-msg-response').removeClass("panel-default");
             $('#ctrl-msg-response').removeClass("panel-danger");
-            $('#ctrl-msg-response').removeClass("panel-success");
+            $('#ctrl-msg-response').removeClass("panel-warning");
+            $('#ctrl-msg-response').addClass("panel-success");
         }
         pn = response.param_names;
         html = "<table>";
@@ -959,7 +962,15 @@ function update_api_read_status()
     $('#det-acq-counter').html(detector['Acquisition_counter']);
     $('#det-train-number').html(detector['Train_number']);
 
-    $('#det-lvds-enabled').html(led_html(detector['LVDS_IOs_enabled'],'green', 20));
+//    if (percival.status['LVDS_IOs_enabled'] != detector['LVDS_IOs_enabled']) {
+//        percival.status['LVDS_IOs_enabled'] = detector['LVDS_IOs_enabled'];
+//        $('#det-lvds-enabled').html(led_html(detector['LVDS_IOs_enabled'], 'green', 20));
+//        flash_element($('#det-lvds-enabled'));
+//    }
+
+    update_status(detector, '#det-lvds-enabled', 'LVDS_IOs_enabled', 'green');
+    update_status(detector, '#det-safety-actions', 'safety_actions_enabled', 'green');
+
     $('#det-master-reset').html(led_html(detector['Master_reset'],'green', 20));
     $('#det-pll-reset').html(led_html(detector['PLL_reset'],'green', 20));
     $('#det-dmux-cdn').html(led_html(detector['dmux_CDN'],'green', 20));
@@ -973,7 +984,7 @@ function update_api_read_status()
     $('#det-device-safety').html(led_html(detector['device_level_safety_controls_enabled'],'green', 20));
     $('#det-system-safety').html(led_html(detector['system_level_safety_controls_enabled'],'green', 20));
     $('#det-exp-safety').html(led_html(detector['experimental_level_safety_controls_enabled'],'green', 20));
-    $('#det-safety-actions').html(led_html(detector['safety_actions_enabled'],'green', 20));
+//    $('#det-safety-actions').html(led_html(detector['safety_actions_enabled'],'green', 20));
     $('#det-system-armed').html(led_html(detector['system_armed'],'green', 20));
 
     $('#det-acquiring').html(led_html(detector['acquiring'],'green', 20));
@@ -1020,6 +1031,25 @@ function update_api_read_status()
       }
     }
   });
+}
+
+function update_status(detector, tag, name, colour)
+{
+    if (percival.status[name] != detector[name]) {
+        percival.status[name] = detector[name];
+        $(tag).html(led_html(detector[name], colour, 20));
+        flash_element($(tag));
+    }
+}
+
+function flash_element(element)
+{
+    element.animate({opacity: '0.2'}, 500);
+    element.animate({opacity: '1.0'}, 500);
+    element.animate({opacity: '0.2'}, 500);
+    element.animate({opacity: '1.0'}, 500);
+    element.animate({opacity: '0.2'}, 500);
+    element.animate({opacity: '1.0'}, 500);
 }
 
 function led_html(value, colour, width)
