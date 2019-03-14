@@ -108,6 +108,19 @@ function send_fp_command(command, data)
     });
 }
 
+function send_fp_reset()
+{
+    $.ajax({
+        url: '/api/' + api_version + '/fp/command/reset_statistics',
+        type: 'PUT',
+        dataType: 'json',
+        headers: {'Content-Type': 'application/json',
+                  'Accept': 'application/json'},
+        success: null,
+        error: process_fp_error
+    });
+}
+
 function update_fp_params() {
     // Send the number of frames
     send_fp_command('hdf/frames', $('#set-fp-frames').val());
@@ -120,6 +133,7 @@ function update_fp_params() {
 function start_fp_writing()
 {
     // Send the write true
+    send_fp_reset();
     send_fp_command('hdf/write', '1');
 }
 
