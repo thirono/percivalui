@@ -134,6 +134,7 @@ function start_fp_writing()
 {
     // Send the write true
     send_fp_reset();
+    send_fp_command('hdf/master', 'data');
     send_fp_command('hdf/write', '1');
 }
 
