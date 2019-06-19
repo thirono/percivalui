@@ -90,3 +90,101 @@ class PercivalClient(object):
             'setpoint': set_point
         }
         return self.send_command('cmd_apply_setpoint', command_id, arguments, wait=wait)
+
+class DAQClient(object):
+    def __init__(self, address="127.0.0.1:8888", api=0.1):
+        self._address = address
+        self._api = api
+        self._url = "http://" + str(self._address) + "/api/" + str(self._api) + "/fp/"
+        self._user = getpass.getuser()
+
+    def send_command(self, command, arguments=None):
+        try:
+            url = self._url + 'config/' + command
+            log.debug("Sending msg to: %s", url)
+            result = requests.put(url,
+                                  data='{}'.format(arguments),
+                                  headers={
+                                      'Content-Type': 'application/json',
+                                      'Accept': 'application/json'
+                                  }).json()
+        except requests.exceptions.RequestException:
+            result = {
+                "error": "Exception during HTTP request, check address and Odin server instance"
+            }
+            log.exception(result['error'])
+
+        log.debug("{}".format(result))
+
+        return result
+
+    def get_status(self):
+        try:
+            url = self._url + 'status'
+            log.debug("Sending msg to: %s", url)
+            result = requests.get(url,
+                                  headers={
+                                      'Content-Type': 'application/json',
+                                      'Accept': 'application/json'
+                                  }).json()
+        except requests.exceptions.RequestException:
+            result = {
+                "error": "Exception during HTTP request, check address and Odin server instance"
+            }
+            log.exception(result['error'])
+
+        return result
+
+    def get_config(self, item):
+        try:
+            url = self._url + 'config/' + '{}'.format(item)
+            log.debug("Sending msg to: %s", url)
+            result = requests.get(url,
+                                  headers={
+                                      'Content-Type': 'application/json',
+                                      'Accept': 'application/json'
+                                  }).json()
+        except requests.exceptions.RequestException:
+            result = {
+                "error": "Exception during HTTP request, check address and Odin server instance"
+            }
+            log.exception(result['error'])
+
+        return result
+
+    def set_frames(self, frames):
+        return self.send_command('hdf/frames', frames)
+
+    def set_file_path(self, path):
+        return self.send_command('hdf/file/path', path)
+
+    def set_file_name(self, filename):
+        return self.send_command('hdf/file/name', filename)
+
+    def start_writing(self):
+        # First send the master dataset name as data
+        response = self.send_command('hdf/master', 'data')
+        if 'error' in response:
+            return response
+
+        # If no error was returned send the command to start writing
+        response = self.send_command('hdf/write', '1')
+        if 'error' in response:
+            return response
+
+        # Now read the status and wait for the write flag to become true
+        read_count = 0
+        while read_count < 50:
+            time.sleep(0.1)
+            response = self.get_status()
+            fps = response['value']
+            writing = []
+            for fp in fps:
+                writing.append(fp['hdf']['writing'])
+            if all(writing):
+                return {}
+
+        return {'error': 'Timed out waiting for HDF to start writing'}
+
+    def stop_writing(self):
+        return self.send_command('hdf/write', '0')
