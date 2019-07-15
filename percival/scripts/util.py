@@ -118,6 +118,25 @@ class DAQClient(object):
 
         return result
 
+    def send_reset(self):
+        try:
+            url = self._url + 'command/reset_statistics'
+            log.debug("Sending msg to: %s", url)
+            result = requests.put(url,
+                                  headers={
+                                      'Content-Type': 'application/json',
+                                      'Accept': 'application/json'
+                                  }).json()
+        except requests.exceptions.RequestException:
+            result = {
+                "error": "Exception during HTTP request, check address and Odin server instance"
+            }
+            log.exception(result['error'])
+
+        log.debug("{}".format(result))
+
+        return result
+
     def get_status(self):
         try:
             url = self._url + 'status'
@@ -162,6 +181,11 @@ class DAQClient(object):
         return self.send_command('hdf/file/name', filename)
 
     def start_writing(self):
+        # Reset the FPs
+        response = self.send_reset()
+        if 'error' in response:
+            return response
+
         # First send the master dataset name as data
         response = self.send_command('hdf/master', 'data')
         if 'error' in response:
