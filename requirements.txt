@@ -5,7 +5,7 @@ h5py==2.6.0
 #-e git+git://github.com/h5py/h5py.git@2.6.0#egg=h5py
 enum34==1.1.6
 npyscreen==4.10.5
-pyzmq==15.3.0
+pyzmq==18.1.0
 -e git+git://github.com/percival-detector/odin-control.git#egg=odin
 influxdb==4.1.0
 xlrd
