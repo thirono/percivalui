@@ -556,6 +556,11 @@ function send_abort_scan_command()
 
 function process_cmd_response(response)
 {
+    str = "Cannot submit command whilst another is active";
+    if(response.response == "Failed" && 0<response.error.indexOf(str))
+    {
+        alert("Busy - your command was rejected; please retry later.");
+    }
 }
 
 
