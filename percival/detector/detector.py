@@ -860,6 +860,7 @@ class PercivalDetector(object):
                 self._command_queue.put(command, block=False)
                 self._command_lock.release()
             else:
+                # note this message is searched for in percival.js
                 raise PercivalDetectorError("Cannot submit command whilst another is active")
 
     def check_for_abort_command(self, command):
