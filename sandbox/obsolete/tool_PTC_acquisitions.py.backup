@@ -1,0 +1,52 @@
+'''
+Created on 19 June 2019
+
+@author: gnx91527
+'''
+from __future__ import print_function
+
+import sys
+import argparse
+import logging
+
+from percival.log import log
+from percival.carrier import const
+from percival.scripts.util import DAQClient
+
+
+SCRIPT_NAME = "tool_PTC_aquisitions.py"
+
+
+def options():
+    desc = """Test script to demonstrate starting an acquisition
+    """
+    parser = argparse.ArgumentParser(description=desc)
+    parser.add_argument("-a", "--address", action="store", default="127.0.0.1:8888",
+                        help="Odin server address (default 127.0.0.1:8888)")
+    args = parser.parse_args()
+    return args
+
+
+def parse_response(response):
+    log.info("Response: %s", response)
+    if 'error' in response:
+        log.info("Error Message: %s", response['error'])
+        sys.exit(-1)
+
+
+def main():
+    args = options()
+    log.setLevel(logging.DEBUG)
+    dc = DAQClient(args.address)
+
+    log.info("Test FP")
+
+    parse_response(dc.set_frames(10))
+    parse_response(dc.set_file_path('/home/prcvlusr/PercAuxiliaryTools/temp_data/'))
+    parse_response(dc.set_file_name('2019.07.15h10.00_test_04'))
+    parse_response(dc.start_writing())
+    parse_response(dc.get_status())
+
+
+if __name__ == '__main__':
+    main()
