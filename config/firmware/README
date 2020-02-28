@@ -1,0 +1,8 @@
+Feb 2020
+
+This directory was created to be a home for firmware files that we load onto the
+carrier / mez board fpgas. The canonical reference-source for these is places like:
+
+https://confluence.desy.de/display/PER/Readout+control
+
+Github is only a convenient copy of those files, and so delete any that aren't in use.
