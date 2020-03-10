@@ -14,12 +14,20 @@
 
 WIENER_IP=172.23.16.179
 
-echo Setting current limit and voltage to 0
+echo Setting current limit, and voltage to 0
 
 snmpset -v 2c -m +WIENER-CRATE-MIB -c guru $WIENER_IP outputVoltage.u200 F 0
 snmpset -v 2c -m +WIENER-CRATE-MIB -c guru $WIENER_IP outputCurrent.u200 F 6
 
-echo All channels set propertly 
+if [ $? -ne 0 ]
+then
+ echo Failed to set current value on u200
+ exit 2
+else
+ echo All channels set properly 
+fi
+
+
 
 sleep 2
 
