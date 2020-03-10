@@ -1,3 +1,5 @@
 #!/bin/bash
 
-snmpget -v 2c -m +WIENER-CRATE-MIB -c public 169.254.1.240 sysMainSwitch.0
+WIENER_IP=172.23.16.179
+
+snmpget -v 2c -m +WIENER-CRATE-MIB -c public $WIENER_IP sysMainSwitch.0
