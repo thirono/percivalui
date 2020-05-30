@@ -106,6 +106,8 @@ echo Vreg_2V3 at 0 V
 
 echo Ramping Vreg_1V8 down
 
+snmpset -v 2c -m +WIENER-CRATE-MIB -c guru $WIENER_IP outputVoltage.u2 F 2.3
+
 snmpset -v 2c -m +WIENER-CRATE-MIB -c guru $WIENER_IP outputVoltage.u2 F 1.84
 
 snmpset -v 2c -m +WIENER-CRATE-MIB -c guru $WIENER_IP outputVoltage.u2 F 1.38
