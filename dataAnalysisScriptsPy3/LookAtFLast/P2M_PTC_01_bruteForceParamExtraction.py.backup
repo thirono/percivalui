@@ -1,0 +1,600 @@
+# -*- coding: utf-8 -*-
+"""
+.h5 of avg and rms => PTC e/ADU 
+
+# load environment python3 environment on cfeld-percival02
+source /home/prcvlusr/PercAuxiliaryTools/Anaconda3/Anaconda3/bin/activate root
+# or load environment on maxwell
+source /usr/share/Modules/init/sh
+module load anaconda/3
+python3 ./P2M_PTC_01_bruteForceParamExtraction.py
+or:
+python3
+exec(open("./xxx.py").read())
+"""
+
+#%% imports and useful constants
+from APy3_auxINIT import *
+import ast # ast.literal_eval()
+#
+#
+NRow= APy3_P2Mfuns.NRow
+NCol= APy3_P2Mfuns.NCol
+#
+ERRint16=APy3_P2Mfuns.ERRint16 #-256 # negative value usable to track Gn/Crs/Fn from missing pack 
+ERRBlw=APy3_P2Mfuns.ERRBlw #-0.1
+ERRDLSraw=APy3_P2Mfuns.ERRDLSraw #65535 # forbidden uint16, usable to track "pixel" from missing pack
+# ---
+#
+#%% defaults for GUI window
+#
+aux_PTCmethodList= ['per pixel','per 32 pixels in same row','avg of all in ROI','per X pixels in same row','other']
+#dflt_PTCmethod= 'per pixel'
+#dflt_PTCmethod= 'per 32 pixels in same row'
+dflt_PTCmethod= 'per X pixels in same row'; 
+dflt_Xpix= 4
+#
+'''
+###################### FSI, T-20, dmuxSELHigh, 0802g, PGAB #############################################
+dflt_folder_data2process= '/gpfs/cfel/fsds/labs/percival/2019/calibration/20190619_000_PTC_FSI01_Tm20_0802g_dmuxSELHigh_Gn0_PGAB/processed/v1/avg_std/'
+if dflt_folder_data2process[-1]!='/': dflt_folder_data2process+='/'
+# tab-separated-text file, having 4 colums (file_light_avg, _light_std, _drk_avg, _drk_std)
+dflt_metaFileName= 'FSI01_Tm20_0802g_dmuxSELHigh_Gn0,PGAB_CDS_meta.dat'
+dflt_saveFlag='Y'; #dflt_saveFlag='N';
+dflt_outFolder= '/gpfs/cfel/fsds/labs/percival/2019/calibration/20190619_000_PTC_FSI01_Tm20_0802g_dmuxSELHigh_Gn0_PGAB/processed/v1/PTCParam/'
+'''
+#
+'''
+###################### FSI, T-20, dmuxSELHigh, 0802h2, PGA6 #############################################
+dflt_folder_data2process= '/gpfs/cfel/fsds/labs/percival/2019/calibration/20190620_000_PTC_FSI01_Tm20_0802hx_dmuxSELHigh_Gn0_PGA6/processed/v1_0802h2/avg_std/'
+if dflt_folder_data2process[-1]!='/': dflt_folder_data2process+='/'
+# tab-separated-text file, having 4 colums (file_light_avg, _light_std, _drk_avg, _drk_std)
+dflt_metaFileName= 'PTC_FSI01_Tm20_0802hx_dmuxSELHigh_Gn0_PGA6_meta.dat'
+dflt_saveFlag='Y'; #dflt_saveFlag='N';
+dflt_outFolder= '/gpfs/cfel/fsds/labs/percival/2019/calibration/20190620_000_PTC_FSI01_Tm20_0802hx_dmuxSELHigh_Gn0_PGA6/processed/v1_0802h2/PTCParam/'
+'''
+
+#
+'''
+###################### BSI02, T-20, dmuxSELHigh, 0802i, PGAB #############################################
+dflt_folder_data2process= '/gpfs/cfel/fsds/labs/percival/2019/calibration/20190826_000_temp_data/scratch/2019.09.15_PTC_BSI02_Tm20_dmuxSELHigh_0802i_PGABBB/avg_std/'
+if dflt_folder_data2process[-1]!='/': dflt_folder_data2process+='/'
+# tab-separated-text file, having 4 colums (file_light_avg, _light_std, _drk_avg, _drk_std)
+dflt_metaFileName= '2019.09.15_BSI02_Tm20_0802i_dmuxSELHigh_0802i_3T_Gn0,PGAB_CDS_meta.dat'
+dflt_saveFlag='Y'; #dflt_saveFlag='N';
+dflt_outFolder= dflt_folder_data2process+'../PTCParam/'
+'''
+#
+'''
+###################### BSI04, T-20, dmuxSELHigh, biasBSI04_02, PGAB #############################################
+dflt_folder_data2process= '/gpfs/cfel/fsds/labs/percival/2019/calibration/20191122_000_BSI04_PTC/processed/BSI04_dmuxSELHi_biasBSI04_02_3T_PGABBB_PTC/v2/avg_std/'
+if dflt_folder_data2process[-1]!='/': dflt_folder_data2process+='/'
+# tab-separated-text file, having 4 colums (file_light_avg, _light_std, _drk_avg, _drk_std)
+dflt_metaFileName= '2019.11.25_BSI04_Tm20_dmuxSELHi_biasBSI04_02_3T_PGABBB_PTC_meta.dat'
+dflt_saveFlag='Y'; #dflt_saveFlag='N';
+dflt_outFolder= dflt_folder_data2process+'../PTCParam/'
+dflt_outPrefix= '2019.11.25_BSI04_Tm20_dmuxSELHi_biasBSI04_02_3T_PGABBB_(:,:)_4xpix'
+'''
+#
+'''
+###################### BSI04, T-20, dmuxSELHigh, biasBSI04_03, PGA666 #############################################
+dflt_folder_data2process= '/gpfs/cfel/fsds/labs/percival/2019/calibration/20191122_000_BSI04_PTC/processed/BSI04_dmuxSELHi_biasBSI04_03_3T_PGA666_PTC/v1/avg_std/'
+if dflt_folder_data2process[-1]!='/': dflt_folder_data2process+='/'
+# tab-separated-text file, having 4 colums (file_light_avg, _light_std, _drk_avg, _drk_std)
+dflt_metaFileName= '2019.11.27_BSI04_Tm20_dmuxSELHi_biasBSI04_03_PGA_PGA666_PTC_meta.dat'
+dflt_saveFlag='Y'; #dflt_saveFlag='N';
+dflt_outFolder= dflt_folder_data2process+'../PTCParam/'
+dflt_outPrefix= '2019.11.27_BSI04_Tm20_dmuxSELHi_biasBSI04_03_3T_PGA666_(400:1000,400:1000)_x4pix'
+'''
+#
+'''
+###################### BSI04, T-20, dmuxSELHigh, biasBSI04_04, PGAB #############################################
+dflt_folder_data2process= '/gpfs/cfel/fsds/labs/percival/2020/calibration/20200312_000_BSI04_dynamicRange/processed/fullWell_ramp_fixGn0_PGABBB/avg_std/'
+if dflt_folder_data2process[-1]!='/': dflt_folder_data2process+='/'
+# tab-separated-text file, having 4 colums (file_light_avg, _light_std, _drk_avg, _drk_std)
+dflt_metaFileName= '2020.03.12_BSI04_Tm20_dmuxSELHi_biasBSI04_04_3T_PGABBB_PTC_meta.dat'
+dflt_saveFlag='Y'; dflt_saveFlag='N';
+dflt_outFolder= dflt_folder_data2process+'../PTCParam/'
+dflt_outPrefix= '2020.03.12_BSI04_Tm20_dmuxSELHi_biasBSI04_04_3T_PGABBB_(:,:)_x4pix'
+'''
+#
+'''
+###################### BSI04, T-20, dmuxSELHigh, biasBSI04_04, PGA6 #############################################
+dflt_folder_data2process= '/gpfs/cfel/fsds/labs/percival/2020/calibration/20200312_000_BSI04_dynamicRange/processed/fullWell_ramp_fixGn0_PGA666/avg_std/'
+if dflt_folder_data2process[-1]!='/': dflt_folder_data2process+='/'
+# tab-separated-text file, having 4 colums (file_light_avg, _light_std, _drk_avg, _drk_std)
+dflt_metaFileName= '2020.03.12_BSI04_Tm20_dmuxSELHi_biasBSI04_04_3T_PGA666_PTC_meta.dat'
+dflt_saveFlag='Y'; dflt_saveFlag='N';
+dflt_outFolder= dflt_folder_data2process+'../PTCParam/'
+dflt_outPrefix= '2020.03.12_BSI04_Tm20_dmuxSELHi_biasBSI04_04_3T_PGA666_(:,:)_x4pix'
+'''
+#
+##### BSI04, T-20, dmuxSELHigh, biasBSI04_05, PGA6 ####
+dflt_folder_data2process= '/gpfs/cfel/fsds/labs/percival/2020/calibration/20200505_000_BSI04_LatOvflw_PGA4or6BB/processed/PTC_BSI04_3of7ADC_biasBSI04_05_PGA6/avg_std/'
+if dflt_folder_data2process[-1]!='/': dflt_folder_data2process+='/'
+# tab-separated-text file, having 4 colums (file_light_avg, _light_std, _drk_avg, _drk_std)
+dflt_metaFileName= '2020.05.14_BSI04_Tm20_dmuxSELHi_biasBSI04_05_PTC_PGA6_meta.dat'
+dflt_saveFlag='Y'; dflt_saveFlag='N';
+dflt_outFolder= dflt_folder_data2process+'../PTCParam/'
+dflt_outPrefix= '2020.05.14_BSI04_Tm20_dmuxSELHi_biasBSI04_05_3T_PGA666_(:,:)_x4pix'
+#'''
+
+
+
+
+#
+# ...
+#
+# small region
+#dflt_Rows2proc='600:650' 
+#dflt_Cols2proc='500:550'
+
+# standard region  
+#dflt_Rows2proc='600:1150' 
+#dflt_Cols2proc='350:735'
+
+
+# optimized for FSI
+#dflt_Rows2proc='700:1100'  
+#dflt_Cols2proc='500:735' # to see all H0
+
+
+# all H0
+#dflt_Rows2proc='0:1483'  
+#dflt_Cols2proc='32:735' # to see all H0
+
+
+# all H0,H1
+dflt_Rows2proc='0:1483'  
+dflt_Cols2proc='32:1439' 
+
+
+# optimized for BSI02,H0&H1
+#dflt_Rows2proc='400:1000'  
+#dflt_Cols2proc='400:1000' 
+
+
+
+#
+dflt_fit_steps=20
+dflt_fit_minNpoints=10      # for TS was 10, but we had 3x datasets
+dflt_fit_maxSlopeDev= 0.01 # for TS was 0.01
+dflt_fit_minR2=0.9 
+#
+dflt_showFlag='Y'; dflt_showFlag='N'
+dflt_debugFlag='Y'; dflt_debugFlag='N';
+#
+dflt_highMemFlag='Y' 
+dflt_cleanMemFlag= 'Y'
+dflt_verboseFlag='Y'
+# ---
+#
+#%% pack arguments for GUI window
+GUIwin_arguments= []
+GUIwin_arguments+= ['PTC method [per pixel / per 32 pixels in same row / ... ]'] 
+GUIwin_arguments+= [dflt_PTCmethod] 
+GUIwin_arguments+= ['if per X pixels in same row: X?'] 
+GUIwin_arguments+= [dflt_Xpix]
+#
+GUIwin_arguments+= ['use data from folder'] 
+GUIwin_arguments+= [dflt_folder_data2process] 
+GUIwin_arguments+= ['metadata file'] 
+GUIwin_arguments+= [dflt_metaFileName] 
+#
+GUIwin_arguments+= ['process data: in Rows [from:to]'] 
+GUIwin_arguments+= [dflt_Rows2proc] 
+GUIwin_arguments+= ['process data: in columns [from:to]'] 
+GUIwin_arguments+= [dflt_Cols2proc] 
+#
+GUIwin_arguments+= ['brute force fit: intervals?'] 
+GUIwin_arguments+= [dflt_fit_steps] 
+GUIwin_arguments+= ['brute force fit: at least N points'] 
+GUIwin_arguments+= [dflt_fit_minNpoints] 
+GUIwin_arguments+= ['brute force fit: max relative deviation from ideal slope'] 
+GUIwin_arguments+= [dflt_fit_maxSlopeDev] 
+GUIwin_arguments+= ['brute force fit: R^2 at least'] 
+GUIwin_arguments+= [dflt_fit_minR2] 
+#
+GUIwin_arguments+= ['show results? [Y/N]']
+GUIwin_arguments+= [dflt_showFlag] 
+#
+GUIwin_arguments+= ['save results to files? [Y/N]']
+GUIwin_arguments+= [dflt_saveFlag] 
+GUIwin_arguments+= ['save results: to folder'] 
+GUIwin_arguments+= [dflt_outFolder] 
+GUIwin_arguments+= ['save results: using prefix'] 
+GUIwin_arguments+= [dflt_outPrefix]
+#
+GUIwin_arguments+= ['high memory usage? [Y/N]']
+GUIwin_arguments+= [str(dflt_highMemFlag)] 
+GUIwin_arguments+= ['clean memory when possible? [Y/N]']
+GUIwin_arguments+= [str(dflt_cleanMemFlag)] 
+GUIwin_arguments+= ['verbose? [Y/N]']
+GUIwin_arguments+= [str(dflt_verboseFlag)]
+GUIwin_arguments+= ['debug? [Y/N]']
+GUIwin_arguments+= [dflt_debugFlag]
+# ---
+#
+#%% GUI window
+GUIwin_arguments=tuple(GUIwin_arguments)
+dataFromUser= APy3_GENfuns.my_GUIwin_text(GUIwin_arguments)
+#
+i_param=0
+
+PTCmethod= dataFromUser[i_param]; i_param+=1
+Xpix= int(dataFromUser[i_param]); i_param+=1
+
+folder_data2process= dataFromUser[i_param]; i_param+=1
+metaFileName= dataFromUser[i_param]; i_param+=1
+
+Rows2proc_mtlb= dataFromUser[i_param]; i_param+=1; 
+if Rows2proc_mtlb in ['all','All','ALL',':','*','-1']: Rows2proc= numpy.arange(NRow)
+else: Rows2proc=APy3_GENfuns.matlabLike_range(Rows2proc_mtlb) 
+
+Cols2proc_mtlb= dataFromUser[i_param]; i_param+=1; 
+if Cols2proc_mtlb in ['all','All','ALL',':','*','-1']: Cols2proc= numpy.arange(NCol)
+else: Cols2proc=APy3_GENfuns.matlabLike_range(Cols2proc_mtlb)
+#
+fit_steps= int(dataFromUser[i_param]); i_param+=1; 
+fit_minNpoints= int(dataFromUser[i_param]); i_param+=1; 
+fit_maxSlopeDev= float(dataFromUser[i_param]); i_param+=1; 
+fit_minR2= float(dataFromUser[i_param]); i_param+=1; 
+#
+showFlag=APy3_GENfuns.isitYes(dataFromUser[i_param]); i_param+=1
+#
+saveFlag=APy3_GENfuns.isitYes(dataFromUser[i_param]); i_param+=1
+outFolder=  dataFromUser[i_param]; i_param+=1
+outPrefix=  dataFromUser[i_param]; i_param+=1
+#
+highMemFlag=APy3_GENfuns.isitYes(dataFromUser[i_param]); i_param+=1
+cleanMemFlag=APy3_GENfuns.isitYes(dataFromUser[i_param]); i_param+=1
+verboseFlag=APy3_GENfuns.isitYes(dataFromUser[i_param]); i_param+=1
+#
+debugFlag=APy3_GENfuns.isitYes(dataFromUser[i_param]); i_param+=1
+# ---
+#
+#%% what's up doc
+APy3_GENfuns.printcol('PTC method: '+PTCmethod,'blue')
+if PTCmethod not in aux_PTCmethodList: APy3_GENfuns.printErr('{0} not in {1}'.format(PTCmethod,str(aux_PTCmethodList)))
+APy3_GENfuns.printcol('will process data from '+folder_data2process,'blue')
+APy3_GENfuns.printcol('will use {0} as the index file'.format(metaFileName),'blue')
+APy3_GENfuns.printcol('will elaborate Cols {0}, Rows {1}'.format(Cols2proc_mtlb,Rows2proc_mtlb),'blue')
+
+APy3_GENfuns.printcol('brute forse fit: divide in {0} intervals, fit at least {1} points, with relative deviation from ideal slope no more than {2}, R^2>={3}'.format(fit_steps,fit_minNpoints,fit_maxSlopeDev,fit_minR2),'blue')
+
+if showFlag: APy3_GENfuns.printcol('will show results','blue')
+if saveFlag: APy3_GENfuns.printcol('will save results as {0}...'.format(outFolder+outPrefix),'blue')
+if highMemFlag: APy3_GENfuns.printcol('high mem use','blue')
+if cleanMemFlag: APy3_GENfuns.printcol('will clean memory when possible','blue')
+if verboseFlag: APy3_GENfuns.printcol('verbose','blue')
+
+if debugFlag: APy3_GENfuns.printcol('debug','blue')
+APy3_GENfuns.printcol("--  --  --  --",'blue')
+# ---
+#
+#%% start
+startTime = time.time()
+APy3_GENfuns.printcol("script operations beginning for real at {0}".format(APy3_GENfuns.whatTimeIsIt()),'green')
+#---
+#% read metadata file
+APy3_GENfuns.printcol("reading metadata file",'blue')
+if APy3_GENfuns.notFound(folder_data2process+metaFileName): APy3_GENfuns.printErr("not found: "+folder_data2process+metaFileName)
+fileList_all= APy3_GENfuns.read_tst(folder_data2process+metaFileName)
+i_light_avg=0; i_light_std=1; i_drk_avg=2; i_drk_std=3;
+(NSets,N4)= numpy.array(fileList_all).shape
+if N4!=4: APy3_GENfuns.printErr("metafile: {0} columns".format(N4))
+else: APy3_GENfuns.printcol("{0} Sets in metafile".format(NSets),'green')
+alldata_4DAr= numpy.zeros((N4,NSets,NRow,NCol))*numpy.NaN
+subdata_4DAr= numpy.zeros((2,NSets,NRow,NCol))*numpy.NaN ; i_avg=0; i_std=1
+#---
+#% read data files
+APy3_GENfuns.printcol("reading avg,std files",'blue')
+def read_warn_1xh5(filenamepath, path_2read):
+    if APy3_GENfuns.notFound(filenamepath): APy3_GENfuns.printErr("not found: "+filenamepath)
+    dataout= APy3_GENfuns.read_1xh5(filenamepath, path_2read)
+    return dataout
+
+for iSet in range(NSets):
+    alldata_4DAr[i_light_avg,iSet,:,:]= read_warn_1xh5(folder_data2process+fileList_all[iSet][i_light_avg], '/data/data/')
+    alldata_4DAr[i_light_std,iSet,:,:]= read_warn_1xh5(folder_data2process+fileList_all[iSet][i_light_std], '/data/data/')
+    alldata_4DAr[i_drk_avg,iSet,:,:]=   read_warn_1xh5(folder_data2process+fileList_all[iSet][i_drk_avg], '/data/data/')
+    alldata_4DAr[i_drk_std,iSet,:,:]=   read_warn_1xh5(folder_data2process+fileList_all[iSet][i_drk_std], '/data/data/')
+#
+subdata_4DAr[i_avg,:,:,:]= alldata_4DAr[i_light_avg,:,:,:]-alldata_4DAr[i_drk_avg,:,:,:]
+subdata_4DAr[i_std,:,:,:]= numpy.sqrt(numpy.abs((alldata_4DAr[i_light_std,:,:,:]**2) - (alldata_4DAr[i_drk_std,:,:,:]**2)))
+logdata_4DAr= numpy.log10(subdata_4DAr)
+#---
+#% showing images
+if showFlag&debugFlag:
+    for iSet in range(NSets): 
+        APy3_GENfuns.plot_2D_all(alldata_4DAr[i_light_avg,iSet,:,:], False, 'col','row','avg light {0}'.format(iSet), True); matplotlib.pyplot.show(block=True)
+        APy3_GENfuns.dot()
+#
+#if debugFlag:
+#    fig = matplotlib.pyplot.figure()
+#    for thisRow in Rows2proc:
+#        for thisCol in Cols2proc:
+#            matplotlib.pyplot.plot(logdata_4DAr[i_avg,:,thisRow,thisCol], logdata_4DAr[i_std,:,thisRow,thisCol], '--o', fillstyle='none')
+#            #matplotlib.pyplot.plot(numpy.log10(alldata_4DAr[i_light_avg,:,thisRow,thisCol]),numpy.log10(alldata_4DAr[i_light_std,:,thisRow,thisCol]), '--o', fillstyle='none')
+#    matplotlib.pyplot.xlabel('log10(avg) [ADU]')
+#    matplotlib.pyplot.ylabel('log10(std) [ADU]')
+#    matplotlib.pyplot.title('({0},{1})'.format(Rows2proc_mtlb,Cols2proc_mtlb)) 
+#    matplotlib.pyplot.show(block=True)
+#    
+#---
+#% brute force fitting
+APy3_GENfuns.printcol("brute force fitting, {0}".format(PTCmethod),'blue')
+out_fitADU2e_Array= numpy.zeros((NRow,NCol))*numpy.NaN
+out_fitR2_Array= numpy.zeros((NRow,NCol))*numpy.NaN
+out_able2fit= numpy.zeros((NRow,NCol))
+#
+
+#% brute force fitting, per pix
+if PTCmethod== 'per pixel':
+    for thisRow in Rows2proc:
+        for thisCol in Cols2proc:
+            logavg2fit= logdata_4DAr[i_avg,:,thisRow,thisCol]
+            logstd2fit= logdata_4DAr[i_std,:,thisRow,thisCol]
+            #"""
+            if showFlag: 
+                APy3_GENfuns.plot_1D(numpy.arange(NSets), alldata_4DAr[i_light_avg,:,thisRow,thisCol], 'coll','avg light [ADU]','({0},{1})'.format(thisRow,thisCol))
+                APy3_GENfuns.plot_1D(numpy.arange(NSets), alldata_4DAr[i_drk_avg,:,thisRow,thisCol], 'coll','avg drk [ADU]','({0},{1})'.format(thisRow,thisCol))
+                APy3_GENfuns.plot_1D(numpy.arange(NSets), logavg2fit, 'coll','log10  avg light-drk [ADU]','({0},{1})'.format(thisRow,thisCol))
+                #
+                APy3_GENfuns.plot_1D(numpy.arange(NSets), alldata_4DAr[i_light_std,:,thisRow,thisCol], 'coll','std light [ADU]','({0},{1})'.format(thisRow,thisCol))
+                APy3_GENfuns.plot_1D(numpy.arange(NSets), alldata_4DAr[i_drk_std,:,thisRow,thisCol], 'coll','std drk [ADU]','({0},{1})'.format(thisRow,thisCol))
+                APy3_GENfuns.plot_1D(numpy.arange(NSets), logstd2fit, 'coll','log10 std sqdiff [ADU]','({0},{1})'.format(thisRow,thisCol))
+                #
+                APy3_GENfuns.plot_1D(logavg2fit, logstd2fit, 'log10(avg) [ADU]','log10(std) [ADU]','({0},{1})'.format(thisRow,thisCol))
+                #
+                matplotlib.pyplot.show(block=True)
+                APy3_GENfuns.dot()
+            #"""
+            #
+            data2proc_X= logdata_4DAr[i_avg,:,thisRow,thisCol]
+            data2proc_Y= logdata_4DAr[i_std,:,thisRow,thisCol]
+            #
+            #define interval to brute-force-explore
+            minX= min(data2proc_X); maxX= max(data2proc_X)
+            intervals= APy3_GENfuns.matlabLike_range('0:'+str(fit_steps))
+            intervals=(intervals+0.0)/fit_steps
+            intervals=( intervals*(maxX-minX) ) + minX    
+           #
+           # brute-force-explore
+            bestFitT= (0,0,0.0) # istart,iend, R^2    
+            intervals_indices=range(len(intervals))
+            for iend in intervals_indices[1:]:
+                for istart in intervals_indices[:iend]:
+                    conditionList= (data2proc_X>=intervals[istart])&(data2proc_X<=intervals[iend])
+                    subdata2fit_X= data2proc_X[conditionList]; subdata2fit_Y= data2proc_Y[conditionList]
+                    if (len(subdata2fit_X)>=fit_minNpoints):
+                        (slopefit, interceptfit)= APy3_FITfuns.linear_fit(subdata2fit_X,subdata2fit_Y)
+                        errSlope= abs(slopefit-0.5)/0.5    
+                        R2val= APy3_FITfuns.linear_fit_R2(subdata2fit_X,subdata2fit_Y)
+                        if debugFlag: APy3_GENfuns.printcol('({0},{1}): ({2} points, slope={3}, R^2={4})'.format(thisRow,thisCol, len(subdata2fit_X), slopefit, R2val), 'black')    
+                        if (errSlope<=fit_maxSlopeDev)&(R2val>=fit_minR2)&(R2val>=bestFitT[2]):
+                            auxT=(istart,iend,R2val)
+                            bestFitT=auxT
+            #
+            if bestFitT[2]>=fit_minR2:
+                bestFit_istart= bestFitT[0]
+                bestFit_iend= bestFitT[1]
+                conditionList= (data2proc_X>=intervals[bestFit_istart])&(data2proc_X<=intervals[bestFit_iend])
+                subdata2fit_X= data2proc_X[conditionList]; subdata2fit_Y= data2proc_Y[conditionList]
+                Npoints=len(subdata2fit_X)            
+                (slopefit, interceptfit)= APy3_FITfuns.linear_fit(subdata2fit_X,subdata2fit_Y)
+                errSlope= abs(slopefit-0.5)/0.5
+                R2val= APy3_FITfuns.linear_fit_R2(subdata2fit_X,subdata2fit_Y)
+                out_fitADU2e_Array[thisRow,thisCol]= 10**(-interceptfit/slopefit)
+                out_fitR2_Array[thisRow,thisCol]= R2val
+                out_able2fit[thisRow,thisCol]= 1
+            if (verboseFlag):
+                if bestFitT[2]>=fit_minR2:
+                    APy3_GENfuns.printcol('({0},{1}): {2}e/ADU ({3} points, slope={4}, R^2={5})'.format(thisRow,thisCol,out_fitADU2e_Array[thisRow,thisCol], Npoints, slopefit, R2val), 'green')
+                    if (debugFlag):
+                        subdatafittedY=APy3_FITfuns.linear_fun(subdata2fit_X,slopefit,interceptfit)
+                        APy3_GENfuns.plot_1D(data2proc_X,data2proc_Y, 'log10(AVG), corrected [ADU]','log10(RMS), corrected [ADU]', 'PTC for pixel ({0},{1})'.format(thisRow,thisCol))
+                        matplotlib.pyplot.plot(subdata2fit_X,subdatafittedY,'-')
+                        matplotlib.pyplot.show()
+                else:
+                    APy3_GENfuns.printcol('({0},{1}): unable to fit'.format(thisRow,thisCol),'red')
+#
+elif PTCmethod== 'per 32 pixels in same row':
+    #%% brute force fitting, avg (per row, per goup of 32cols) in ROI
+    # note that PTC doc defines: 
+    # - avg of dark-corrected average in a ROI
+    # - avg of dark-corrected variance (sigma^2) in a ROI
+    #
+    #%% adapt col-ROI to be a multiple of 32
+    newColsROIstart= Cols2proc[0]; newColsROIendp1=Cols2proc[-1]+1
+    if Cols2proc[0]%32 !=0: 
+        newColsROIstart= Cols2proc[0]+32-(Cols2proc[0]%32)
+        APy3_GENfuns.printcol('Cols2proc array start not multiple of 32: resizing it', 'green')
+    if Cols2proc[-1]%32 !=0:
+        newColsROIendp1= Cols2proc[-1] -(Cols2proc[-1]%32) +1
+        APy3_GENfuns.printcol('Cols2proc array end not multiple of 32: resizing it', 'green')
+    if newColsROIendp1<=newColsROIstart: 
+        newColsROIendp1= newColsROIstart+32
+    if (Cols2proc[0]!=newColsROIstart)|(Cols2proc[-1]+1!=newColsROIendp1):
+        Cols2proc= numpy.arange(newColsROIstart,newColsROIendp1)
+        APy3_GENfuns.printcol('new Cols2proc array= {0}:{1}'.format(Cols2proc[0],Cols2proc[-1]), 'green')
+    #
+    Pads2proc= numpy.arange(Cols2proc[0]//32,(Cols2proc[-1]+1)//32)
+    APy3_GENfuns.printcol('Pads2proc array= {0}:{1}'.format(Pads2proc[0],Pads2proc[-1]), 'green')
+    
+    auxarray= numpy.copy(subdata_4DAr) # avg/std, set, row, col
+    auxarray[i_std,:,:,:]= auxarray[i_std,:,:,:]**2 # avg/variance, set, row, col
+    auxarray= auxarray.reshape((2,NSets,NRow,NCol//32,32)) # avg/variance, set, row, NPad,32
+    auxarray_avg= numpy.nanmean(auxarray,axis=4)# avg of along 32[pixels in the same pad, same row # avg/variance, set, row, pad
+    auxarray_avg[i_std,:,:,:]= numpy.sqrt(auxarray_avg[i_std,:,:,:]) # avg/std, set, row
+    
+    logdata_xRowAvg= numpy.log10(auxarray_avg)
+    if cleanMemFlag: del auxarray; del auxarray_avg
+    
+    for thisRow in Rows2proc:
+        for thisPad in Pads2proc:
+            fromCol=thisPad*32; toCol=(thisPad*32)+31
+            data2proc_X= logdata_xRowAvg[i_avg,:,thisRow,thisPad]
+    
+            data2proc_Y= logdata_xRowAvg[i_std,:,thisRow,thisPad]
+            #
+            #define interval to brute-force-explore
+            minX= min(data2proc_X); maxX= max(data2proc_X)
+            intervals= APy3_GENfuns.matlabLike_range('0:'+str(fit_steps))
+            intervals=(intervals+0.0)/fit_steps
+            intervals=( intervals*(maxX-minX) ) + minX
+            #
+            # brute-force-explore
+            bestFitT= (0,0,0.0) # istart,iend, R^2    
+            intervals_indices=range(len(intervals))
+            for iend in intervals_indices[1:]:
+                for istart in intervals_indices[:iend]:
+                    conditionList= (data2proc_X>=intervals[istart])&(data2proc_X<=intervals[iend])
+                    subdata2fit_X= data2proc_X[conditionList]; subdata2fit_Y= data2proc_Y[conditionList]
+                    if (len(subdata2fit_X)>=fit_minNpoints):
+                        (slopefit, interceptfit)= APy3_FITfuns.linear_fit(subdata2fit_X,subdata2fit_Y)
+                        errSlope= abs(slopefit-0.5)/0.5
+                        R2val= APy3_FITfuns.linear_fit_R2(subdata2fit_X,subdata2fit_Y)
+                        if debugFlag: APy3_GENfuns.printcol('({0},{1}:{2}): ({3} points, slope={4}, R^2={5})'.format(thisRow,fromCol,toCol, len(subdata2fit_X), slopefit, R2val), 'black')
+                        if (errSlope<=fit_maxSlopeDev)&(R2val>=fit_minR2)&(R2val>=bestFitT[2]):
+                            auxT=(istart,iend,R2val)
+                            bestFitT=auxT
+            #
+            if bestFitT[2]>=fit_minR2:
+                bestFit_istart= bestFitT[0]
+                bestFit_iend= bestFitT[1]
+                conditionList= (data2proc_X>=intervals[bestFit_istart])&(data2proc_X<=intervals[bestFit_iend])
+                subdata2fit_X= data2proc_X[conditionList]; subdata2fit_Y= data2proc_Y[conditionList]
+                Npoints=len(subdata2fit_X)            
+                (slopefit, interceptfit)= APy3_FITfuns.linear_fit(subdata2fit_X,subdata2fit_Y)
+                errSlope= abs(slopefit-0.5)/0.5
+                R2val= APy3_FITfuns.linear_fit_R2(subdata2fit_X,subdata2fit_Y)
+                out_fitADU2e_Array[thisRow,fromCol:(toCol+1)]= 10**(-interceptfit/slopefit)
+                out_fitR2_Array[thisRow,fromCol:(toCol+1)]= R2val
+                out_able2fit[thisRow,fromCol:(toCol+1)]= 1
+            if (verboseFlag):
+                if bestFitT[2]>=fit_minR2:
+                    APy3_GENfuns.printcol('({0},{1}:{2}): {3}e/ADU ({4} points, slope={5}, R^2={6})'.format(thisRow,fromCol,toCol,out_fitADU2e_Array[thisRow,fromCol], Npoints, slopefit, R2val), 'green')
+                    if (debugFlag):
+                        subdatafittedY=APy3_FITfuns.linear_fun(subdata2fit_X,slopefit,interceptfit)
+                        APy3_GENfuns.plot_1D(data2proc_X,data2proc_Y, 'log10(AVG), corrected [ADU]','log10(RMS), corrected [ADU]', 'PTC for pixel ({0},{1})'.format(thisRow,thisCol))
+                        matplotlib.pyplot.plot(subdata2fit_X,subdatafittedY,'-')
+                        matplotlib.pyplot.show()
+                else:
+                    APy3_GENfuns.printcol('({0},{1}:{2}): unable to fit'.format(thisRow,fromCol,toCol),'red')
+#
+elif PTCmethod== 'per X pixels in same row':
+    #%% brute force fitting, avg (per row, per goup of Xpix-cols) in ROI
+    # note that PTC doc defines: 
+    # - avg of dark-corrected average in a ROI
+    # - avg of dark-corrected variance (sigma^2) in a ROI
+    #
+    #%% adapt col-ROI to be a multiple of Xpix
+    APy3_GENfuns.printcol("brute force fitting, avg of {0} pixels in same row".format(Xpix),'blue')
+    newColsROIstart= Cols2proc[0]; newColsROIendp1=Cols2proc[-1]+1
+    if Cols2proc[0]%Xpix !=0: 
+        newColsROIstart= Cols2proc[0]+Xpix-(Cols2proc[0]%Xpix)
+        APy3_GENfuns.printcol('Cols2proc array start not multiple of {0}: resizing it'.format(Xpix), 'green')
+    if Cols2proc[-1]%Xpix !=0:
+        newColsROIendp1= Cols2proc[-1] -(Cols2proc[-1]%Xpix) +1
+        APy3_GENfuns.printcol('Cols2proc array end not multiple of {0}: resizing it'.format(Xpix), 'green')
+    if newColsROIendp1<=newColsROIstart: 
+        newColsROIendp1= newColsROIstart+Xpix
+    if (Cols2proc[0]!=newColsROIstart)|(Cols2proc[-1]+1!=newColsROIendp1):
+        Cols2proc= numpy.arange(newColsROIstart,newColsROIendp1)
+        APy3_GENfuns.printcol('new Cols2proc array= {0}:{1}'.format(Cols2proc[0],Cols2proc[-1]), 'green')
+    #
+    Pads2proc= numpy.arange(Cols2proc[0]//Xpix,(Cols2proc[-1]+1)//Xpix)
+    APy3_GENfuns.printcol('Pads2proc array= {0}:{1}'.format(Pads2proc[0],Pads2proc[-1]), 'green')
+    
+    auxarray= numpy.copy(subdata_4DAr) # avg/std, set, row, col
+    auxarray[i_std,:,:,:]= auxarray[i_std,:,:,:]**2 # avg/variance, set, row, col
+
+    auxarray= auxarray.reshape((2,NSets,NRow,NCol//Xpix,Xpix)) # avg/variance, set, row, NPad,Xpix
+    auxarray_avg= numpy.nanmean(auxarray,axis=4)# avg of along Xpix pixels in the same pad, same row # avg/variance, set, row, pad
+    auxarray_avg[i_std,:,:,:]= numpy.sqrt(auxarray_avg[i_std,:,:,:]) # avg/std, set, row
+    
+    logdata_xRowAvg= numpy.log10(auxarray_avg)
+    if cleanMemFlag: del auxarray; del auxarray_avg
+    
+    for thisRow in Rows2proc:
+        for thisPad in Pads2proc:
+            fromCol=thisPad*Xpix; toCol=(thisPad*Xpix)+Xpix-1
+            data2proc_X= logdata_xRowAvg[i_avg,:,thisRow,thisPad]
+    
+            data2proc_Y= logdata_xRowAvg[i_std,:,thisRow,thisPad]
+            #
+            if showFlag: 
+                APy3_GENfuns.plot_1D(data2proc_X,data2proc_Y, 'log10(avg) [ADU]','log10(std) [ADU]','({0},{1}:{2})'.format(thisRow,fromCol,toCol))
+                APy3_GENfuns.showIt()
+            #
+            #define interval to brute-force-explore
+            minX= min(data2proc_X); maxX= max(data2proc_X)
+            intervals= APy3_GENfuns.matlabLike_range('0:'+str(fit_steps))
+            intervals=(intervals+0.0)/fit_steps
+            intervals=( intervals*(maxX-minX) ) + minX
+            #
+            # brute-force-explore
+            bestFitT= (0,0,0.0) # istart,iend, R^2    
+            intervals_indices=range(len(intervals))
+            for iend in intervals_indices[1:]:
+                for istart in intervals_indices[:iend]:
+                    conditionList= (data2proc_X>=intervals[istart])&(data2proc_X<=intervals[iend])
+                    subdata2fit_X= data2proc_X[conditionList]; subdata2fit_Y= data2proc_Y[conditionList]
+                    if (len(subdata2fit_X)>=fit_minNpoints):
+                        (slopefit, interceptfit)= APy3_FITfuns.linear_fit(subdata2fit_X,subdata2fit_Y)
+                        errSlope= abs(slopefit-0.5)/0.5
+                        R2val= APy3_FITfuns.linear_fit_R2(subdata2fit_X,subdata2fit_Y)
+                        if debugFlag: APy3_GENfuns.printcol('({0},{1}:{2}): ({3} points, slope={4}, R^2={5})'.format(thisRow,fromCol,toCol, len(subdata2fit_X), slopefit, R2val), 'black')
+
+                        if (errSlope<=fit_maxSlopeDev)&(R2val>=fit_minR2)&(R2val>=bestFitT[2]):
+
+                            auxT=(istart,iend,R2val)
+                            bestFitT=auxT
+            #
+            if bestFitT[2]>=fit_minR2:
+                bestFit_istart= bestFitT[0]
+                bestFit_iend= bestFitT[1]
+                conditionList= (data2proc_X>=intervals[bestFit_istart])&(data2proc_X<=intervals[bestFit_iend])
+                subdata2fit_X= data2proc_X[conditionList]; subdata2fit_Y= data2proc_Y[conditionList]
+                Npoints=len(subdata2fit_X)            
+                (slopefit, interceptfit)= APy3_FITfuns.linear_fit(subdata2fit_X,subdata2fit_Y)
+                errSlope= abs(slopefit-0.5)/0.5
+                R2val= APy3_FITfuns.linear_fit_R2(subdata2fit_X,subdata2fit_Y)
+                out_fitADU2e_Array[thisRow,fromCol:(toCol+1)]= 10**(-interceptfit/slopefit)
+                out_fitR2_Array[thisRow,fromCol:(toCol+1)]= R2val
+                out_able2fit[thisRow,fromCol:(toCol+1)]= 1
+            if (verboseFlag):
+                if bestFitT[2]>=fit_minR2:
+                    APy3_GENfuns.printcol('({0},{1}:{2}): {3}e/ADU ({4} points, slope={5}, R^2={6})'.format(thisRow,fromCol,toCol,out_fitADU2e_Array[thisRow,fromCol], Npoints, slopefit, R2val), 'green')
+                    if (debugFlag):
+                        subdatafittedY=APy3_FITfuns.linear_fun(subdata2fit_X,slopefit,interceptfit)
+                        APy3_GENfuns.plot_1D(data2proc_X,data2proc_Y, 'log10(AVG), corrected [ADU]','log10(RMS), corrected [ADU]', 'PTC for pixel ({0},{1})'.format(thisRow,thisCol))
+                        matplotlib.pyplot.plot(subdata2fit_X,subdatafittedY,'-')
+                        matplotlib.pyplot.show()
+                else:
+                    APy3_GENfuns.printcol('({0},{1}:{2}): unable to fit'.format(thisRow,fromCol,toCol),'red')
+#   
+#
+#
+#
+#
+#
+if saveFlag: 
+    outFileName=outPrefix+'_ADU2e.h5'
+    APy3_GENfuns.write_1xh5(outFolder+outFileName, out_fitADU2e_Array, '/data/data/')
+    APy3_GENfuns.printcol('e/ADU values saved in {0}'.format(outFolder+outFileName),'green') 
+#
+APy3_GENfuns.plot_2D_all(out_fitADU2e_Array, False, 'col','row','{0} [e/ADU]'.format(outPrefix), True)
+matplotlib.pyplot.show(block=True)
+#
+# ---
+#%% that's all folks
+APy3_GENfuns.printcol("done",'blue')
+endTime=time.time()
+APy3_GENfuns.printcol("script ended at {0}".format(APy3_GENfuns.whatTimeIsIt()),'blue')
+for iaux in range(3): APy3_GENfuns.printcol("----------------",'blue')
+
+
+
+
