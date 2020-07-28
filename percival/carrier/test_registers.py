@@ -191,16 +191,16 @@ class TestUARTRegister(unittest.TestCase):
         with self.assertRaises(TypeError) as cm: self.command_reg.get_read_cmd_msg()
 
     def test_write_msg(self):
-        self.command_reg.fields.parse_map([0, 0, 0])
+        self.command_reg.fields.parse_map([0, 1, 2])
         self.assertEqual(self.command_reg.fields.device_index, 0)
         self.assertEqual(self.command_reg.fields.device_cmd, 0)
         msg = self.command_reg.get_write_cmd_msg()
         self.assertTrue(type(msg), list)
         self.assertIsInstance(msg[0], txrx.TxMessage)
         self.assertEqual(len(msg), 3)
-        expected_msg = [bytes('\x03\x3A\x00\x00\x00\x00', encoding='latin-1'),
-                        bytes('\x03\x3B\x00\x00\x00\x00', encoding='latin-1'),
-                        bytes('\x03\x3C\x00\x00\x00\x00', encoding='latin-1')]
+        expected_msg = [bytes.fromhex("02ca 00 00 00 00"),
+                        bytes.fromhex("02cb 00 00 00 01"),
+                        bytes.fromhex("02cc 00 00 00 02"),];
         for i in range(3):
             self.assertEqual(msg[i].message, expected_msg[i], msg[i].message)
 

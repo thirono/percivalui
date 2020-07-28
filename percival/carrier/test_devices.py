@@ -110,39 +110,55 @@ class TestDeviceFamilyEnum(unittest.TestCase):
         channel = MagicMock()
         channel._channel_ini.Offset = 20.0
         channel._channel_ini.Divider = 4.0
+        channel._channel_ini.Multiplier = 2.0
         channel._channel_ini.Unit = "V"
         reply_data = MagicMock()
-        reply_data.i2c_communication_error = 0
+        reply_data.i2c_communication_error = 5
         reply_data.read_value = 80
+        reply_data.sample_number = 1.0
         channel.get_value = MagicMock(return_value=reply_data)
 
         ltc2309 = LTC2309("test2", channel)
         self.assertEqual(ltc2309.name, "test2")
         self.assertEqual(ltc2309.device, "LTC2309")
+        self.assertEqual(ltc2309.unit, "V");
+        self.assertEqual(ltc2309.value, 0.0);
+        ltc2309.update();
+        self.assertEqual(ltc2309.value, (80.0-20)/4 * 2);
+
+        dct = ltc2309.status
+        self.assertAlmostEqual(dct["raw_value"], 80.0)
+        self.assertAlmostEqual(dct["sample_number"], 1.0)
+        self.assertEqual(dct["i2c_comms_error"], 5)
+        self.assertEqual(dct["unit"], "V")
+
         data = MagicMock()
         data.below_low_threshold = 1
-        data.below_extreme_low_threshold = 0
-        data.above_high_threshold = 0
-        data.above_extreme_high_threshold = 0
-        data.safety_exception_detected = 0
-        data.i2c_communication_error = 1
-        data.read_value = 200
+        data.below_extreme_low_threshold = 2
+        data.above_high_threshold = 3
+        data.above_extreme_high_threshold = 4
+        data.safety_exception_detected = 5
+        data.i2c_communication_error = 6
+        data.sample_number = 7;
+        data.read_value = 200;
         ltc2309.update(data)
 
-        self.assertAlmostEqual(ltc2309.voltage, 45.0)
+        self.assertAlmostEqual(ltc2309.value, (200-20)/4 *2)
         self.assertEqual(ltc2309.unit, "V")
-        json = ltc2309.status
-        self.assertEqual(json["unit"], "V")
-        self.assertEqual(json["device"], "LTC2309")
-        self.assertEqual(json["low_threshold"], 1)
-        self.assertEqual(json["extreme_low_threshold"], 0)
-        self.assertEqual(json["high_threshold"], 0)
-        self.assertEqual(json["extreme_high_threshold"], 0)
-        self.assertEqual(json["i2c_comms_error"], 1)
-        self.assertAlmostEqual(json["voltage"], 45.0)
-        # Update without any provided data
-        ltc2309.update()
-        self.assertAlmostEqual(ltc2309.voltage, 15.0)
+
+        dct = ltc2309.status
+        self.assertEqual(dct["device"], "LTC2309")
+        self.assertAlmostEqual(dct["value"], (200-20)/4 *2)
+        self.assertAlmostEqual(dct["raw_value"], 200.0)
+        self.assertAlmostEqual(dct["sample_number"], 7.0)
+        self.assertEqual(dct["low_threshold"], 1)
+        self.assertEqual(dct["extreme_low_threshold"], 2)
+        self.assertEqual(dct["high_threshold"], 3)
+        self.assertEqual(dct["extreme_high_threshold"], 4)
+        self.assertAlmostEqual(dct["safety_exception"], 5.0)
+        self.assertEqual(dct["i2c_comms_error"], 6)
+        self.assertEqual(dct["unit"], "V")
+
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

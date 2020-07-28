@@ -50,9 +50,9 @@ def find_file(filename):
     search_paths = os.getenv(env_config_dir, "")
     if search_paths:
         for path in search_paths.split(":"):
-            fn = os.path.abspath(str(os.path.join(path, filename)))
-            if os.path.isfile(fn):
-                return fn
+            fl = os.path.abspath(str(os.path.join(path, filename)))
+            if os.path.isfile(fl):
+                return fl
 
     # All other searches failed. We cant find this file. Raise exception.
     raise_with_traceback(IOError(errno.ENOENT, "%s: %s" % (os.strerror(errno.ENOENT), filename)))
@@ -1037,9 +1037,9 @@ class SensorDebugParameters(object):
 
     @property
     def value_map(self):
-        # Read out the section General that describes the rest of the file
         values = {}
         desc = {}
+        # item will be a tuple (key , value) from the Debug section of the config file
         for item in self._conf.items('Debug'):
             values[item[0]] = item[1]
 
