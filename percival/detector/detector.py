@@ -854,8 +854,9 @@ class PercivalDetector(object):
     def queue_command(self, command):
         # Special command case is an abort of a scan
         if not self.check_for_abort_command(command):
+            # acquire(F) says do not wait for command_lock.
             if self._command_lock.acquire(False):
-                command.activate()
+                if command: command.activate();
                 self._active_command = command
                 self._command_queue.put(command, block=False)
                 self._command_lock.release()
