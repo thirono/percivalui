@@ -533,7 +533,7 @@ class PercivalDetector(object):
         self._system_settings = SystemSettings()
         self._log.info("SystemSettings : %s", self._system_settings.settings)
 
-        self._log.info("Creating ChipRadoutSettings object")
+        self._log.info("Creating ChipReadoutSettings object")
         self._chip_readout_settings = ChipReadoutSettings()
         self._log.info("Creating ClockSettings object")
         self._clock_settings = ClockSettings()

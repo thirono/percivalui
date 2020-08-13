@@ -38,7 +38,8 @@ class UARTBlock(object):
     def is_address_valid(self, address):
         return self.start_address <= address < (self.start_address + self.words_per_entry * self.entries)
 
-
+# note CONTROL_SETTINGS, MONITORING_SETTINGS are a misnomer, and should be called
+#  CONTROL_CHANNELS and MONITORING_CHANNELS
 HEADER_SETTINGS_LEFT = UARTBlock(1, 1, 0x0000)
 CONTROL_SETTINGS_LEFT = UARTBlock(1, 4, 0x0001)
 MONITORING_SETTINGS_LEFT = UARTBlock(1, 4, 0x0005)
@@ -223,22 +224,22 @@ class DeviceCmd(Enum):
 @unique
 class DeviceFamily(Enum):
     """Enumeration of the available electronic component families"""
+    """Digital potentiometer for control"""
     AD5242 = 0
     """Digital potentiometer for control"""
     AD5263 = 1
-    """Digital potentiometer for control"""
+    """DAC for control"""
     AD5629 = 2
     """DAC for control"""
     AD5669 = 3
-    """DAC for control"""
+    """ADC for monitoring"""
     LTC2309 = 7
     """ADC for monitoring"""
     LTC2497 = 4
-    """ADC for monitoring"""
-    MAX31730 = 5
     """Temperature for monitoring"""
-    AT24CM01 = 6
+    MAX31730 = 5
     """EEPROM for on-board configuration storage"""
+    AT24CM01 = 6
 
 
 @unique
