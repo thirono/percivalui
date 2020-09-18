@@ -50,6 +50,7 @@ class Channel(object):
         self._reg_command = UARTRegister(const.COMMAND)
         self._reg_command.initialize_map([0,0,0])
         self._reg_command.fields.device_type = self._device_family_features.function.value
+        # this renaming of channel_index to device_index is dubious.
         self._reg_command.fields.device_index = self.channel_index
 
         self._reg_echo = UARTRegister(const.READ_ECHO_WORD)

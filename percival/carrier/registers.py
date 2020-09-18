@@ -45,7 +45,7 @@ class RegisterMap(object):
             map_field.extract_field_value(words)
 
     def parse_map_from_tuples(self, tuples):
-        words = [value for addr, value in tuples]
+        words = [value for (addr, value) in tuples]
         self.parse_map(words)
 
     def generate_map(self):
@@ -203,6 +203,7 @@ class MonitoringChannelMap(RegisterMap):
 
     def __init__(self):
         object.__setattr__(self, '_mem_map', {})  # This prevents infinite recursion when setting attributes
+                                                                                     #    word, num-bits, lowest-bit
         self._mem_map = {"channel_id":                   MapField("channel_id",                  0,  5, 27),
                          "board_type":                   MapField("board_type",                  0,  3, 24),
                          "component_family_id":          MapField("component_family_id",         0,  4, 20),
@@ -971,7 +972,8 @@ def generate_register_maps(registers):
     """Provides the connection between raw register maps: list of (addr, data) tuples and
     :class:`percival.carrier.registers.RegisterMap` implementations.
 
-    :param registers: List of (addr, data) register tuples
+    :param registers: List of (addr, data) register tuples, consecutive by address, 
+            describing whole registerblocks where they exist - As returned by READ_CONTROL_SOMETHING.
     :type registers: list
     :returns: A list of :class:`RegisterMap` objects
     :rtype: list
@@ -991,7 +993,7 @@ def generate_register_maps(registers):
             continue
         (name, readback_addr_block, RegisterMapClass) = CarrierUARTRegisters[uart_block]  # pylint: disable=W0612
         block_map = RegisterMapClass()
-        block_words = registers[index:index + block_map.num_words]
+        block_words = registers[index:(index + block_map.num_words)]
         try:
             block_map.parse_map_from_tuples(block_words)
         except IndexError as e:

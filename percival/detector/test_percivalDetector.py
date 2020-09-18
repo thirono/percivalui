@@ -1,10 +1,11 @@
+import unittest;
 from unittest import TestCase
 
 import os
 from percival.carrier.simulator import Simulator
 from percival.detector.detector import PercivalDetector
 
-
+@unittest.skip("need to review and fix this")
 class TestPercivalDetector(TestCase):
     def setUp(self):
         self.sim = Simulator()

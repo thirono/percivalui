@@ -14,10 +14,12 @@ class TestConfiguration(unittest.TestCase):
             find_file("config/nofile.ini")
 
         # Create a valid search path
+        fl = open("/tmp/testfile.ini", "w");
+        fl.close();
         os.environ["PERCIVAL_CONFIG_DIR"] = str("/tmp")
-        fn = find_file("ChannelParameters.ini")
+        fn = find_file("testfile.ini")
         # Verify the file is found
-        self.assertEquals(fn, "/tmp/ChannelParameters.ini")
+        self.assertEquals(fn, "/tmp/testfile.ini")
 
 
 class TestChannelParameters(unittest.TestCase):
@@ -80,7 +82,14 @@ Extreme_low_threshold = 0\n\
 Extreme_high_threshold = 4095\n\
 Low_threshold = 0\n\
 High_threshold = 4095\n\
-Monitoring = 255\n\
+Safety_action_0_select = no\n\
+Safety_action_1_select = no\n\
+Safety_action_2_select = no\n\
+Safety_action_3_select = no\n\
+Safety_action_4_select = no\n\
+Safety_action_5_select = no\n\
+Safety_action_6_select = no\n\
+Safety_action_7_select = no\n\
 Read_frequency = 1\n\
 Safety_exception_threshold = 1\n\
 Minimum_value = 0\n\
@@ -104,7 +113,14 @@ Extreme_low_threshold = 0\n\
 Extreme_high_threshold = 4095\n\
 Low_threshold = 0\n\
 High_threshold = 4095\n\
-Monitoring = 255\n\
+Safety_action_0_select = no\n\
+Safety_action_1_select = no\n\
+Safety_action_2_select = no\n\
+Safety_action_3_select = no\n\
+Safety_action_4_select = no\n\
+Safety_action_5_select = no\n\
+Safety_action_6_select = no\n\
+Safety_action_7_select = no\n\
 Read_frequency = 1\n\
 Safety_exception_threshold = 1\n\
 Minimum_value = 0\n\
@@ -133,15 +149,13 @@ Unit = \"V\"\n\
         cp.load_ini()
         self.assertEqual(str(cp), "<ChannelParameters: inifile: /tmp/ChannelNONE.ini Control channels: [] Monitoring channels: []>")
 
-    def test_config_channel_parameters(self):
-        """Checking loading of the config/Channel parameters.ini file (v. 2017.01.24)"""
-        cp = ChannelParameters("config/Channel parameters.ini")
+    def test_channel_parameters(self):
+        cp = ChannelParameters("/tmp/ChannelParameters.ini")
         cp.load_ini()
         self.assertEqual(type(cp.control_channels), list)
         self.assertEqual(type(cp.monitoring_channels), list)
-        # Channel count as per version 2017.05.05
-        self.assertEqual(len(cp.control_channels), 68)
-        self.assertEqual(len(cp.monitoring_channels), 105)
+        self.assertEqual(len(cp.control_channels), 2)
+        self.assertEqual(len(cp.monitoring_channels), 2)
 
 
 
@@ -373,36 +387,15 @@ class TestSensorCalibrationParameters(unittest.TestCase):
 
 class TestSensorDebugParameters(unittest.TestCase):
     def setUp(self):
-        self._ini_description = u"[General]\n" \
-                                u"debug<H1>=5\n" \
-                                u"debug<H0>=4\n" \
-                                u"debug<G>=3\n" \
-                                u"\n" \
-                                u"[H1]\n" \
-                                u"debug<0>=12\n" \
-                                u"debug<1>=11\n" \
-                                u"debug<2>=10\n" \
-                                u"debug<3>=9\n" \
-                                u"debug<4>=8\n" \
-                                u"\n" \
-                                u"[H0]\n" \
-                                u"debug<0>=7\n" \
-                                u"debug<1>=6\n" \
-                                u"debug<2>=5\n" \
-                                u"debug<3>=4\n" \
-                                u"\n" \
-                                u"[G]\n" \
-                                u"debug<0>=3\n" \
-                                u"debug<1>=2\n" \
-                                u"debug<2>=1\n" \
-                                u"\n"
+        self._ini_description = u"[Debug]\n"\
+                                u"debug_CLKin = 1\n"\
+                                u"debug_adcCPN = 0\n"\
+                                u"\n";
 
     def test_debug_parameters(self):
         cp = SensorDebugParameters(self._ini_description)
         cp.load_ini()
-        self.assertEqual(cp.value_map, {'H1': [12, 11, 10, 9, 8],
-                         'H0': [7, 6, 5, 4],
-                         'G': [3, 2, 1]})
+        self.assertEqual(cp.value_map, {'debug_CLKin': '1', 'debug_adcCPN': '0'})
 
 
 if __name__ == '__main__':

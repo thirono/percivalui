@@ -533,7 +533,7 @@ class PercivalDetector(object):
         self._system_settings = SystemSettings()
         self._log.info("SystemSettings : %s", self._system_settings.settings)
 
-        self._log.info("Creating ChipRadoutSettings object")
+        self._log.info("Creating ChipReadoutSettings object")
         self._chip_readout_settings = ChipReadoutSettings()
         self._log.info("Creating ClockSettings object")
         self._clock_settings = ClockSettings()
@@ -854,8 +854,9 @@ class PercivalDetector(object):
     def queue_command(self, command):
         # Special command case is an abort of a scan
         if not self.check_for_abort_command(command):
+            # acquire(F) says do not wait for command_lock.
             if self._command_lock.acquire(False):
-                command.activate()
+                if command: command.activate();
                 self._active_command = command
                 self._command_queue.put(command, block=False)
                 self._command_lock.release()

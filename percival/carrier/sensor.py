@@ -18,36 +18,6 @@ from percival.carrier.errors import PercivalControlDeviceError
 
 import logging
 
-class SensorDac(object):
-    """
-    Represent a sensor DAC
-    """
-    def __init__(self, dac_ini):
-        self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
-        self._log.debug("Sensor DAC created %s", dac_ini)
-        self._config = dac_ini
-        self._raw_value = 0
-
-    @property
-    def name(self):
-        return self._config["Channel_name"]
-
-    @property
-    def buffer_index(self):
-        return self._config["Buffer_index"]
-
-    def set_value(self, value):
-        self._log.debug("DAC [%s] value set to %d", self._config["Channel_name"], value)
-        self._raw_value = value
-
-    def to_buffer_word(self):
-        # Raw value is ANDed with number of bits and offset
-        bit_mask = (2 ** self._config["Bit_size"]) - 1
-        buffer_value = self._raw_value & bit_mask
-        buffer_value = buffer_value << self._config["Bit_offset"]
-        self._log.debug("Buffer value returned %d", buffer_value)
-        return buffer_value
-
 
 class Sensor(object):
     """
@@ -65,51 +35,6 @@ class Sensor(object):
         self._dacs_register_map = SensorDACMap()
         self._dacs_register_map.parse_map([0, 0, 0, 0, 0, 0, 0])
         self._buffer_words = {}
-
-#    @property
-#    def dacs(self):
-#        return self._dacs
-
-#    def add_dac(self, dac_ini):
-#        """
-#        Add a DAC to the sensor set.
-#        :param dac_ini:
-#        :return:
-#        """
-#        # Create the SensorDAC object from the initialisation values
-#        dac = SensorDac(dac_ini)
-#        self._log.debug("Adding DAC [%s] to sensor", dac.name)
-#        self._dacs[dac.name] = dac
-#        # Keep a list of dac names for each buffer index
-#        if dac.buffer_index not in self._buffer_words:
-#            self._buffer_words[dac.buffer_index] = []
-#
-#        # Append the name to the relevant buffer index store
-#        self._buffer_words[dac.buffer_index].append(dac.name)
-
-#    def set_dac(self, dac_name, value):
-#        """
-#        Set a DAC value ready for writing to the hardware.
-#        Sensor DAC values are written by buffer transfer so must all be set prior
-#        to a write
-#        :param dac_name:
-#        :param value:
-#        :return:
-#        """
-#        self._log.debug("Setting sensor DAC [%s] value: %d", dac_name, value)
-#        if dac_name in self._dacs:
-#            self._dacs[dac_name].set_value(value)
-
-#    def _generate_dac_words(self):
-#        # Create the set of words ready for the buffer write command
-#        words = []
-#        for index in sorted(self._buffer_words):
-#            word_value = 0
-#            for dac_name in self._buffer_words[index]:
-#                word_value += self._dacs[dac_name].to_buffer_word()
-#
-#            words.append(word_value)
-#        return words
 
     def configuration_values_to_word(self, size, values):
         self._log.debug("Combining sensor values into 32 bit word")
@@ -133,13 +58,6 @@ class Sensor(object):
             value = (value << size) + (values[index] & mask)
         value <<= extra_shift
         return value
-
-#    def apply_dac_values(self):
-#        # Generate the words and write to the buffer
-#        # Send the appropriate buffer command
-#        words = self._generate_dac_words()
-#        self._log.debug("Applying sensor DAC values: %s", words)
-#        self._buffer_cmd.send_dacs_setup_cmd(words)
 
     def apply_dac_values(self, config):
         self._log.debug("Sensor DAC configuration: %s", config)
@@ -217,6 +135,12 @@ class Sensor(object):
         return value
 
     def apply_debug(self, debug):
+        """
+        The documentation says nothing about this; info was gathered on the phone.
+        It seems that you create a 6-bitmask with
+         (CLKin, adcCPN, CPNI, sr7SC, SC, dmxSEL) which come from the ini file,
+        and this is put into all of the 9x5 H0, H1, G slots in the debug block. 
+        """
         self._log.debug("Applying sensor debug: %s", debug)
         debug_value = 0
         if 'debug_dmxSEL' in debug:
@@ -231,7 +155,7 @@ class Sensor(object):
             debug_value |= self.parse_debug_flag(debug['debug_adcCPN'])<<4
         if 'debug_CLKin' in debug:
             debug_value |= self.parse_debug_flag(debug['debug_CLKin'])<<5
-        self._log.debug("Debug value to set: %d", debug_value)
+        self._log.debug("Debug value to set: 0x%x", debug_value)
         words = []
         for index in range(0, 9):
             words.append(self.configuration_values_to_word(6, [debug_value,
