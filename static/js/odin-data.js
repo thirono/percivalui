@@ -154,8 +154,8 @@ function process_fp_error(response)
 
 $(document).ready(function()
 {
-    setInterval(read_fr_status, 500);
-    setInterval(read_fp_status, 500);
+    setInterval(read_fr_status, 5000);
+    setInterval(read_fp_status, 5000);
     $('#fp-start-cmd').on('click', function(event){
       start_fp_writing();
     });

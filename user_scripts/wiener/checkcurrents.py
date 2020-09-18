@@ -28,10 +28,11 @@ def fetch(key):
 
 parser = argparse.ArgumentParser(description="check voltages / currents on wiener");
 
-parser.add_argument("-voltages", action="store_true", help="check terminal voltage levels u0-u101 are ok");
+parser.add_argument("-voltageszero", action="store_true", help="check terminal voltage levels u0-u101 are zero");
+parser.add_argument("-voltages", action="store_true", help="check terminal voltage levels u0-u101 are on");
 parser.add_argument("-pwbon", action="store_true", help="check currents ok for powerboard on");
 parser.add_argument("-headon", action="store_true", help="check currents ok for head on");
-parser.add_argument("-waddr", action="store", help="set wiener ip, defaults to 172.23.16.179");
+parser.add_argument("-waddr", action="store", help="set wiener ip, defaults to {}".format(WIENER_IP));
 
 args = parser.parse_args();
 
@@ -41,8 +42,33 @@ if args.waddr:
 
 rc = 0;
 
+if args.voltageszero:
+    print "checking terminal voltages zero...";
+    volt = fetch("outputMeasurementTerminalVoltage.u0");
+    rc += (volt!=0.0);
+    volt = fetch("outputMeasurementTerminalVoltage.u1");
+    rc += (volt!=0.0);
+    volt = fetch("outputMeasurementTerminalVoltage.u2");
+    rc += (volt!=0.0);
+    volt = fetch("outputMeasurementTerminalVoltage.u3");
+    rc += (volt!=0.0);
+    volt = fetch("outputMeasurementTerminalVoltage.u4");
+    rc += (volt!=0.0);
+    volt = fetch("outputMeasurementTerminalVoltage.u5");
+    rc += (volt!=0.0);
+    volt = fetch("outputMeasurementTerminalVoltage.u6");
+    rc += (volt!=0.0);
+    volt = fetch("outputMeasurementTerminalVoltage.u7");
+    rc += (volt!=0.0);
+    volt = fetch("outputMeasurementTerminalVoltage.u100");
+    rc += (volt!=0.0);
+    volt = fetch("outputMeasurementTerminalVoltage.u101");
+    rc += (volt!=0.0);
+    if 0<rc:
+        print "Error {} channels have non-zero volts".format(rc);
+
 if args.voltages:
-    print "checking terminal voltages ok";
+    print "checking terminal voltages on...";
     volt = fetch("outputMeasurementTerminalVoltage.u0");
     if volt<3.6 or volt>4.2:
         print "Error v0 out of range", volt;
@@ -86,7 +112,7 @@ if args.voltages:
 
 
 if args.pwbon:
-    print "checking currents ok pwbon";
+    print "checking currents pwbon...";
     cur = fetch("outputMeasurementCurrent.u0");
     if cur>0.010:
         print "Error current u0 out of range", cur;
@@ -129,7 +155,7 @@ if args.pwbon:
         rc += 1;
 
 if args.headon:
-    print "checking currents ok headon";
+    print "checking currents headon...";
     cur = fetch("outputMeasurementCurrent.u0");
     # upper bound is 2.6 for POWERUP and 2.8 for OPERATIONAL
     if cur<2.2 or cur>2.8:
@@ -149,7 +175,7 @@ if args.headon:
         print "Error current u101 out of range", cur;
         rc += 1;
 
-if args.headon==False and args.pwbon==False and args.voltages==False:
+if args.headon==False and args.pwbon==False and args.voltages==False and args.voltageszero==False:
     print "warning: script run but no action specified";
     
 exit(rc);
