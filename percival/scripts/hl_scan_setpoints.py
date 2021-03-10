@@ -13,7 +13,8 @@ from percival.scripts.util import PercivalClient
 
 
 def options():
-    desc = """Scan over set-points.  Dwell at each point.
+    desc = """Scan over set-points.  Sleep at each interpolated step between the set-points according to delay.
+    Only devices that change between the setpoints are touched; see hl-apply-setpoints.
     """
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument("-a", "--address", action="store", default="127.0.0.1:8888",
