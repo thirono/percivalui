@@ -213,7 +213,7 @@ class PercivalParameters(object):
         self._monitor_group_params.load_ini()
 
     def load_setpoint_group_ini(self, filename):
-        # Create the ini object from either filename or raw file
+        # Create the ini object from either filename or string
         self._setpoint_group_params = SetpointGroupParameters(filename)
         self._setpoint_group_params.load_ini()
 
@@ -1173,7 +1173,7 @@ class PercivalDetector(object):
         :param timeout: Timeout for the set operation
         :type timeout: double
         """
-        self._log.info("Setting %s to %d", device, value)
+        self._log.debug("Setting dev %s to %d", device, value)
         if device in self._controls:
             self._controls[device].set_value(value, timeout)
 
@@ -1363,9 +1363,7 @@ class PercivalDetector(object):
 
     def update_status(self):
         """
-        Update the status of the monitor devices.
-        The values shortcut is read out from the hardware and the status of all
-        monitors is updated appropriately.
+        Return the status of the monitor devices.
         """
         self._log.info("Update status callback called")
         status_msg = {}

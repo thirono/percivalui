@@ -29,7 +29,8 @@ class SetPointControl(object):
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._detector = detector
         self._set_point_ini = None
-        self._sp_dict = {}
+        # this is a lookup of strings: setpointname 2 setpointExcelName which is the key in the ini functions
+        self._name2name = {}
         self._executing = False
         self._scanning = False
         self._start_scan = threading.Event()
@@ -40,16 +41,17 @@ class SetPointControl(object):
         self._scan_delay = 0.0
         self._scan_steps = 0
         self._thread = None
-        self._scan_points = None
+        self._dev2steps = None
         self._error = None
         self._log.info("SetPointControl object created")
 
+    # this takes a SetpointGroupParameters object
     def load_ini(self, set_point_ini):
         if set_point_ini:
             self._log.info("Ini loaded for setpoints: %s", set_point_ini)
             self._set_point_ini = set_point_ini
             for section in self._set_point_ini.sections:
-                self._sp_dict[self._set_point_ini.get_name(section)] = section
+                self._name2name[self._set_point_ini.get_name(section)] = section
 
     def start_scan_loop(self):
         if not self._executing:
@@ -72,23 +74,23 @@ class SetPointControl(object):
 
     @property
     def set_points(self):
-        return self._sp_dict.keys()
+        return self._name2name.keys()
 
     def get_description(self, set_point):
-        return self._set_point_ini.get_description(self._sp_dict[set_point])
+        return self._set_point_ini.get_description(self._name2name[set_point])
 
     def apply_set_point(self, set_point, device_list=None):
         self._log.info("Apply set point called with: %s", set_point)
         self._log.info("Set point names: %s", self.set_points)
         if set_point in self.set_points:
-            sps = self._set_point_ini.get_setpoints(self._sp_dict[set_point])
+            sps = self._set_point_ini.get_setpoints(self._name2name[set_point])
             self._log.info("Set points: %s", sps)
             # If device_list is left as default then apply all values in the set_point
             if not device_list:
-                for sp in sps:
-                    value = int(float(sps[sp]))
-                    self._log.info("Applying set_point [%s] = %d", sp, value)
-                    self._detector.set_value(sp, value)
+                for dv in sps:
+                    value = int(float(sps[dv]))
+                    self._log.info("Applying set_point [%s] = %d", dv, value)
+                    self._detector.set_value(dv, value)
             elif isinstance(device_list, list):
                 # Iterate through the list setting the set point
                 for item in device_list:
@@ -105,53 +107,54 @@ class SetPointControl(object):
 
     def scan_set_points(self, set_points, steps, delay, device_list=None):
         # Need to create a dictionary of discrete position steps for each channel
-        set_point_map = {}
+        dev2setpoints = {}
         for set_point in set_points:
             if set_point in self.set_points:
-                sps = self._set_point_ini.get_setpoints(self._sp_dict[set_point])
+                sps = self._set_point_ini.get_setpoints(self._name2name[set_point])
                 # If device_list is left as default then append all values in the set_point
                 if not device_list:
-                    for sp in sps:
-                        value = int(float(sps[sp]))
-                        self._log.info("Construct scan over set_point [%s] = %d", sp, value)
-                        if sp not in set_point_map:
-                            set_point_map[sp] = []
-                        set_point_map[sp].append(value)
+                    for dv in sps:
+                        value = int(float(sps[dv]))
+                        self._log.info("Construct scan over set_point [%s] = %d", dv, value)
+                        if dv not in dev2setpoints:
+                            dev2setpoints[dv] = []
+                        dev2setpoints[dv].append(value)
                 elif isinstance(device_list, list):
                     # Iterate through the list appending the set point
                     for item in device_list:
                         if item in sps:
                             self._log.debug("Construct scan over set_point [%s] = %d", item, sps[item])
-                            if item not in set_point_map:
-                                set_point_map[item] = []
-                            set_point_map[item].append(sps[item])
+                            if item not in dev2setpoints:
+                                dev2setpoints[item] = []
+                            dev2setpoints[item].append(sps[item])
                 else:
                     # Single item requested, so append the set point
                     if device_list in sps:
                         item = device_list
                         self._log.debug("Construct scan over set_point [%s] = %d", item, sps[item])
-                        if item not in set_point_map:
-                            set_point_map[item] = []
-                        set_point_map[item].append(sps[item])
+                        if item not in dev2setpoints:
+                            dev2setpoints[item] = []
+                        dev2setpoints[item].append(sps[item])
             else:
                 # Serious error, generate exception
                 self._log.error("The set point [%s] is not available", set_point)
                 raise ValueError("Set point is not available", set_point)
-        self._log.debug("Setpoints: %s", set_point_map)
+        self._log.debug("Setpoints: %s", dev2setpoints)
         # Now use the steps value to create the full scan range
-        self._scan_points = {}
-        for sp in set_point_map:
-            self._scan_points[sp] = numpy.empty([0], dtype=float)
-            if len(set_point_map[sp]) < 2:
+        # rename this device2scanpoints
+        self._dev2steps = {}
+        for dv in dev2setpoints:
+            self._dev2steps[dv] = numpy.empty([0], dtype=float)
+            if len(dev2setpoints[dv]) < 2:
                 # Serious error, generate exception
                 self._log.error("Invalid set point values given, check they map the same devices")
                 raise ValueError("Invalid set point values given, check they map the same devices")
-            for index in range(0, len(set_point_map[sp])-1):
-                start_value = set_point_map[sp][index]
-                stop_value = set_point_map[sp][index+1]
-                self._scan_points[sp] = numpy.append(self._scan_points[sp],
+            for index in range(0, len(dev2setpoints[dv])-1):
+                start_value = dev2setpoints[dv][index]
+                stop_value = dev2setpoints[dv][index+1]
+                self._dev2steps[dv] = numpy.append(self._dev2steps[dv],
                                                      numpy.linspace(start_value, stop_value, steps, dtype=int))
-        self._log.debug("Scan description: %s", self._scan_points)
+        self._log.debug("Scan description: %s", self._dev2steps)
         self._scan_delay = float(delay) / 1000.0
         self._scan_steps = steps
         # Now that the set of scan points have been generated for each device notify the scan_loop
@@ -166,48 +169,48 @@ class SetPointControl(object):
     def safety_scan_set_point(self, set_point, steps, delay, device_list=None):
         # Need to create a dictionary of discrete position steps for each channel
         self._log.info("!!! Safety scan initiated to setpoint %s !!!", set_point)
-        set_point_map = {}
+        dev2setpoints = {}
         if set_point in self.set_points:
-            sps = self._set_point_ini.get_setpoints(self._sp_dict[set_point])
+            sps = self._set_point_ini.get_setpoints(self._name2name[set_point])
             # If device_list is left as default then append all values in the set_point
             if not device_list:
-                for sp in sps:
-                    value = int(float(sps[sp]))
-                    self._log.info("Construct scan over set_point [%s] = %d", sp, value)
-                    if sp not in set_point_map:
-                        set_point_map[sp] = []
-                    set_point_map[sp].append(value)
+                for dv in sps:
+                    value = int(float(sps[dv]))
+                    self._log.info("Construct scan over set_point [%s] = %d", dv, value)
+                    if dv not in dev2setpoints:
+                        dev2setpoints[dv] = []
+                    dev2setpoints[dv].append(value)
             elif isinstance(device_list, list):
                 # Iterate through the list appending the set point
                 for item in device_list:
                     if item in sps:
                         self._log.debug("Construct scan over set_point [%s] = %d", item, sps[item])
-                        if item not in set_point_map:
-                            set_point_map[item] = []
-                        set_point_map[item].append(sps[item])
+                        if item not in dev2setpoints:
+                            dev2setpoints[item] = []
+                        dev2setpoints[item].append(sps[item])
             else:
                 # Single item requested, so append the set point
                 if device_list in sps:
                     item = device_list
                     self._log.debug("Construct scan over set_point [%s] = %d", item, sps[item])
-                    if item not in set_point_map:
-                        set_point_map[item] = []
-                    set_point_map[item].append(sps[item])
+                    if item not in dev2setpoints:
+                        dev2setpoints[item] = []
+                    dev2setpoints[item].append(sps[item])
         else:
             # Serious error, generate exception
             self._log.error("The set point [%s] is not available", set_point)
             raise ValueError("Set point is not available", set_point)
 
-        self._log.debug("Setpoints: %s", set_point_map)
+        self._log.debug("Setpoints: %s", dev2setpoints)
         # Now use the steps value to create the full scan range
-        self._scan_points = {}
-        for sp in set_point_map:
-            self._scan_points[sp] = numpy.empty([0], dtype=float)
-            start_value = self._detector.get_value(sp)
-            stop_value = set_point_map[sp][0]
-            self._scan_points[sp] = numpy.append(self._scan_points[sp],
+        self._dev2steps = {}
+        for dv in dev2setpoints:
+            self._dev2steps[dv] = numpy.empty([0], dtype=float)
+            start_value = self._detector.get_value(dv)
+            stop_value = dev2setpoints[dv][0]
+            self._dev2steps[dv] = numpy.append(self._dev2steps[dv],
                                                  numpy.linspace(start_value, stop_value, steps, dtype=int))
-        self._log.debug("Scan description: %s", self._scan_points)
+        self._log.debug("Scan description: %s", self._dev2steps)
         self._scan_delay = float(delay) / 1000.0
         self._scan_steps = steps
         # Now that the set of scan points have been generated for each device notify the scan_loop
@@ -242,13 +245,13 @@ class SetPointControl(object):
             # Main loop of set-point scan
             # Apply the current set of set-points
             if self._scanning:
-                for sp in self._scan_points:
+                for dv in self._dev2steps:
                     try:
                         # For a scan index of greater than 0 check to see if we are being asked to scan to the
                         # same point.  If we are then do not actually send the demand
-                        if self._scan_index == 0 or int(self._scan_points[sp][self._scan_index]) != \
-                                    int(self._scan_points[sp][self._scan_index - 1]):
-                            self._detector.set_value(sp, int(self._scan_points[sp][self._scan_index]))
+                        if self._scan_index == 0 or int(self._dev2steps[dv][self._scan_index]) != \
+                                    int(self._dev2steps[dv][self._scan_index - 1]):
+                            self._detector.set_value(dv, int(self._dev2steps[dv][self._scan_index]))
                     except Exception as ex:
                         # Caught an exception whilst scanning, so exit out and set error
                         self._scanning = False
@@ -275,7 +278,7 @@ class SetPointControl(object):
             "scanning": self._scanning,
             "scan_index": self._scan_index
         }
-        if self._scan_points:
-            status["scan"] = str(self._scan_points)
+        if self._dev2steps:
+            status["scan"] = str(self._dev2steps)
         self._log.debug("Status: %s", status)
         return status

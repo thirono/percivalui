@@ -36,6 +36,8 @@ class RegisterMap(object):
     def __getitem__(self, item):
         return self._mem_map[item]
 
+    # words is a list of 32-bit words that are the words you want in the register, verbatim.
+    # the words are split into the various fields by this functions.
     def parse_map(self, words):
         if len(words) != self.num_words:
             raise_with_traceback(IndexError("Map must contain %d words. Got only %d" % (self.num_words, len(words))))

@@ -9,6 +9,7 @@ from future.utils import raise_with_traceback
 import logging
 import binascii
 import socket
+
 from contextlib import contextmanager
 from multiprocessing import Lock
 
@@ -42,11 +43,11 @@ class TxMessage(object):
     def __init__(self, message, num_response_msg=1, expect_eom=False):
         """ TxMessage constructor
         
-            :param message: A Percival Carrier Board message contain address (2 bytes) and data (4 bytes)
+            :param message: A Percival Carrier Board message contains address (2 bytes) and data (4 bytes)
             :type message: bytearray
             :param num_response_msg: Number of messages to expect in response
             :param num_response_msg: int
-            :param expect_eom: set true if an end-of-message is expected in response
+            :param expect_eom: set true if end-of-message is expected to be the response
             :type expect_eom: boolean
         """
         self.num_response_msg = num_response_msg
@@ -77,12 +78,12 @@ class TxMessage(object):
             return True
 
     def __repr__(self):
-        s = "<TxMessage msg=0x%s %d bytes %s>"%(binascii.hexlify(self._message).upper(),
+        s = "<TxMessage msg=0x%s %d msgs %s>"%(binascii.hexlify(self._message).upper(),
                                                                self.num_response_msg, bool(self._expect_eom))
         return s
         
     def __str__(self, *args, **kwargs):
-        s = "<TxMessage msg=0x%s exp. resp.: %d bytes EOM: %s>"%(binascii.hexlify(self._message).upper(),
+        s = "<TxMessage msg=0x%s exp. resp.: %d msgs, EOM: %s>"%(binascii.hexlify(self._message).upper(),
                                                                self.num_response_msg, bool(self._expect_eom))
         return s
 
@@ -122,12 +123,12 @@ class TxRx(object):
             try:
                 self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.sock.settimeout(timeout)
-                self.log.debug("connecting to FPGA: %s", str(self._fpga_addr))
+                self.log.debug("connecting to FPGA at %s", str(self._fpga_addr))
                 self.sock.connect(self._fpga_addr)
                 self._connected = True
             except Exception as ex:
                 # Any kind of exception will result in non-connection and so set status accordingly
-                self.log.debug("Unable to connect to FPGA: %s", ex)
+                self.log.error("Unable to connect to FPGA: %s", ex)
                 self._connected = False
 
     def get_status(self):
@@ -163,6 +164,8 @@ class TxRx(object):
         """
         if self._connected:
             try:
+              #  txt = binascii.hexlify(msg);
+                self.log.debug("sending %s", binascii.hexlify(msg));
                 self.sock.sendall(msg)
             except socket.error as e:
                 self._connected = False
@@ -173,10 +176,10 @@ class TxRx(object):
             raise raise_with_traceback(PercivalCommsError("Socket not connected"))
 
     def rx_msg(self, expected_bytes = None):
-        """Receive messages of up to `expected_bytes` length
+        """Receive messages of `expected_bytes` length
         
-        :param expected_bytes: Number of bytes expected to be received. If `expected_bytes`
-                               is None, read at least one single message
+        :param expected_bytes: Number of bytes to be received. If `expected_bytes`
+                               is None, read one single message of size NUM_BYTES_PER_MSG
         :raises `PercivalCommsError`: if the socket connection appears to be broken
         :returns: The received message
         :rtype:   bytearray
@@ -206,10 +209,12 @@ class TxRx(object):
                     self.clean()
                     raise raise_with_traceback(
                         PercivalCommsError("socket connection broken (expected a multiple of 6 bytes)"))
-                msg = msg + chunk
+                msg = msg + chunk;
+                self.log.debug("receiving %s", binascii.hexlify(chunk));
         else:
             self._connected = False
             raise raise_with_traceback(PercivalCommsError("Socket not connected"))
+        self.log.debug(" ie response: %s", hexify(msg))
         return msg
 
     def send_recv(self, msg, expected_bytes = None):
@@ -218,7 +223,7 @@ class TxRx(object):
         :param msg: UART message to send
         :type  msg: bytearray
         :param expected_bytes: Number of bytes expected to be received. If `expected_bytes`
-                               is None, read at least one single message
+                               is None, read one message
         :raises `PercivalCommsError`: if the socket connection appears to be broken
         :returns:   Response from UART
         :rtype:     bytearray
@@ -256,7 +261,6 @@ class TxRx(object):
         :retuns: Response from UART as a list of tuples: [(address, data)...]
         :rtype:  list
         """
-        self.log.debug("Sending:   %s", message)
         if not isinstance(message, TxMessage):
             raise TypeError("message must be of type TxMessage, not %s"%str(type(message)))
 
@@ -279,7 +283,6 @@ class TxRx(object):
                     raise
             result = decode_message(resp)
 
-            self.log.debug(" response: %s", hexify(result))
             # Check for expected response
             if not message.validate_eom(resp):
                 raise PercivalProtocolError("Expected EOM on TxMessage: %s - got %s"%(str(message), str(result)))

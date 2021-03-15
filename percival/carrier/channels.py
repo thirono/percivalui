@@ -94,7 +94,7 @@ class Channel(object):
         sends it through the txrx object to the Percival hardware, returning any
         response.
 
-        :param cmd: command to encode
+        :param cmd: command to encode, probably an int / Enum from const.py
         :type  cmd: DeviceCmd
         :returns: list of (address, dataword) tuples
         """
@@ -212,6 +212,7 @@ class ControlChannel(Channel):
                                              self._channel_ini.Channel_name,
                                              value,
                                              self._reg_control_settings.fields.channel_range_max)
+        # we need to remove these no_op commands.
         self.cmd_no_operation()
         self.cmd_control_set_value(value)
         self.cmd_no_operation()

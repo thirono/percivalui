@@ -713,6 +713,7 @@ class SetpointGroupParameters(object):
                 break
         return desc
 
+    # this needs renaming eg get_devices2values
     def get_setpoints(self, section):
         sps = {}
         for item in self.conf.items(section):

@@ -26,11 +26,11 @@ msg_packer = struct.Struct(SINGLE_MSG_FMT)
 
 
 def encode_message(addr, word):
-    """Encode a single address and dataword into a bytearray of 6 bytes with address and dataword encoded
+    """Encode a single address and dataword into a bytes-obj of 6 bytes with address and dataword encoded
     
     :param addr: UART address (16bit integer)
     :param word: data word (32bit integer)
-    :returns: bytearray
+    :returns: object of type bytes (or future.types.newbytes.newbytes)
     """
     logger.debug("%s", ([addr, word]))
     encoded_msg = msg_packer.pack(addr, word)

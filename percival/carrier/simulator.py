@@ -16,11 +16,12 @@ from datetime import datetime
 from builtins import bytes    # pylint: disable=W0622
 from percival.carrier.encoding import DATA_ENCODING, END_OF_MESSAGE
 from percival.carrier.encoding import (encode_message, decode_message)
-from percival.log import log
+from percival.log import logger
 from percival.carrier.const import *
 
 board_ip_port = 10001
 
+log = logger("percival.carrier.simulator");
 
 def bytes_to_str(byte_list):
     return "".join([chr(b) for b in byte_list])
@@ -223,7 +224,7 @@ class Simulator(object):
         The address space is empty on startup just like the Carrier.
         The function return when the client disconnects.
         """
-        log.info("Listening for connections...")
+        log.info("Listening for connections on %d...", board_ip_port);
         # Accept connections
         (client_sock, address) = self.server_sock.accept()
         log.info("Client connected: %s", str(address))
@@ -234,7 +235,7 @@ class Simulator(object):
 
         # set_value = 0
         chunk = client_sock.recv(block_read_bytes)
-        log.info("Here!")
+
         while len(chunk) > 0:
             if isinstance(chunk, str):
                 chunk = bytes(chunk, encoding=DATA_ENCODING)
@@ -254,7 +255,7 @@ class Simulator(object):
                     client_sock.send(msg)
                 else:
                     if a in self.eoms:
-                        log.info("EOM required")
+                        log.info("required to send EOM back")
                         # We need to send FFFFABBABAC1 as an end of message
                         log.info("Sending 0xFFFFABBABAC1")
                         client_sock.send(END_OF_MESSAGE)
