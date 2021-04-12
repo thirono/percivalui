@@ -123,7 +123,7 @@ class TxRx(object):
             try:
                 self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.sock.settimeout(timeout)
-                self.log.debug("connecting to FPGA at %s", str(self._fpga_addr))
+                self.log.info("connecting to FPGA at %s", str(self._fpga_addr))
                 self.sock.connect(self._fpga_addr)
                 self._connected = True
             except Exception as ex:

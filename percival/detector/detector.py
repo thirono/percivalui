@@ -1173,7 +1173,7 @@ class PercivalDetector(object):
         :param timeout: Timeout for the set operation
         :type timeout: double
         """
-        self._log.debug("Setting dev %s to %d", device, value)
+        self._log.info("Setting dev %s to %d", device, value)
         if device in self._controls:
             self._controls[device].set_value(value, timeout)
 

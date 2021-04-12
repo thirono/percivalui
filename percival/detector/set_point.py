@@ -107,6 +107,7 @@ class SetPointControl(object):
 
     def scan_set_points(self, set_points, steps, delay, device_list=None):
         # Need to create a dictionary of discrete position steps for each channel
+        self._log.info("Scan setpoints: %s", str(set_points));
         dev2setpoints = {}
         for set_point in set_points:
             if set_point in self.set_points:
@@ -115,7 +116,7 @@ class SetPointControl(object):
                 if not device_list:
                     for dv in sps:
                         value = int(float(sps[dv]))
-                        self._log.info("Construct scan over set_point [%s] = %d", dv, value)
+                        self._log.debug("Construct scan over set_point [%s] = %d", dv, value)
                         if dv not in dev2setpoints:
                             dev2setpoints[dv] = []
                         dev2setpoints[dv].append(value)
@@ -266,7 +267,7 @@ class SetPointControl(object):
                     self._scanning = False
 
             if self._scanning:
-                self._log.debug("Pausing for %f seconds", self._scan_delay)
+                self._log.info("Pausing for %f seconds", self._scan_delay)
                 # Wait for either a stop scan or the calculated time delay
                 self._stop_scan.wait(self._scan_delay)
                 self._stop_scan.clear()
