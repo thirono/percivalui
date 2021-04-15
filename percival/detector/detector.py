@@ -597,7 +597,7 @@ class PercivalDetector(object):
         Creates a SystemCommand instance which can be used to send system commands to the hardware.
         """
         self._log.info("Carrier IP set as: %s", self._percival_params.carrier_ip)
-        self._txrx = TxRx(self._percival_params.carrier_ip)
+        self._txrx = TxRx(self._percival_params.carrier_ip, port=10001)
         self._board_settings[const.BoardTypes.left] = BoardSettings(self._txrx, const.BoardTypes.left)
         self._board_settings[const.BoardTypes.bottom] = BoardSettings(self._txrx, const.BoardTypes.bottom)
         self._board_settings[const.BoardTypes.carrier] = BoardSettings(self._txrx, const.BoardTypes.carrier)

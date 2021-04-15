@@ -20,7 +20,7 @@ from percival.log import logger
 from percival.carrier.const import *
 import binascii;
 
-board_ip_port = 10001
+board_ip_port = 10002
 
 log = logger("percival.carrier.simulator");
 
@@ -229,6 +229,7 @@ class Simulator(object):
         # Accept connections
         (client_sock, address) = self.server_sock.accept()
         log.info("Client connected: %s", str(address))
+        count = 0;
 
         msg = bytes()
         block_read_bytes = 6
@@ -242,7 +243,8 @@ class Simulator(object):
                 chunk = bytes(chunk, encoding=DATA_ENCODING)
             data = decode_message(chunk)
             for (a, w) in data:
-                log.info("Message received: (0x%04X) 0x%08X", a, w)
+                log.info("Message %05d received: (0x%04X) 0x%08X", count, a, w)
+                count += 1;
                 # Save the message to the register
                 self.registers[a] = w
                 if a in self.shortcuts:
