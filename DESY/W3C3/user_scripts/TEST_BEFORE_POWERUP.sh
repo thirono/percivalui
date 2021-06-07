@@ -32,6 +32,7 @@ percival-hl-configure-setpoints -i ./DESY/W3C3/config/05_Spreadsheets/DESY_W3C3_
 echo - now you can start Ramp ing biases
 
 #echo - Ramp UP Voltage Supplies and LVDS IOs...
+#percival-hl-apply-setpoint -s 00_0_0V0A
 #percival-hl-scan-setpoints -i 00_0_0V0A -f 01_0_VDD_ON -n 4 -d 2000
 #percival-hl-scan-setpoints -i 01_0_VDD_ON -f 02_0_LVDS_ON -n 4 -d 2000
 #percival-hl-system-command -c enable_LVDS_IOs

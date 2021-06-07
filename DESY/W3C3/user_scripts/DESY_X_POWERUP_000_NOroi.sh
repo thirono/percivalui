@@ -30,8 +30,9 @@ percival-hl-configure-monitor-groups -i ./DESY/W3C3/config/05_Spreadsheets/DESY_
 percival-hl-configure-setpoints -i ./DESY/W3C3/config/05_Spreadsheets/DESY_W3C3_Setpoint_Definitions.xls
 
 echo - Ramp UP Voltage Supplies and LVDS IOs...
-percival-hl-scan-setpoints -i 00_0_0V0A -f 01_0_VDD_ON -n 4 -d 2000
-percival-hl-scan-setpoints -i 01_0_VDD_ON -f 02_0_LVDS_ON -n 4 -d 2000
+percival-hl-apply-setpoint -s 00_0_0V0A
+percival-hl-scan-setpoints -i 00_0_0V0A -f 01_0_VDD_ON -n 2 -d 500
+percival-hl-scan-setpoints -i 01_0_VDD_ON -f 02_0_LVDS_ON -n 2 -d 500
 percival-hl-system-command -c enable_LVDS_IOs
 
 echo - Reset sensor
@@ -39,17 +40,17 @@ percival-hl-system-command -c assert_sensor_Master_Reset
 percival-hl-system-command -c deassert_sensor_Master_Reset
 
 echo - Ramp UP PixelVoltages...
-percival-hl-scan-setpoints -i 02_0_LVDS_ON -f 03_0_PixelVoltages_ON -n 4 -d 2000
-percival-hl-scan-setpoints -i 03_0_PixelVoltages_ON -f 04_0_PixelVoltages_ON -n 4 -d 2000
-percival-hl-scan-setpoints -i 04_0_PixelVoltages_ON -f 05_0_PixelVoltages_ON -n 4 -d 2000
-percival-hl-scan-setpoints -i 05_0_PixelVoltages_ON -f 06_0_PixelVoltages_ON -n 4 -d 2000
+percival-hl-scan-setpoints -i 02_0_LVDS_ON -f 03_0_PixelVoltages_ON -n 2 -d 500
+percival-hl-scan-setpoints -i 03_0_PixelVoltages_ON -f 04_0_PixelVoltages_ON -n 2 -d 500
+percival-hl-scan-setpoints -i 04_0_PixelVoltages_ON -f 05_0_PixelVoltages_ON -n 2 -d 500
+percival-hl-scan-setpoints -i 05_0_PixelVoltages_ON -f 06_0_PixelVoltages_ON -n 2 -d 500
 
 echo - Ramp UP Voltage references...
-percival-hl-scan-setpoints -i 06_0_PixelVoltages_ON -f 07_0_VoltageReferences_ON -n 4 -d 2000
+percival-hl-scan-setpoints -i 06_0_PixelVoltages_ON -f 07_0_VoltageReferences_ON -n 2 -d 500
 
 echo - Ramp UP Current Biases...
-percival-hl-scan-setpoints -i 07_0_VoltageReferences_ON -f 08_0_CurrentBiases_ON -n 4 -d 2000
-percival-hl-scan-setpoints -i 08_0_CurrentBiases_ON -f 08_1_CurrentBiases_ON_ready3T -n 4 -d 2000
+percival-hl-scan-setpoints -i 07_0_VoltageReferences_ON -f 08_0_CurrentBiases_ON -n 2 -d 500
+percival-hl-scan-setpoints -i 08_0_CurrentBiases_ON -f 08_1_CurrentBiases_ON_ready3T -n 2 -d 500
 echo PERCIVAL POWERUP COMPLETED
 
 echo Additional operations: 
