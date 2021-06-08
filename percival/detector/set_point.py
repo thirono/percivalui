@@ -89,7 +89,7 @@ class SetPointControl(object):
             if not device_list:
                 for dv in sps:
                     value = int(float(sps[dv]))
-                    self._log.info("Applying set_point [%s] = %d", dv, value)
+                    self._log.debug("Applying set_point [%s] = %d", dv, value)
                     self._detector.set_value(dv, value)
             elif isinstance(device_list, list):
                 # Iterate through the list setting the set point
