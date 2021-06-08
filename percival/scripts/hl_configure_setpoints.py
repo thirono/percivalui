@@ -20,6 +20,7 @@ def options():
     parser.add_argument("-i", "--input", required=True, action='store', help="Input spreadsheet to parse")
     wait_help = "Wait for the command to complete (default true)"
     parser.add_argument("-w", "--wait", action="store", default="true", help=wait_help)
+    parser.add_argument("--textdump", action="store_true", help="send to stdout instead of odin")
     args = parser.parse_args()
     return args
 
@@ -32,13 +33,15 @@ def main():
 
     sgg = SetpointGroupGenerator(workbook)
     ini_str = sgg.generate_ini()
-
-    pc = PercivalClient(args.address)
-    result = pc.send_configuration('setpoints',
-                                   ini_str,
-                                   'hl_configure_setpoints.py',
-                                   wait=(args.wait.lower() == "true"))
-    log.info("Response: %s", result)
+    if args.textdump:
+        print (ini_str);
+    else:
+        pc = PercivalClient(args.address)
+        result = pc.send_configuration('setpoints',
+                                       ini_str,
+                                       'hl_configure_setpoints.py',
+                                       wait=(args.wait.lower() == "true"))
+        log.info("Response: %s", result)
 
 
 if __name__ == '__main__':

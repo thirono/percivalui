@@ -7,8 +7,9 @@ from __future__ import print_function
 
 import xlrd
 
-from percival.log import log
+from percival.log import logger;
 
+splog = logger("percival.spreadsheet_parser");
 
 class WorksheetParser(object):
     def __init__(self, worksheet):
@@ -25,14 +26,14 @@ class WorksheetParser(object):
             if value == xlrd.empty_cell.value:
                 empty_count += 1
             else:
-                log.info("Cell: %s", value)
+                splog.debug("Cell: %s", value)
                 if '#' in value[0]:
-                    log.info("Comment so ignore this cell")
+                    splog.debug("Comment so ignore this cell")
                 else:
                     found_field = False
                     for field_name in field_names:
                         if field_name in value:
-                            log.info("Found %s tag in row %d", field_name, row)
+                            splog.debug("Found %s tag in row %d", field_name, row)
                             fields[field_name] = row
                             found_field = True
                             break
@@ -55,7 +56,7 @@ class WorksheetParser(object):
                     empty_count += 1
                 else:
                     group["channels"][channel] = value
-                    log.info("Adding channel [%s] to group", channel)
+                    splog.debug("Adding channel [%s] to group", channel)
             groups.append(group)
 
         return groups

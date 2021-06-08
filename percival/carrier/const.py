@@ -28,7 +28,7 @@ class UARTBlock(object):
 
     * Start address
     * Number of elements (entries) in the block
-    * Number of words per element (entry) in the block
+    * Number of 32bit-words per element (entry) in the block
     """
     def __init__(self, entries, words_per_entry, start_address):
         self.entries = entries

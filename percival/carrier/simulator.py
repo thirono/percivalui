@@ -16,11 +16,13 @@ from datetime import datetime
 from builtins import bytes    # pylint: disable=W0622
 from percival.carrier.encoding import DATA_ENCODING, END_OF_MESSAGE
 from percival.carrier.encoding import (encode_message, decode_message)
-from percival.log import log
+from percival.log import logger
 from percival.carrier.const import *
+import binascii;
 
-board_ip_port = 10001
+board_ip_port = 10002
 
+log = logger("percival.carrier.simulator");
 
 def bytes_to_str(byte_list):
     return "".join([chr(b) for b in byte_list])
@@ -223,10 +225,11 @@ class Simulator(object):
         The address space is empty on startup just like the Carrier.
         The function return when the client disconnects.
         """
-        log.info("Listening for connections...")
+        log.info("Listening for connections on %d...", board_ip_port);
         # Accept connections
         (client_sock, address) = self.server_sock.accept()
         log.info("Client connected: %s", str(address))
+        count = 0;
 
         msg = bytes()
         block_read_bytes = 6
@@ -234,13 +237,14 @@ class Simulator(object):
 
         # set_value = 0
         chunk = client_sock.recv(block_read_bytes)
-        log.info("Here!")
+
         while len(chunk) > 0:
             if isinstance(chunk, str):
                 chunk = bytes(chunk, encoding=DATA_ENCODING)
             data = decode_message(chunk)
             for (a, w) in data:
-                log.info("Message received: (0x%04X) 0x%08X", a, w)
+                log.info("Message %05d received: (0x%04X) 0x%08X", count, a, w)
+                count += 1;
                 # Save the message to the register
                 self.registers[a] = w
                 if a in self.shortcuts:
@@ -250,26 +254,40 @@ class Simulator(object):
                     for creg in range(reg, reg+length):
                         log.debug("creg: 0x%04X   reg: (0x%08X)", creg, self.registers[creg])
                         msg = msg + encode_message(creg, self.registers[creg])
-                    log.debug("Message length of reply: %d", len(msg))
+                    log.debug("Message length of reply: %d bytes", len(msg))
                     client_sock.send(msg)
                 else:
                     if a in self.eoms:
-                        log.info("EOM required")
-                        # We need to send FFFFABBABAC1 as an end of message
-                        log.info("Sending 0xFFFFABBABAC1")
+                        log.debug("required to send EOM back")
+                        # We need to send FFFFABBABAC1 as an ack from the carrier board
+                        log.info("Sending 0x%s", binascii.hexlify(END_OF_MESSAGE))
                         client_sock.send(END_OF_MESSAGE)
-                        # Check for special buffer command case where two responses may be required
+                        # Check for buffer-command where extra response comes from command-target
                         if a == COMMAND.start_address + 1:
-                            # Sensor DAC command
-                            if (w & 0x50000001):
-                                log.info("Sending 0xFFF3ABBA3333")
-                                client_sock.send(bytes('\xFF\xF3\xAB\xBA\x33\x33', encoding=DATA_ENCODING))
-                            if (w & 0x51000000) == 0x51000000 \
-                                    or (w & 0x52000000) == 0x52000000 \
-                                    or (w & 0x54000000) == 0x54000000:
-                                client_sock.send(bytes('\xFF\xF3\xAB\xBA\x33\x33', encoding=DATA_ENCODING))
+                            cmdtargets = [w >> 28];
+                            # if cmdtarget is 3 it means both mez boards!
+                            if cmdtargets[0] == 3:
+                                cmdtargets = [1,2];
+                            # commands can have a null target apparently!
+                            if cmdtargets[0] == 0:
+                                cmdtargets = [];
+                            cmdlookup = {
+                                1 : bytes('\xFF\xF0\xAB\xBA\x00\x00', encoding=DATA_ENCODING), # mezA
+                                2 : bytes('\xFF\xF1\xAB\xBA\x11\x11', encoding=DATA_ENCODING), # mezB
+                                4 : bytes('\xFF\xF2\xAB\xBA\x22\x22', encoding=DATA_ENCODING), # plugin
+                                5 : bytes('\xFF\xF3\xAB\xBA\x33\x33', encoding=DATA_ENCODING)  # sensor
+                            };
+                            for cmdtarget in cmdtargets:
+                                if (cmdtarget in cmdlookup):
+                                    ack = cmdlookup.get(cmdtarget);
+                                    log.info("Sending %s", binascii.hexlify(ack));
+                                    client_sock.send(ack);
+                                else:
+                                    raise Exception("can not find cmd target %d in my list" % cmdtarget);
+
                     else:
                         # Simply send back the registers
+                        log.info("Sending registers")
                         client_sock.send(encode_message(a, self.registers[a]))
 
                 if CONTROL_SETTINGS_CARRIER.start_address <= a < MONITORING_SETTINGS_CARRIER.start_address:

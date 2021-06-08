@@ -31,9 +31,10 @@ class PercivalAdapter(ApiAdapter):
 
         :param kwargs:
         """
+        self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         super(PercivalAdapter, self).__init__(**kwargs)
 
-        #logging.debug(kwargs)
+        self._log.debug("init kwargs: %s", kwargs)
         ini_file = None
         if 'config_file' in kwargs:
             ini_file = kwargs['config_file']
@@ -63,7 +64,7 @@ class PercivalAdapter(ApiAdapter):
         :return: ApiAdapterResponse object to be returned to the client
         """
 
-        #logging.debug("%s", request)
+        self._log.debug("GET %s", request)
 
         # Create a new Percival Command object
         cmd = Command(request)
@@ -74,7 +75,6 @@ class PercivalAdapter(ApiAdapter):
             response["auto_read"] = self._auto_read
 
         status_code = 200
-        #logging.debug(response)
 
         return ApiAdapterResponse(response, status_code=status_code)
 
@@ -90,8 +90,8 @@ class PercivalAdapter(ApiAdapter):
         :return: ApiAdapterResponse object to be returned to the client
         """
 
-        logging.debug("%s", request)
-        logging.debug("%s", request.body)
+        self._log.debug("PUT %s", request)
+        self._log.debug("PUT %s", request.body)
 
         status_code = 200
         response = {'response': 'Submitted',
@@ -124,7 +124,7 @@ class PercivalAdapter(ApiAdapter):
             response['response'] = 'Failed'
             response['error'] = "{} => {}".format(ex.args, traceback.format_exc())
 
-        logging.debug(response)
+        self._log.debug(response)
 
         return ApiAdapterResponse(response, status_code=status_code)
 
@@ -141,7 +141,7 @@ class PercivalAdapter(ApiAdapter):
         response = {'response': '{}: DELETE on path {}'.format(self.name, path)}
         status_code = 200
 
-        logging.debug(response)
+        self._log.debug(response)
 
         return ApiAdapterResponse(response, status_code=status_code)
 
