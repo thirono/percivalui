@@ -2,7 +2,7 @@ percival-hl-system-command -c stop_acquisition
 percival-hl-system-command -c exit_acquisition_armed_status
 
 echo "change biases from standard-after-PowON-status to 08_2j-status , BSI02 3T"  
-percival-hl-scan-setpoints -i 08_1_CurrentBiases_ON_ready3T -f 08_2j_BSI02_PGA -n 4 -d 2000
+percival-hl-scan-setpoints -i 08_1_CurrentBiases_ON_ready3T -f 08_2j_BSI02_PGA -n 2 -d 500
 
 
 echo "Load ADC25MHz,PLL120MHz, 3T,PGA6, SeqMod, 10Img,12ms integration"

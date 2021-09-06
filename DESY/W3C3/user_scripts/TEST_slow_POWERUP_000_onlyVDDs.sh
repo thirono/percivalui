@@ -31,6 +31,7 @@ percival-hl-configure-monitor-groups -i ./DESY/W3C3/config/05_Spreadsheets/DESY_
 percival-hl-configure-setpoints -i ./DESY/W3C3/config/05_Spreadsheets/DESY_W3C3_Setpoint_Definitions.xls
 
 echo "- Ramp UP Voltage Supplies..."
+percival-hl-apply-setpoint -s 00_0_0V0A
 i=1
 percival-hl-scan-setpoints -i 00_0_0V0A -f 01_0_VDD_ON_step_${i} -n 1 -d 2000
 

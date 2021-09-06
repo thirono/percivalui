@@ -2,7 +2,7 @@ percival-hl-system-command -c stop_acquisition
 percival-hl-system-command -c exit_acquisition_armed_status
 
 echo change biases from BSI2-SeqMod-status to standard-after-PowON-status 
-percival-hl-scan-setpoints -i 08_2i_BSI02_3T -f 08_1_CurrentBiases_ON_ready3T -n 4 -d 2000
+percival-hl-scan-setpoints -i 08_2i_BSI02_3T -f 08_1_CurrentBiases_ON_ready3T -n 2 -d 500
 
 echo Load default operating status
 percival-hl-configure-clock-settings -i ./DESY/W3C3/config/01_Clock_Settings/ClockSettings_N05_120MHz.ini

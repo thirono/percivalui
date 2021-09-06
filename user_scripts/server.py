@@ -38,11 +38,11 @@ def getOnScript(task):
     if task == "power to PwB":
         return "./user_scripts/wiener/pwb_UP.sh";
     if task == "power to head":
-        return "./DESY/W3C3/user_scripts/DLS_POWERUP_000_unix.sh";
+        return "./DESY/W3C3/user_scripts/POWERUP_000_unix.sh";
     if task == "head operational":
         return "./DESY/W3C3/user_scripts/DLS_FSI07_FromSysPowON_ToSeq_3T_PGAB_10Img_12ms_0802g_PLL120MHz_ADC25MHz.sh";
     if task == "digtest1":
-        return "./DESY/W3C3/user_scripts/DLS_digTest1_RESET_DATA_SYNCH_STATUS_unix.sh";
+        return "./DESY/W3C3/user_scripts/digTest1_RESET_DATA_SYNCH_STATUS_unix.sh";
     if task == "check voltages0":
         return "./user_scripts/wiener/checkcurrents.py -voltageszero";
     if task == "check voltages1":
@@ -57,7 +57,7 @@ def getOffScript(task):
     if task == "power to PwB":
         return "./user_scripts/wiener/pwb_DOWN.sh";
     if task == "power to head":
-        return "./DESY/W3C3/user_scripts/DLS_POWERDOWN_000_unix.sh";
+        return "./DESY/W3C3/user_scripts/POWERDOWN_000_unix.sh";
     if task == "head operational":
         return "./DESY/W3C3/user_scripts/DLS_FSI07_FromSeq0802g_ToSysPowON_unix.sh";
     if task == "digtest1":

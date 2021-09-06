@@ -2,7 +2,7 @@ percival-hl-system-command -c stop_acquisition
 percival-hl-system-command -c exit_acquisition_armed_status
 
 echo change "biases from standard-after-PowON-status to BSI04_03_PGA6 , BSI04 3T(PGA666)"  
-percival-hl-scan-setpoints -i 08_1_CurrentBiases_ON_ready3T -f BSI04_03_PGA6 -n 4 -d 2000
+percival-hl-scan-setpoints -i 08_1_CurrentBiases_ON_ready3T -f BSI04_03_PGA6 -n 2 -d 500
 
 echo Load ADC25MHz, PLL120MHz, 3T,PGA666 SequentialMode, 10 Images, 12ms integration
 percival-hl-configure-clock-settings -i ./DESY/W3C3/config/01_Clock_Settings/ClockSettings_N06_120MHz_ACD25MHz.ini

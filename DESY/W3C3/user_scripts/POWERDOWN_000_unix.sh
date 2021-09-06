@@ -13,20 +13,21 @@ percival-hl-configure-chip-readout-settings -i ./DESY/W3C3/config/02_Chip_Readou
 percival-hl-configure-system-settings -i ./DESY/W3C3/config/03_System_Settings/SystemSettings_N00_SAFE_START.ini
 
 echo - Ramp DOWN Current Biases...
-percival-hl-scan-setpoints -i 08_0_CurrentBiases_ON -f 07_0_VoltageReferences_ON -n 4 -d 2000
+percival-hl-apply-setpoint -s 08_0_CurrentBiases_ON
+percival-hl-scan-setpoints -i 08_0_CurrentBiases_ON -f 07_0_VoltageReferences_ON -n 2 -d 500
 
 echo - Ramp DOWN Voltage references...
-percival-hl-scan-setpoints -i 07_0_VoltageReferences_ON -f 06_0_PixelVoltages_ON -n 4 -d 2000
+percival-hl-scan-setpoints -i 07_0_VoltageReferences_ON -f 06_0_PixelVoltages_ON -n 2 -d 500
 
 echo - Ramp DOWN PixelVoltages...
-percival-hl-scan-setpoints -i 06_0_PixelVoltages_ON -f 05_0_PixelVoltages_ON -n 4 -d 2000
-percival-hl-scan-setpoints -i 05_0_PixelVoltages_ON -f 04_0_PixelVoltages_ON -n 4 -d 2000
-percival-hl-scan-setpoints -i 04_0_PixelVoltages_ON -f 03_0_PixelVoltages_ON -n 4 -d 2000
-percival-hl-scan-setpoints -i 03_0_PixelVoltages_ON -f 02_0_LVDS_ON -n 4 -d 2000
+percival-hl-scan-setpoints -i 06_0_PixelVoltages_ON -f 05_0_PixelVoltages_ON -n 2 -d 500
+percival-hl-scan-setpoints -i 05_0_PixelVoltages_ON -f 04_0_PixelVoltages_ON -n 2 -d 500
+percival-hl-scan-setpoints -i 04_0_PixelVoltages_ON -f 03_0_PixelVoltages_ON -n 2 -d 500
+percival-hl-scan-setpoints -i 03_0_PixelVoltages_ON -f 02_0_LVDS_ON -n 2 -d 500
 
 echo - Ramp DOWN Voltage Supplies and LVDS IOs...
 percival-hl-system-command -c disable_LVDS_IOs
-percival-hl-scan-setpoints -i 02_0_LVDS_ON -f 01_0_VDD_ON -n 4 -d 2000
-percival-hl-scan-setpoints -i 01_0_VDD_ON -f 00_0_0V0A -n 4 -d 2000
+percival-hl-scan-setpoints -i 02_0_LVDS_ON -f 01_0_VDD_ON -n 2 -d 500
+percival-hl-scan-setpoints -i 01_0_VDD_ON -f 00_0_0V0A -n 2 -d 500
 
 echo PERCIVAL POWERDOWN COMPLETED

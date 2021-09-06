@@ -89,7 +89,7 @@ class SetPointControl(object):
             if not device_list:
                 for dv in sps:
                     value = int(float(sps[dv]))
-                    self._log.info("Applying set_point [%s] = %d", dv, value)
+                    self._log.debug("Applying set_point [%s] = %d", dv, value)
                     self._detector.set_value(dv, value)
             elif isinstance(device_list, list):
                 # Iterate through the list setting the set point
@@ -248,10 +248,10 @@ class SetPointControl(object):
             if self._scanning:
                 for dv in self._dev2steps:
                     try:
-                        # For a scan index of greater than 0 check to see if we are being asked to scan to the
-                        # same point.  If we are then do not actually send the demand
-                        if self._scan_index == 0 or int(self._dev2steps[dv][self._scan_index]) != \
-                                    int(self._dev2steps[dv][self._scan_index - 1]):
+                        # If the stages are all the same, we set nothing.
+                        # This means that some values are preserved over the scan, and may not
+                        # finish at the value of setpoint. You must use scan_apply_setpoint for that.
+                        if int(self._dev2steps[dv][0]) != int(self._dev2steps[dv][-1]):
                             self._detector.set_value(dv, int(self._dev2steps[dv][self._scan_index]))
                     except Exception as ex:
                         # Caught an exception whilst scanning, so exit out and set error
